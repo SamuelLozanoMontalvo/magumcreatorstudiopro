@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | Creator Studio</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body class="dashboard-body">
+
+  <div class="app-layout">
+
+    <!-- Menú lateral izquierdo -->
+    <aside class="sidebar" id="sidebar">
+      
+      <div class="sidebar-brand">
+        <span class="platform-title">CREATOR STUDIO</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul class="nav-list">
+          
+          <li class="nav-item">
+            <a href="#dashboard" class="nav-link active" data-view="view-dashboard">
+              <i class="fa-solid fa-chart-pie nav-icon"></i>
+              <span class="nav-label">Dashboard</span>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="#crm" class="nav-link" data-view="view-crm">
+              <i class="fa-solid fa-users nav-icon"></i>
+              <span class="nav-label">CRM Clientes</span>
+            </a>
+          </li>
+
+          <!-- Módulo Marketing -->
+          <li class="nav-item nav-item-has-submenu open">
+            <div class="nav-link nav-submenu-toggle">
+              <i class="fa-solid fa-bullhorn nav-icon"></i>
+              <span class="nav-label">Marketing</span>
+              <i class="fa-solid fa-chevron-down submenu-arrow"></i>
+            </div>
+            
+            <ul class="submenu-list">
+              <li>
+                <a href="#marketing-web" class="submenu-link" data-view="view-marketing-web">
+                  <i class="fa-solid fa-globe"></i>
+                  <span>Web Editor</span>
+                </a>
+              </li>
+              <li>
+                <a href="#marketing-social" class="submenu-link" data-view="view-marketing-social" id="link-social-media">
+                  <i class="fa-solid fa-share-nodes"></i>
+                  <span>Social Media</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <li class="nav-item">
+            <a href="#profesionales" class="nav-link" data-view="view-profesionales">
+              <i class="fa-solid fa-id-card-clip nav-icon"></i>
+              <span class="nav-label">Profesionales</span>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="#ajustes" class="nav-link" data-view="view-ajustes">
+              <i class="fa-solid fa-gear nav-icon"></i>
+              <span class="nav-label">Ajustes</span>
+            </a>
+          </li>
+
+        </ul>
+      </nav>
+
+      <!-- Pie del sidebar con el nombre de la cuenta -->
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="avatar" id="sidebar-account-avatar">
+            <i class="fa-solid fa-store"></i>
+          </div>
+          <div class="user-info">
+            <span class="user-name" id="sidebar-account-name">AutoMotor Cartagena</span>
+            <span class="user-role">Cuenta Activa</span>
+          </div>
+        </div>
+        <a href="login.html" class="btn-logout" title="Cerrar sesión">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </a>
+      </div>
+
+    </aside>
+
+    <!-- Área principal -->
+    <main class="main-content">
+      
+      <header class="topbar">
+        <div class="topbar-welcome">
+          <h1 class="welcome-title">Bienvenido, <span id="topbar-account-name">AutoMotor Cartagena</span></h1>
+          <p class="welcome-subtitle">Panel de control y gestión digital</p>
+        </div>
+
+        <div class="topbar-actions">
+          
+          <!-- Botón de Modo Claro / Modo Oscuro -->
+          <button id="btn-theme-toggle" class="btn-theme-toggle" type="button" title="Cambiar tema">
+            <i class="fa-solid fa-moon" id="theme-icon"></i>
+            <span id="theme-text">Modo Oscuro</span>
+          </button>
+
+          <!-- Botón Crear Post que navega directo a Social Media -->
+          <button class="btn-quick-action" id="btn-create-post" type="button">
+            <i class="fa-solid fa-plus"></i>
+            <span>Crear Post</span>
+          </button>
+
+          <!-- Espacio para el logo del negocio del cliente en la parte superior derecha -->
+          <div class="client-logo-container" id="client-logo-wrapper" title="Logo del negocio">
+            <img 
+              src="https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=120&q=80" 
+              alt="Logo del cliente" 
+              class="client-top-logo" 
+              id="client-top-logo"
+            >
+          </div>
+
+        </div>
+      </header>
+
+      <!-- Vista Social Media -->
+      <div id="view-marketing-social" class="tab-view active">
+
+        <section class="banner-card">
+          <div class="banner-info">
+            <div class="banner-tag">
+              <i class="fa-solid fa-bolt"></i>
+              <span>Gestión de Redes Sociales</span>
+            </div>
+            <h2 class="banner-title">Monitorea y programa tus canales</h2>
+            <p class="banner-desc">Supervisa métricas en tiempo real, programa publicaciones y descubre ideas de contenido personalizadas para tu sector.</p>
+          </div>
+          <div class="status-pill">
+            <span class="status-dot"></span>
+            <span>Canales conectados: <strong>Activos</strong></span>
+          </div>
+        </section>
+
+        <section class="section-block">
+          
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Rendimiento en Redes</h2>
+              <p class="section-subtitle">Últimos 30 días</p>
+            </div>
+            
+            <div class="connected-badges">
+              <span class="badge-network badge-instagram">
+                <i class="fa-brands fa-instagram"></i> Instagram
+              </span>
+              <span class="badge-network badge-facebook">
+                <i class="fa-brands fa-facebook"></i> Facebook
+              </span>
+              <span class="badge-network badge-tiktok">
+                <i class="fa-brands fa-tiktok"></i> TikTok
+              </span>
+            </div>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-icon-wrap icon-purple">
+                <i class="fa-solid fa-eye"></i>
+              </div>
+              <div class="metric-details">
+                <span class="metric-label">Alcance Total</span>
+                <span class="metric-value">48,920</span>
+                <span class="metric-trend trend-up">
+                  <i class="fa-solid fa-arrow-trend-up"></i> +24.8% este mes
+                </span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon-wrap icon-magenta">
+                <i class="fa-solid fa-user-plus"></i>
+              </div>
+              <div class="metric-details">
+                <span class="metric-label">Nuevos Seguidores</span>
+                <span class="metric-value">+1,420</span>
+                <span class="metric-trend trend-up">
+                  <i class="fa-solid fa-arrow-trend-up"></i> +12.3%
+                </span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon-wrap icon-gold">
+                <i class="fa-solid fa-heart"></i>
+              </div>
+              <div class="metric-details">
+                <span class="metric-label">Interacciones</span>
+                <span class="metric-value">5,840</span>
+                <span class="metric-trend trend-up">
+                  <i class="fa-solid fa-arrow-trend-up"></i> 6.8% engagement
+                </span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon-wrap icon-blue">
+                <i class="fa-solid fa-calendar-check"></i>
+              </div>
+              <div class="metric-details">
+                <span class="metric-label">Posts en Cola</span>
+                <span class="metric-value">14 listos</span>
+                <span class="metric-trend trend-neutral">
+                  <i class="fa-solid fa-clock"></i> Próximo hoy 6:00 PM
+                </span>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- Ideas de contenido -->
+        <section class="section-block">
+          
+          <div class="section-header">
+            <div>
+              <div class="ai-badge">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> GENERADOR DE IDEAS
+              </div>
+              <h2 class="section-title">Contenido en Tendencia para tu Negocio</h2>
+              <p class="section-subtitle">Sugerencias estratégicas para publicar esta semana</p>
+            </div>
+          </div>
+
+          <div class="ideas-grid">
+            
+            <article class="idea-card">
+              <div class="idea-header">
+                <span class="idea-type type-reel"><i class="fa-solid fa-video"></i> REEL / TIKTOK</span>
+                <span class="idea-hot"><i class="fa-solid fa-fire"></i> Viral</span>
+              </div>
+              <h3 class="idea-title">"3 ruidos en tu vehículo que nunca debes ignorar antes de viajar"</h3>
+              <p class="idea-desc">Video corto mostrando el motor y explicando cuándo acudir al taller antes de que sea tarde.</p>
+              <div class="idea-meta">
+                <div class="meta-item"><i class="fa-solid fa-music"></i> Audio recomendado en tendencia</div>
+                <div class="meta-item"><i class="fa-regular fa-clock"></i> Mejor hora: 7:30 PM</div>
+              </div>
+              <div class="idea-footer">
+                <button class="btn-use-idea" type="button"><span>Programar Publicación</span><i class="fa-solid fa-arrow-right"></i></button>
+              </div>
+            </article>
+
+            <article class="idea-card">
+              <div class="idea-header">
+                <span class="idea-type type-carousel"><i class="fa-solid fa-images"></i> CARRUSEL</span>
+                <span class="idea-hot"><i class="fa-solid fa-fire"></i> Para Guardar</span>
+              </div>
+              <h3 class="idea-title">"Guía definitiva: ¿Cada cuánto tiempo cambiar cada líquido de tu auto?"</h3>
+              <p class="idea-desc">Diseño gráfico de 5 diapositivas claras. Formato con alto índice de guardados.</p>
+              <div class="idea-meta">
+                <div class="meta-item"><i class="fa-solid fa-bookmark"></i> Formato educativo</div>
+                <div class="meta-item"><i class="fa-regular fa-clock"></i> Mejor hora: 1:00 PM</div>
+              </div>
+              <div class="idea-footer">
+                <button class="btn-use-idea" type="button"><span>Programar Publicación</span><i class="fa-solid fa-arrow-right"></i></button>
+              </div>
+            </article>
+
+            <article class="idea-card">
+              <div class="idea-header">
+                <span class="idea-type type-story"><i class="fa-solid fa-circle-notch"></i> HISTORIA</span>
+                <span class="idea-hot"><i class="fa-solid fa-fire"></i> Interacción</span>
+              </div>
+              <h3 class="idea-title">"¿Caja automática o manual para el tráfico de la ciudad? Vota aquí 👇"</h3>
+              <p class="idea-desc">Sticker de encuesta en Historias para activar la interacción de tu comunidad.</p>
+              <div class="idea-meta">
+                <div class="meta-item"><i class="fa-solid fa-square-poll-vertical"></i> Encuesta activa</div>
+                <div class="meta-item"><i class="fa-regular fa-clock"></i> Mejor hora: 11:30 AM</div>
+              </div>
+              <div class="idea-footer">
+                <button class="btn-use-idea" type="button"><span>Programar Publicación</span><i class="fa-solid fa-arrow-right"></i></button>
+              </div>
+            </article>
+
+          </div>
+
+        </section>
+
+      </div>
+
+      <!-- Vista Web Editor -->
+      <div id="view-marketing-web" class="tab-view" style="display: none;">
+        
+        <section class="section-block">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Gestión de Página Web</h2>
+              <p class="section-subtitle">Administra el sitio web oficial de tu negocio</p>
+            </div>
+            <button class="btn-quick-action" type="button">
+              <i class="fa-solid fa-pen-to-square"></i>
+              <span>Abrir Editor Visual</span>
+            </button>
+          </div>
+
+          <div class="web-status-card">
+            <div class="web-preview-mockup">
+              <i class="fa-solid fa-laptop-code"></i>
+            </div>
+            <div class="web-details">
+              <span class="badge-web-online">Sitio Web Publicado</span>
+              <h3 class="web-url">www.automotorcartagena.com</h3>
+              <p class="web-last-update">Última actualización: Hace 2 días • Certificado SSL Activo</p>
+              
+              <div class="web-quick-stats">
+                <div class="stat-mini">
+                  <span class="stat-mini-num">12,450</span>
+                  <span class="stat-mini-label">Visitas este mes</span>
+                </div>
+                <div class="stat-mini">
+                  <span class="stat-mini-num">84</span>
+                  <span class="stat-mini-label">Formularios recibidos</span>
+                </div>
+                <div class="stat-mini">
+                  <span class="stat-mini-num">99.9%</span>
+                  <span class="stat-mini-label">Disponibilidad</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
