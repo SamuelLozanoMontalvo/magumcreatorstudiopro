@@ -33,9 +33,13 @@ document.addEventListener('DOMContentLoaded', () => {
       showAlert('Credenciales correctas. Ingresando...', 'success');
 
       setTimeout(() => {
-        // Redirige limpiamente al dashboard sin ensuciar la URL
-        window.location.href = 'dashboard.html';
-      }, 600);
+        // En Vercel / producción redirige a dashboard limpio, en local a dashboard.html
+        if (window.location.protocol === 'file:') {
+          window.location.href = 'dashboard.html';
+        } else {
+          window.location.href = 'dashboard';
+        }
+      }, 500);
     });
   }
 
