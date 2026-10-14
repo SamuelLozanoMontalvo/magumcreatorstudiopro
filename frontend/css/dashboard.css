@@ -14,7 +14,6 @@
   font-display: swap;
 }
 
-/* Modo claro suave por defecto */
 :root {
   --bg-app: #f4f6fa;
   --bg-sidebar: #ffffff;
@@ -41,7 +40,6 @@
   --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Modo oscuro al pulsar el botón */
 body.dark-mode {
   --bg-app: #080017;
   --bg-sidebar: rgba(14, 3, 33, 0.95);
@@ -92,17 +90,30 @@ body.dashboard-body {
   transition: var(--transition);
 }
 
+/* Espacio donde se ubica el logo del cliente */
 .sidebar-brand {
-  padding: 0 8px 22px 8px;
+  padding: 0 4px 18px 4px;
   border-bottom: 1px solid var(--border-color);
   margin-bottom: 18px;
 }
 
-.platform-title {
-  font-family: var(--font-brand);
-  font-size: 1.1rem;
-  letter-spacing: 1.5px;
-  color: var(--brand-magenta);
+.client-brand-box {
+  width: 100%;
+  height: 52px;
+  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  overflow: hidden;
+}
+
+.client-brand-logo {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 
 .sidebar-nav {
@@ -198,37 +209,21 @@ body.dark-mode .nav-link.active {
   background: rgba(255, 0, 219, 0.08);
 }
 
+/* Pie del sidebar: solo nombre y estado */
 .sidebar-footer {
   padding-top: 16px;
   border-top: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
 }
 
-.user-profile {
+.user-profile-simple {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
   overflow: hidden;
-}
-
-.avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: #f1f5f9;
-  border: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9rem;
-  color: var(--text-main);
-  flex-shrink: 0;
-}
-
-body.dark-mode .avatar {
-  background: rgba(255, 255, 255, 0.08);
+  padding-left: 4px;
 }
 
 .user-name {
@@ -250,6 +245,7 @@ body.dark-mode .avatar {
   border-radius: 8px;
   text-decoration: none;
   transition: var(--transition);
+  flex-shrink: 0;
 }
 
 .btn-logout:hover {
@@ -261,7 +257,7 @@ body.dark-mode .btn-logout:hover {
   background: rgba(239, 68, 68, 0.15);
 }
 
-/* Área principal */
+/* Contenido principal */
 .main-content {
   flex: 1;
   margin-left: var(--sidebar-width);
@@ -294,10 +290,9 @@ body.dark-mode .btn-logout:hover {
 .topbar-actions {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
-/* Botón Conmutador de Tema */
 .btn-theme-toggle {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -323,7 +318,6 @@ body.dark-mode .btn-logout:hover {
   color: var(--brand-magenta);
 }
 
-/* Botón Crear Post */
 .btn-quick-action {
   background: var(--brand-gold);
   color: #111827;
@@ -347,28 +341,7 @@ body.dark-mode .btn-logout:hover {
   transform: translateY(-2px);
 }
 
-/* Contenedor del logo del cliente en la esquina superior derecha */
-.client-logo-container {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid var(--border-color);
-  background: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--card-shadow);
-  cursor: pointer;
-}
-
-.client-top-logo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* Banner de redes */
+/* Banners y secciones */
 .banner-card {
   background: linear-gradient(135deg, #fdf4ff 0%, #ffffff 100%);
   border: 1px solid rgba(255, 0, 219, 0.18);
@@ -432,7 +405,6 @@ body.dark-mode .banner-card {
   box-shadow: 0 0 8px var(--status-online);
 }
 
-/* Bloques de sección */
 .section-block {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
@@ -491,7 +463,6 @@ body.dark-mode .badge-network {
 .badge-facebook i { color: #1877f2; }
 .badge-tiktok i { color: #00f2fe; }
 
-/* Métricas */
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -555,7 +526,6 @@ body.dark-mode .icon-blue { background: rgba(2, 132, 199, 0.2); color: #38bdf8; 
 .trend-up { color: var(--status-online); }
 .trend-neutral { color: var(--text-muted); }
 
-/* Generador de ideas */
 .ai-badge {
   display: inline-flex;
   align-items: center;
@@ -755,11 +725,10 @@ body.dark-mode .badge-web-online {
     --sidebar-width: 80px;
   }
 
-  .platform-title,
   .nav-label,
   .submenu-arrow,
   .submenu-list,
-  .user-info {
+  .user-profile-simple {
     display: none !important;
   }
 

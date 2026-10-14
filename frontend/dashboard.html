@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard | Creator Studio</title>
+  <title>Dashboard | Plataforma</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,8 +18,16 @@
     <!-- Menú lateral izquierdo -->
     <aside class="sidebar" id="sidebar">
       
+      <!-- Aquí va el logo que sube el cliente -->
       <div class="sidebar-brand">
-        <span class="platform-title">CREATOR STUDIO</span>
+        <div class="client-brand-box">
+          <img 
+            src="https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=260&q=80" 
+            alt="Logo del cliente" 
+            class="client-brand-logo"
+            id="client-brand-logo"
+          >
+        </div>
       </div>
 
       <nav class="sidebar-nav">
@@ -80,16 +88,11 @@
         </ul>
       </nav>
 
-      <!-- Pie del sidebar con el nombre de la cuenta -->
+      <!-- Pie del menú lateral sin foto, solo nombre del cliente -->
       <div class="sidebar-footer">
-        <div class="user-profile">
-          <div class="avatar" id="sidebar-account-avatar">
-            <i class="fa-solid fa-store"></i>
-          </div>
-          <div class="user-info">
-            <span class="user-name" id="sidebar-account-name">AutoMotor Cartagena</span>
-            <span class="user-role">Cuenta Activa</span>
-          </div>
+        <div class="user-profile-simple">
+          <span class="user-name" id="sidebar-account-name">AutoMotor Cartagena</span>
+          <span class="user-role">Cuenta Activa</span>
         </div>
         <a href="login.html" class="btn-logout" title="Cerrar sesión">
           <i class="fa-solid fa-right-from-bracket"></i>
@@ -115,21 +118,11 @@
             <span id="theme-text">Modo Oscuro</span>
           </button>
 
-          <!-- Botón Crear Post que navega directo a Social Media -->
+          <!-- Botón Crear Post -->
           <button class="btn-quick-action" id="btn-create-post" type="button">
             <i class="fa-solid fa-plus"></i>
             <span>Crear Post</span>
           </button>
-
-          <!-- Espacio para el logo del negocio del cliente en la parte superior derecha -->
-          <div class="client-logo-container" id="client-logo-wrapper" title="Logo del negocio">
-            <img 
-              src="https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=120&q=80" 
-              alt="Logo del cliente" 
-              class="client-top-logo" 
-              id="client-top-logo"
-            >
-          </div>
 
         </div>
       </header>
