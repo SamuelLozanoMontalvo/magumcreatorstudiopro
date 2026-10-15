@@ -13,6 +13,9 @@
 </head>
 <body class="dashboard-body">
 
+  <!-- Telón de fondo para menú móvil -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
   <div class="app-layout">
 
     <!-- Menú lateral izquierdo -->
@@ -105,9 +108,16 @@
     <main class="main-content">
       
       <header class="topbar">
-        <div class="topbar-welcome">
-          <h1 class="welcome-title">Bienvenido, <span id="topbar-account-name">AutoMotor Cartagena</span></h1>
-          <p class="welcome-subtitle">Panel de control y gestión digital</p>
+        <div class="topbar-left-group">
+          <!-- Botón menú móvil (hamburguesa) -->
+          <button id="btn-sidebar-toggle" class="btn-sidebar-toggle" type="button" aria-label="Abrir menú de navegación">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          
+          <div class="topbar-welcome">
+            <h1 class="welcome-title">Bienvenido, <span id="topbar-account-name">AutoMotor Cartagena</span></h1>
+            <p class="welcome-subtitle">Panel de control y gestión digital</p>
+          </div>
         </div>
 
         <div class="topbar-actions">
@@ -126,6 +136,18 @@
 
         </div>
       </header>
+
+      <!-- Selector de pestañas para móvil y desktop: acceso directo a Social Media y Web Editor -->
+      <nav class="marketing-tabs-nav" aria-label="Módulos de Marketing">
+        <button type="button" class="tab-btn active" data-view="view-marketing-social" id="tab-btn-social">
+          <i class="fa-solid fa-share-nodes"></i>
+          <span>Social Media</span>
+        </button>
+        <button type="button" class="tab-btn" data-view="view-marketing-web" id="tab-btn-web">
+          <i class="fa-solid fa-globe"></i>
+          <span>Web Editor</span>
+        </button>
+      </nav>
 
       <!-- Vista Social Media -->
       <div id="view-marketing-social" class="tab-view active">
