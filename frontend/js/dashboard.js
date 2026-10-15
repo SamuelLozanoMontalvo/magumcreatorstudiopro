@@ -38,6 +38,47 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // 1.1 LEER SESIÓN ACTIVA Y APLICAR PERMISOS DE MÓDULOS
+  const rawSession = localStorage.getItem('magum_session');
+  if (rawSession) {
+    try {
+      const session = JSON.parse(rawSession);
+      if (session.business) {
+        const topbarName = document.getElementById('topbar-account-name');
+        const sidebarName = document.getElementById('sidebar-account-name');
+        if (topbarName) topbarName.textContent = session.business;
+        if (sidebarName) sidebarName.textContent = session.business;
+      }
+
+      // Si fue abierto por el Super Admin, mostrar barra para volver al panel maestro
+      if (session.impersonatedByAdmin) {
+        const banner = document.createElement('div');
+        banner.style.cssText = 'background: #210087; color: #fff; padding: 10px 20px; font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2);';
+        banner.innerHTML = `
+          <span><i class="fa-solid fa-user-shield"></i> Vista previa de cliente: <strong>${session.business}</strong></span>
+          <a href="${window.location.protocol === 'file:' ? 'admin.html' : 'admin'}" style="color: #FDD344; text-decoration: none; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-arrow-left"></i> Volver a Super Admin</a>
+        `;
+        document.body.prepend(banner);
+      }
+
+      // Deshabilitar módulos si no están contratados
+      if (session.modules) {
+        if (!session.modules.web) {
+          const webSubmenu = document.querySelector('[data-view="view-marketing-web"]');
+          if (webSubmenu && webSubmenu.closest('li')) webSubmenu.closest('li').style.display = 'none';
+        }
+        if (!session.modules.social) {
+          const socialSubmenu = document.querySelector('[data-view="view-marketing-social"]');
+          if (socialSubmenu && socialSubmenu.closest('li')) socialSubmenu.closest('li').style.display = 'none';
+          const btnCreatePost = document.getElementById('btn-create-post');
+          if (btnCreatePost) btnCreatePost.style.display = 'none';
+        }
+      }
+    } catch (e) {
+      console.warn('Error leyendo sesión:', e);
+    }
+  }
+
   // 2. MENÚ MÓVIL (HAMBURGUESA Y TELÓN DE FONDO)
   const sidebar = document.getElementById('sidebar');
   const sidebarToggleBtn = document.getElementById('btn-sidebar-toggle');

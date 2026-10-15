@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Admin | Magum Creator Studio</title>
+
+  <!-- Tipografía Montserrat y FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+  <div class="admin-layout">
+    
+    <!-- Barra superior de Super Admin -->
+    <header class="admin-topbar">
+      
+      <div class="brand-group">
+        <img 
+          src="https://lirp.cdn-website.com/e4e4cefa/dms3rep/multi/opt/Magum_logo+magenta-1920w.png" 
+          alt="Magum Logo" 
+          class="admin-brand-logo"
+        >
+        <span class="badge-superadmin">SUPER ADMIN PANEL</span>
+      </div>
+
+      <div class="topbar-right">
+        <!-- Selector Modo Claro / Oscuro -->
+        <button id="btn-theme-toggle" class="btn-theme-toggle" type="button" title="Cambiar modo de color">
+          <i class="fa-solid fa-moon" id="theme-icon"></i>
+          <span id="theme-text">Modo Oscuro</span>
+        </button>
+
+        <!-- Perfil del Admin -->
+        <div class="admin-profile-pill">
+          <div class="admin-avatar">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <div class="admin-meta">
+            <span class="admin-name">McSAdmin</span>
+            <span class="admin-role">Administrador Maestro</span>
+          </div>
+        </div>
+
+        <!-- Botón Salir -->
+        <button id="btn-logout" class="btn-admin-logout" title="Cerrar sesión">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Salir</span>
+        </button>
+      </div>
+
+    </header>
+
+    <!-- Contenido del Panel Maestro -->
+    <main class="admin-main">
+      
+      <!-- Banner de Bienvenida -->
+      <section class="admin-hero-banner">
+        <div>
+          <h1 class="hero-title">Gestión Maestra de Cuentas</h1>
+          <p class="hero-subtitle">Crea, filtra y administra las cuentas y módulos habilitados de todos los clientes de la plataforma.</p>
+        </div>
+
+        <button id="btn-open-create-modal" class="btn-create-account" type="button">
+          <i class="fa-solid fa-user-plus"></i>
+          <span>Crear Nueva Cuenta</span>
+        </button>
+      </section>
+
+      <!-- Tarjetas de Estadísticas Globales -->
+      <section class="admin-stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon-wrap icon-purple">
+            <i class="fa-solid fa-briefcase"></i>
+          </div>
+          <div>
+            <span class="stat-label">Cuentas Registradas</span>
+            <span class="stat-number" id="stat-total-accounts">0</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrap icon-green">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+          <div>
+            <span class="stat-label">Cuentas Activas</span>
+            <span class="stat-number" id="stat-active-accounts">0</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrap icon-magenta">
+            <i class="fa-solid fa-share-nodes"></i>
+          </div>
+          <div>
+            <span class="stat-label">Con Social Media</span>
+            <span class="stat-number" id="stat-social-accounts">0</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrap icon-blue">
+            <i class="fa-solid fa-globe"></i>
+          </div>
+          <div>
+            <span class="stat-label">Con Web Editor</span>
+            <span class="stat-number" id="stat-web-accounts">0</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Barra de Filtros y Búsqueda -->
+      <section class="filter-card">
+        
+        <div class="search-input-wrap">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input 
+            type="text" 
+            id="input-search" 
+            class="input-search" 
+            placeholder="Buscar por ID (#MAG-101), nombre, negocio o correo..."
+          >
+          <button id="btn-clear-search" class="btn-clear-search" type="button" title="Limpiar búsqueda" style="display: none;">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="filter-controls">
+          
+          <!-- Filtro por Estado -->
+          <div class="select-group">
+            <label for="filter-status" class="select-label">Estado:</label>
+            <select id="filter-status" class="filter-select">
+              <option value="all">Todos</option>
+              <option value="active">Activos</option>
+              <option value="inactive">Suspendidos</option>
+            </select>
+          </div>
+
+          <!-- Filtro por Módulos -->
+          <div class="select-group">
+            <label for="filter-module" class="select-label">Módulos:</label>
+            <select id="filter-module" class="filter-select">
+              <option value="all">Todos los módulos</option>
+              <option value="social-only">Solo Social Media</option>
+              <option value="web-only">Solo Web Editor</option>
+              <option value="both">Ambos Módulos</option>
+            </select>
+          </div>
+
+          <!-- Ordenamiento -->
+          <div class="select-group">
+            <label for="filter-sort" class="select-label">Ordenar:</label>
+            <select id="filter-sort" class="filter-select">
+              <option value="date-desc">Más recientes primero</option>
+              <option value="date-asc">Más antiguos primero</option>
+              <option value="name-asc">Nombre (A - Z)</option>
+            </select>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- Tabla de Clientes y Cuentas -->
+      <section class="table-card">
+        
+        <div class="table-header-info">
+          <span class="table-title">Lista de Negocios y Cuentas</span>
+          <span class="table-count" id="table-results-count">Mostrando cuentas</span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>ID Cuenta</th>
+                <th>Cliente</th>
+                <th>Nombre del Negocio</th>
+                <th>Correo Electrónico</th>
+                <th>Módulos Habilitados</th>
+                <th>Fecha Creación</th>
+                <th>Estado</th>
+                <th class="th-actions">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="accounts-table-body">
+              <!-- Se llena dinámicamente con JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Estado vacío cuando no hay resultados de búsqueda -->
+        <div id="empty-state" class="empty-state" style="display: none;">
+          <i class="fa-solid fa-folder-open empty-icon"></i>
+          <h3>No se encontraron cuentas</h3>
+          <p>Intenta con otros términos de búsqueda o limpia los filtros aplicados.</p>
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Modal: Crear Nueva Cuenta de Cliente -->
+  <div class="modal-backdrop" id="modal-create-account" style="display: none;">
+    <div class="modal-card">
+      
+      <header class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-badge-icon">
+            <i class="fa-solid fa-user-plus"></i>
+          </div>
+          <div>
+            <h2 class="modal-title">Crear Nueva Cuenta de Cliente</h2>
+            <p class="modal-subtitle">Asigna los datos del titular y los módulos autorizados</p>
+          </div>
+        </div>
+        <button id="btn-close-modal" class="btn-close-modal" type="button" aria-label="Cerrar modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </header>
+
+      <form id="form-create-account" class="modal-form">
+        
+        <div class="form-grid-2">
+          <!-- Nombre -->
+          <div class="form-group">
+            <label for="account-firstname" class="form-label">Nombre del titular *</label>
+            <input 
+              type="text" 
+              id="account-firstname" 
+              class="form-input" 
+              placeholder="Ej. Samuel" 
+              required
+            >
+          </div>
+
+          <!-- Apellido -->
+          <div class="form-group">
+            <label for="account-lastname" class="form-label">Apellido *</label>
+            <input 
+              type="text" 
+              id="account-lastname" 
+              class="form-input" 
+              placeholder="Ej. Lozano" 
+              required
+            >
+          </div>
+        </div>
+
+        <!-- Nombre del Negocio -->
+        <div class="form-group">
+          <label for="account-business" class="form-label">Nombre del Negocio / Empresa *</label>
+          <div class="input-with-icon">
+            <i class="fa-solid fa-briefcase"></i>
+            <input 
+              type="text" 
+              id="account-business" 
+              class="form-input" 
+              placeholder="Ej. AutoMotor Cartagena" 
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <!-- Correo -->
+          <div class="form-group">
+            <label for="account-email" class="form-label">Correo electrónico *</label>
+            <div class="input-with-icon">
+              <i class="fa-regular fa-envelope"></i>
+              <input 
+                type="email" 
+                id="account-email" 
+                class="form-input" 
+                placeholder="contacto@automotor.com" 
+                required
+              >
+            </div>
+          </div>
+
+          <!-- Contraseña -->
+          <div class="form-group">
+            <label for="account-password" class="form-label">Contraseña de acceso *</label>
+            <div class="input-with-icon">
+              <i class="fa-solid fa-lock"></i>
+              <input 
+                type="text" 
+                id="account-password" 
+                class="form-input" 
+                placeholder="Crea una contraseña segura" 
+                required
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Módulos Contratados -->
+        <div class="modules-config-box">
+          <span class="modules-config-title">
+            <i class="fa-solid fa-sliders"></i> Módulos Contratados por el Cliente
+          </span>
+          <p class="modules-config-desc">
+            Define qué herramientas podrá utilizar este negocio en su panel:
+          </p>
+
+          <div class="modules-checkbox-grid">
+            
+            <label class="module-check-card">
+              <input type="checkbox" id="module-social-check" checked>
+              <div class="module-check-content">
+                <div class="module-icon-wrap icon-social">
+                  <i class="fa-solid fa-share-nodes"></i>
+                </div>
+                <div>
+                  <strong class="module-name">Social Media</strong>
+                  <span class="module-explain">Emisión y programación en Instagram, Facebook y TikTok.</span>
+                </div>
+              </div>
+            </label>
+
+            <label class="module-check-card">
+              <input type="checkbox" id="module-web-check" checked>
+              <div class="module-check-content">
+                <div class="module-icon-wrap icon-web">
+                  <i class="fa-solid fa-globe"></i>
+                </div>
+                <div>
+                  <strong class="module-name">Web Editor</strong>
+                  <span class="module-explain">Editor visual y publicación de página web oficial.</span>
+                </div>
+              </div>
+            </label>
+
+          </div>
+
+          <div class="module-permanent-note">
+            <i class="fa-solid fa-circle-check"></i>
+            <span><strong>Incluidos por defecto en todas las cuentas:</strong> CRM de Clientes, Profesionales y Ajustes de Cuenta siempre estarán activos.</span>
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" id="btn-cancel-modal" class="btn-cancel">Cancelar</button>
+          <button type="submit" class="btn-submit-account">
+            <i class="fa-solid fa-check"></i>
+            <span>Crear y Activar Cuenta</span>
+          </button>
+        </footer>
+
+      </form>
+
+    </div>
+  </div>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>
