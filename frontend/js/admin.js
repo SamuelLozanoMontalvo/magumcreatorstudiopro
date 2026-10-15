@@ -37,6 +37,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Generador de ID: 7 caracteres alfanuméricos sin símbolos
+  function generate7CharId() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let id = '';
+    for (let i = 0; i < 7; i++) {
+      id += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return id;
+  }
+
   // 2. NAVEGACIÓN DE VISTAS DEL ADMIN
   const adminNavTabs = document.querySelectorAll('.admin-nav-tab');
   const adminViews = document.querySelectorAll('.admin-view');
@@ -67,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. BASE DE DATOS LOCAL DE CUENTAS
   const DEFAULT_ACCOUNTS = [
     {
-      id: 'SL7K92X',
+      id: 'MG7K92X',
       firstName: 'Samuel',
       lastName: 'Lozano',
       business: 'AutoMotor Cartagena',
@@ -77,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
       status: 'active'
     },
     {
-      id: 'LR4M21B',
+      id: 'BL48D91',
       firstName: 'Laura',
       lastName: 'Restrepo',
       business: 'Spa Bella Luna',
@@ -87,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
       status: 'active'
     },
     {
-      id: 'CM8N45T',
+      id: 'MAG-103',
       firstName: 'Carlos',
       lastName: 'Mendoza',
       business: 'Dental Group Cartagena',
@@ -97,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
       status: 'active'
     },
     {
-      id: 'VG3P78F',
+      id: 'MAG-104',
       firstName: 'Valeria',
       lastName: 'Gómez',
       business: 'Fitness Club Pro',
@@ -115,17 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return DEFAULT_ACCOUNTS;
     }
     try {
-      let accounts = JSON.parse(data);
-      let updated = false;
-      accounts = accounts.map(acc => {
-        if (!acc.id || acc.id.includes('-') || acc.id.startsWith('#') || acc.id.length !== 7) {
-          acc.id = generate7CharId();
-          updated = true;
-        }
-        return acc;
-      });
-      if (updated) saveAccounts(accounts);
-      return accounts;
+      return JSON.parse(data);
     } catch {
       return DEFAULT_ACCOUNTS;
     }
@@ -168,6 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sortVal = filterSort.value;
 
     let filtered = allAccounts.filter(acc => {
+      // Búsqueda por texto (ID, nombre, negocio, correo)
       const fullName = `${acc.firstName} ${acc.lastName}`.toLowerCase();
       const matchSearch = !query ||
         acc.id.toLowerCase().includes(query) ||
@@ -201,24 +202,16 @@ document.addEventListener('DOMContentLoaded', () => {
       emptyState.style.display = 'none';
       filtered.forEach(acc => {
         const tr = document.createElement('tr');
-
-        let statusBadge = '';
-        if (acc.status === 'active') {
-          statusBadge = '<span class="badge-status badge-status-active"><span class="status-indicator-dot"></span> Activo</span>';
-        } else {
-          statusBadge = '<span class="badge-status badge-status-inactive"><span class="status-indicator-dot"></span> Suspendido</span>';
-        }
-
         tr.innerHTML = `
           <td><span class="account-id">${acc.id}</span></td>
           <td class="client-name-cell">${escapeHtml(acc.firstName)} ${escapeHtml(acc.lastName)}</td>
           <td class="business-name-cell">${escapeHtml(acc.business)}</td>
           <td class="email-cell">${escapeHtml(acc.email)}</td>
           <td>
-            <div class="modules-icons-cell">
-              ${acc.modules.social ? '<span class="mod-icon-pill icon-social" title="Social Media"><i class="fa-solid fa-share-nodes"></i></span>' : ''}
-              ${acc.modules.web ? '<span class="mod-icon-pill icon-web" title="Web Editor"><i class="fa-solid fa-globe"></i></span>' : ''}
-              <span class="mod-icon-pill icon-crm" title="CRM siempre activo"><i class="fa-solid fa-users"></i></span>
+            <div class="modules-badges-cell">
+              ${acc.modules.social ? '<span class="badge-module badge-mod-social"><i class="fa-solid fa-share-nodes"></i> Social</span>' : ''}
+              ${acc.modules.web ? '<span class="badge-module badge-mod-web"><i class="fa-solid fa-globe"></i> Web</span>' : ''}
+              <span class="badge-module badge-mod-crm" title="CRM y Profesionales siempre activos"><i class="fa-solid fa-users"></i> CRM Core</span>
             </div>
           </td>
           <td>${formatDate(acc.createdAt)}</td>
@@ -231,9 +224,6 @@ document.addEventListener('DOMContentLoaded', () => {
               </button>
               <button class="btn-row-action btn-toggle-status" title="${acc.status === 'active' ? 'Suspender cuenta' : 'Activar cuenta'}" data-id="${acc.id}">
                 <i class="fa-solid ${acc.status === 'active' ? 'fa-pause' : 'fa-play'}"></i>
-              </button>
-              <button class="btn-row-action btn-delete-acc" title="Eliminar cuenta permanentemente" data-id="${acc.id}">
-                <i class="fa-solid fa-trash-can"></i>
               </button>
             </div>
           </td>
@@ -257,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
     statWeb.textContent = web;
   }
 
-  // 7. ACCIONES EN TABLA
+  // 5. ACCIONES EN TABLA (VER PANEL Y CAMBIAR ESTADO)
   function attachActionListeners() {
     document.querySelectorAll('.btn-impersonate').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -290,24 +280,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     });
-
-    document.querySelectorAll('.btn-delete-acc').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const accId = btn.getAttribute('data-id');
-        const accounts = getAccounts();
-        const acc = accounts.find(a => a.id === accId);
-        if (acc) {
-          const ok = confirm(`¿Eliminar permanentemente la cuenta de "${acc.business}" (ID: ${acc.id})?\n\nEsta acción no se puede deshacer.`);
-          if (ok) {
-            saveAccounts(accounts.filter(a => a.id !== accId));
-            render();
-          }
-        }
-      });
-    });
   }
 
-  // 8. BÚSQUEDA Y FILTROS
+  // 6. EVENTOS DE BÚSQUEDA Y FILTRADO
   searchInput.addEventListener('input', () => {
     clearSearchBtn.style.display = searchInput.value ? 'block' : 'none';
     render();
@@ -338,6 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnCancelModal) btnCancelModal.addEventListener('click', closeModal);
   modalCreate.addEventListener('click', (e) => { if (e.target === modalCreate) closeModal(); });
 
+  // Guardar nueva cuenta
   formCreate.addEventListener('submit', (e) => {
     e.preventDefault();
     const firstName = document.getElementById('account-firstname').value.trim();
@@ -362,8 +338,12 @@ document.addEventListener('DOMContentLoaded', () => {
       lastName,
       business,
       email,
-      password,
-      modules: { social: socialCheck, web: webCheck, crm: true },
+      password, // En el backend se hasheará con bcrypt
+      modules: {
+        social: socialCheck,
+        web: webCheck,
+        crm: true // Siempre activo
+      },
       createdAt: new Date().toISOString().split('T')[0],
       status: 'active'
     };
@@ -372,259 +352,11 @@ document.addEventListener('DOMContentLoaded', () => {
     saveAccounts(accounts);
     closeModal();
     render();
-    alert(`✅ Cuenta creada\n\nID: ${newId}\nNegocio: ${business}\nTitular: ${firstName} ${lastName}\n\nCredenciales de acceso:\nUsuario: ${email}\nContraseña: ${password}`);
+
+    alert(`¡Cuenta creada con éxito!\n\nID: #${newId}\nNegocio: ${business}\nTitular: ${firstName} ${lastName}\nMódulos: ${socialCheck ? 'Social Media ' : ''}${webCheck ? 'Web Editor ' : ''}(CRM siempre activo)\n\nEl cliente ya puede iniciar sesión con:\nUsuario/Correo: ${email}\nContraseña: ${password}`);
   });
 
-  // 10. CRM DE FACTURACIÓN
-  const DEFAULT_BILLING = [
-    {
-      id: 'B' + generate7CharId(),
-      clientName: 'Samuel Lozano',
-      business: 'AutoMotor Cartagena',
-      plan: 'monthly',
-      amount: 150000,
-      startDate: '2026-10-01',
-      modules: 'Social Media + Web Editor',
-      notes: 'Cliente ancla. Pago puntual.',
-      paymentStatus: 'paid'
-    },
-    {
-      id: 'B' + generate7CharId(),
-      clientName: 'Laura Restrepo',
-      business: 'Spa Bella Luna',
-      plan: 'annual',
-      amount: 1500000,
-      startDate: '2026-06-15',
-      modules: 'Social Media',
-      notes: 'Pagó anual con descuento del 15%.',
-      paymentStatus: 'paid'
-    },
-    {
-      id: 'B' + generate7CharId(),
-      clientName: 'Carlos Mendoza',
-      business: 'Dental Group Cartagena',
-      plan: 'lifetime',
-      amount: 3500000,
-      startDate: '2026-09-01',
-      modules: 'Web Editor',
-      notes: 'Licencia vitalicia. No cobrar más.',
-      paymentStatus: 'paid'
-    }
-  ];
-
-  function getBilling() {
-    const data = localStorage.getItem('magum_billing');
-    if (!data) {
-      localStorage.setItem('magum_billing', JSON.stringify(DEFAULT_BILLING));
-      return DEFAULT_BILLING;
-    }
-    try { return JSON.parse(data); } catch { return DEFAULT_BILLING; }
-  }
-
-  function saveBilling(items) {
-    localStorage.setItem('magum_billing', JSON.stringify(items));
-  }
-
-  function planLabel(plan) {
-    const labels = {
-      lifetime: '♾ Vitalicio',
-      monthly: '📅 Mensual',
-      quarterly: '📅 Trimestral',
-      biannual: '📅 Semestral',
-      annual: '📅 Anual'
-    };
-    return labels[plan] || plan;
-  }
-
-  function planCycleDays(plan) {
-    return { monthly: 30, quarterly: 90, biannual: 180, annual: 365 }[plan] || null;
-  }
-
-  function nextBillingDate(startDate, plan) {
-    if (plan === 'lifetime') return null;
-    const days = planCycleDays(plan);
-    if (!days) return null;
-    const start = new Date(startDate);
-    const today = new Date();
-    let next = new Date(start);
-    while (next <= today) {
-      next.setDate(next.getDate() + days);
-    }
-    return next;
-  }
-
-  function formatCurrency(amount) {
-    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(amount);
-  }
-
-  function daysUntil(date) {
-    if (!date) return null;
-    const diff = Math.ceil((date - new Date()) / (1000 * 60 * 60 * 24));
-    return diff;
-  }
-
-  function renderBillingTable() {
-    const items = getBilling();
-    const billingBody = document.getElementById('billing-table-body');
-    const billingEmpty = document.getElementById('billing-empty-state');
-    const billingCount = document.getElementById('billing-results-count');
-    const billingIncome = document.getElementById('billing-stat-income');
-    const billingUpcoming = document.getElementById('billing-stat-upcoming');
-    const billingLifetime = document.getElementById('billing-stat-lifetime');
-    const billingRecurring = document.getElementById('billing-stat-recurring');
-
-    if (!billingBody) return;
-
-    const lifetime = items.filter(i => i.plan === 'lifetime').length;
-    const recurring = items.filter(i => i.plan !== 'lifetime').length;
-    const upcoming = items.filter(i => {
-      const nd = nextBillingDate(i.startDate, i.plan);
-      const d = daysUntil(nd);
-      return d !== null && d >= 0 && d <= 7;
-    }).length;
-    const income = items.reduce((sum, i) => i.plan !== 'lifetime' ? sum + (i.amount || 0) : sum, 0);
-
-    if (billingIncome) billingIncome.textContent = formatCurrency(income);
-    if (billingUpcoming) billingUpcoming.textContent = upcoming;
-    if (billingLifetime) billingLifetime.textContent = lifetime;
-    if (billingRecurring) billingRecurring.textContent = recurring;
-    if (billingCount) billingCount.textContent = `${items.length} registros`;
-
-    billingBody.innerHTML = '';
-
-    if (items.length === 0) {
-      if (billingEmpty) billingEmpty.style.display = 'block';
-      return;
-    }
-    if (billingEmpty) billingEmpty.style.display = 'none';
-
-    items.forEach(item => {
-      const nd = nextBillingDate(item.startDate, item.plan);
-      const days = daysUntil(nd);
-
-      let nextLabel = '';
-      let nextBadge = '';
-      if (item.plan === 'lifetime') {
-        nextLabel = '—';
-        nextBadge = '<span class="badge-status badge-status-active"><span class="status-indicator-dot"></span> Sin cobros</span>';
-      } else if (nd) {
-        nextLabel = formatDate(nd.toISOString().split('T')[0]);
-        if (days !== null && days <= 7 && days >= 0) {
-          nextBadge = `<span class="badge-status badge-billing-warn"><span class="status-indicator-dot"></span> En ${days} día${days === 1 ? '' : 's'}</span>`;
-        } else if (days !== null && days < 0) {
-          nextBadge = '<span class="badge-status badge-status-inactive"><span class="status-indicator-dot"></span> Vencido</span>';
-        } else {
-          nextBadge = `<span style="font-size:0.78rem;color:var(--text-muted);">${nextLabel}</span>`;
-        }
-      }
-
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="client-name-cell">${escapeHtml(item.clientName)}</td>
-        <td class="business-name-cell">${escapeHtml(item.business)}</td>
-        <td>${planLabel(item.plan)}</td>
-        <td style="font-weight:700;">${item.plan === 'lifetime' ? formatCurrency(item.amount) : formatCurrency(item.amount) + '/ciclo'}</td>
-        <td>${nextBadge}</td>
-        <td><span class="badge-status badge-status-active"><span class="status-indicator-dot"></span> Al día</span></td>
-        <td style="max-width:180px;font-size:0.8rem;color:var(--text-muted);">${escapeHtml(item.notes || '—')}</td>
-        <td>
-          <div class="actions-cell">
-            <button class="btn-row-action btn-edit-billing" title="Editar registro" data-id="${item.id}">
-              <i class="fa-solid fa-pen"></i>
-            </button>
-            <button class="btn-row-action btn-delete-billing" title="Eliminar registro" data-id="${item.id}">
-              <i class="fa-solid fa-trash-can"></i>
-            </button>
-          </div>
-        </td>
-      `;
-      billingBody.appendChild(tr);
-    });
-
-    // Eliminar billing
-    document.querySelectorAll('.btn-delete-billing').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-id');
-        const items = getBilling();
-        const item = items.find(i => i.id === id);
-        if (item && confirm(`¿Eliminar el registro de "${item.business}"?`)) {
-          saveBilling(items.filter(i => i.id !== id));
-          renderBillingTable();
-        }
-      });
-    });
-  }
-
-  // Modal facturación
-  const modalBilling = document.getElementById('modal-billing');
-  const btnOpenBillingModal = document.getElementById('btn-open-billing-modal');
-  const btnCloseBillingModal = document.getElementById('btn-close-billing-modal');
-  const btnCancelBillingModal = document.getElementById('btn-cancel-billing-modal');
-  const formBilling = document.getElementById('form-billing');
-
-  if (btnOpenBillingModal) {
-    btnOpenBillingModal.addEventListener('click', () => {
-      modalBilling.style.display = 'flex';
-      formBilling.reset();
-    });
-  }
-
-  function closeBillingModal() { if (modalBilling) modalBilling.style.display = 'none'; }
-  if (btnCloseBillingModal) btnCloseBillingModal.addEventListener('click', closeBillingModal);
-  if (btnCancelBillingModal) btnCancelBillingModal.addEventListener('click', closeBillingModal);
-  if (modalBilling) {
-    modalBilling.addEventListener('click', (e) => { if (e.target === modalBilling) closeBillingModal(); });
-  }
-
-  if (formBilling) {
-    formBilling.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const clientName = document.getElementById('billing-client-name').value.trim();
-      const business = document.getElementById('billing-business').value.trim();
-      const plan = document.getElementById('billing-plan-type').value;
-      const amount = parseFloat(document.getElementById('billing-amount').value) || 0;
-      const startDate = document.getElementById('billing-start-date').value || new Date().toISOString().split('T')[0];
-      const modules = document.getElementById('billing-modules').value.trim();
-      const notes = document.getElementById('billing-notes').value.trim();
-
-      if (!clientName || !business || !plan) {
-        alert('Completa los campos obligatorios: nombre, negocio y plan.');
-        return;
-      }
-
-      const items = getBilling();
-      items.unshift({
-        id: 'B' + generate7CharId(),
-        clientName,
-        business,
-        plan,
-        amount,
-        startDate,
-        modules,
-        notes,
-        paymentStatus: 'paid'
-      });
-      saveBilling(items);
-      closeBillingModal();
-      renderBillingTable();
-    });
-  }
-
-  // 11. LOGO ADMIN
-  const adminLogoFile = document.getElementById('admin-logo-file');
-  const adminLogoPreview = document.getElementById('admin-logo-preview-img');
-  if (adminLogoFile && adminLogoPreview) {
-    adminLogoFile.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (ev) => { adminLogoPreview.src = ev.target.result; };
-        reader.readAsDataURL(file);
-      }
-    });
-  }
-
-  // 12. LOGOUT
+  // 8. LOGOUT LIMPIO
   if (btnLogout) {
     btnLogout.addEventListener('click', () => {
       localStorage.removeItem('magum_session');
