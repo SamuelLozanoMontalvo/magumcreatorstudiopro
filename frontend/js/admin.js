@@ -15,8 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (!session || session.role !== 'admin') {
     // Si no es admin autenticado, redirigir a login
-    const targetUrl = (window.location.protocol === 'file:') ? 'index.html' : '/';
-    window.location.replace(targetUrl);
+    window.location.replace('index.html');
     return;
   }
 
@@ -313,8 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
             impersonatedByAdmin: true,
             loggedAt: new Date().toISOString()
           }));
-          const targetUrl = (window.location.protocol === 'file:') ? 'dashboard.html' : 'dashboard';
-          window.location.href = targetUrl;
+          window.location.href = 'dashboard.html';
         }
       });
     });
@@ -790,8 +788,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnLogout) {
     btnLogout.addEventListener('click', () => {
       localStorage.removeItem('magum_session');
-      const targetUrl = (window.location.protocol === 'file:') ? 'index.html' : '/';
-      window.location.href = targetUrl;
+      window.location.href = 'index.html';
     });
   }
 

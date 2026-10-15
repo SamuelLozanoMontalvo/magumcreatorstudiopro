@@ -6,7 +6,7 @@
 (function verifyDashboardSession() {
   const rawSession = localStorage.getItem('magum_session');
   if (!rawSession) {
-    window.location.href = (window.location.protocol === 'file:') ? 'index.html' : '/';
+    window.location.replace('index.html');
     return;
   }
   try {
@@ -16,12 +16,12 @@
     }
     // Si es super admin y no está en modo simulación de cliente, llevar a admin
     if (session.role === 'admin' && !session.impersonatedByAdmin) {
-      window.location.href = (window.location.protocol === 'file:') ? 'admin.html' : 'admin';
+      window.location.replace('admin.html');
       return;
     }
   } catch (e) {
     localStorage.removeItem('magum_session');
-    window.location.href = (window.location.protocol === 'file:') ? 'index.html' : '/';
+    window.location.replace('index.html');
   }
 })();
 
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         banner.style.cssText = 'background: #210087; color: #fff; padding: 10px 20px; font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2);';
         banner.innerHTML = `
           <span><i class="fa-solid fa-user-shield"></i> Vista previa de cliente: <strong>${escapeHtml(bizName)}</strong></span>
-          <a href="${window.location.protocol === 'file:' ? 'admin.html' : 'admin'}" style="color: #FDD344; text-decoration: none; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-arrow-left"></i> Volver a Super Admin</a>
+          <a href="admin.html" style="color: #FDD344; text-decoration: none; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-arrow-left"></i> Volver a Super Admin</a>
         `;
         document.body.prepend(banner);
       }
@@ -1215,7 +1215,7 @@ document.addEventListener('DOMContentLoaded', () => {
     logoutBtn.addEventListener('click', (e) => {
       e.preventDefault();
       localStorage.removeItem('magum_session');
-      window.location.href = (window.location.protocol === 'file:') ? 'index.html' : '/';
+      window.location.href = 'index.html';
     });
   }
 
