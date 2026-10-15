@@ -180,8 +180,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    if (viewId === 'view-crm') renderCrm();
-    if (viewId === 'view-profesionales') renderProfessionals();
+    if (viewId === 'view-crm') {
+      renderCrm();
+      syncCrmFromBackend();
+    }
+    if (viewId === 'view-profesionales') {
+      renderProfessionals();
+      syncTeamFromBackend();
+    }
   }
 
   // Activar vista por hash si viene en la URL (ej. #ajustes o #crm)
@@ -338,6 +344,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function saveCrmContacts(contacts) {
     localStorage.setItem(getCrmStorageKey(), JSON.stringify(contacts));
+  }
+
+  async function syncCrmFromBackend() {
+    try {
+      if (window.MagumApi) {
+        const res = await window.MagumApi.getCrmContacts();
+        if (res && res.success && Array.isArray(res.data)) {
+          if (res.data.length > 0 || !isDemoAccount) {
+            saveCrmContacts(res.data);
+            renderCrm();
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Sync CRM from backend warning:', e.message);
+    }
   }
 
   // Estado de selección múltiple (IDs seleccionados)
@@ -826,9 +848,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (idx !== -1) {
           contacts[idx] = { ...contacts[idx], name, email, phone, age, company, segment, notes };
         }
+        if (window.MagumApi) {
+          window.MagumApi.updateCrmContact(editId, { name, email, phone, age, company, segment, notes })
+            .catch(e => console.warn('Update CRM backend warning:', e.message));
+        }
       } else {
-        const newId = 'C-' + Math.floor(1000 + Math.random() * 9000);
-        contacts.unshift({ id: newId, name, email, phone, age, company, segment, notes });
+        let newId = 'C-' + Math.floor(1000 + Math.random() * 9000);
+        const newContact = { id: newId, name, email, phone, age, company, segment, notes };
+        contacts.unshift(newContact);
+
+        if (window.MagumApi) {
+          window.MagumApi.createCrmContact({ name, email, phone, age, company, segment, notes })
+            .then(res => {
+              if (res && res.data && res.data.id) {
+                newContact.id = res.data.id;
+                saveCrmContacts(contacts);
+              }
+            })
+            .catch(e => console.warn('Create CRM backend warning:', e.message));
+        }
       }
 
       saveCrmContacts(contacts);
@@ -997,6 +1035,22 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem(getProfStorageKey(), JSON.stringify(profs));
   }
 
+  async function syncTeamFromBackend() {
+    try {
+      if (window.MagumApi) {
+        const res = await window.MagumApi.getTeam();
+        if (res && res.success && Array.isArray(res.data)) {
+          if (res.data.length > 0 || !isDemoAccount) {
+            saveProfessionals(res.data);
+            renderProfessionals();
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Sync team from backend warning:', e.message);
+    }
+  }
+
   const profTableBody = document.getElementById('prof-table-body');
   const profEmptyState = document.getElementById('prof-empty-state');
   const modalProf = document.getElementById('modal-prof-user');
@@ -1088,6 +1142,9 @@ document.addEventListener('DOMContentLoaded', () => {
           if (ok) {
             saveProfessionals(profs.filter(p => p.id !== id));
             renderProfessionals();
+            if (window.MagumApi) {
+              window.MagumApi.deleteTeamMember(id).catch(e => console.warn('Delete team backend warning:', e.message));
+            }
             MagumAlert.success('Acceso Revocado', `El usuario de ${prof.name} fue retirado del equipo.`);
           }
         }
@@ -1147,9 +1204,25 @@ document.addEventListener('DOMContentLoaded', () => {
             profs[idx].password = password;
           }
         }
+        if (window.MagumApi) {
+          window.MagumApi.updateTeamMember(editId, { name, role, email, phone, schedule, password })
+            .catch(e => console.warn('Update team backend warning:', e.message));
+        }
       } else {
-        const newId = 'P-' + Math.floor(1000 + Math.random() * 9000);
-        profs.unshift({ id: newId, name, role, email, password, phone, schedule });
+        let newId = 'P-' + Math.floor(1000 + Math.random() * 9000);
+        const newProf = { id: newId, name, role, email, password, phone, schedule };
+        profs.unshift(newProf);
+
+        if (window.MagumApi) {
+          window.MagumApi.createTeamMember({ name, role, email, password, phone, schedule })
+            .then(res => {
+              if (res && res.data && res.data.id) {
+                newProf.id = res.data.id;
+                saveProfessionals(profs);
+              }
+            })
+            .catch(e => console.warn('Create team backend warning:', e.message));
+        }
       }
 
       saveProfessionals(profs);
@@ -1289,5 +1362,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadBrandSettings();
   renderCrm();
   renderProfessionals();
+  syncCrmFromBackend();
+  syncTeamFromBackend();
 
 });

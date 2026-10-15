@@ -111,7 +111,7 @@ router.post('/', async (req, res) => {
 
     const result = await db.query(`
       INSERT INTO billing (id, account_id, client_name, business, plan, amount, start_date, modules, notes, payment_status)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'paid')
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'paid')
       RETURNING *
     `, [newId, accountId || null, clientName.trim(), business.trim(), plan, parseFloat(amount), date, modules || 'CRM', notes || null]);
 

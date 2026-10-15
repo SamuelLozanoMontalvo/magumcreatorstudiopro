@@ -83,7 +83,10 @@ document.addEventListener('DOMContentLoaded', () => {
         v.style.display = (v.id === targetId) ? 'block' : 'none';
         v.classList.toggle('active-view', v.id === targetId);
       });
-      if (targetId === 'view-admin-crm') renderBillingTable();
+      if (targetId === 'view-admin-crm') {
+        renderBillingTable();
+        syncBillingFromBackend();
+      }
       if (targetId === 'view-admin-settings') renderAdminUsersTable();
     });
   });
@@ -172,6 +175,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function saveAccounts(accounts) {
     localStorage.setItem('magum_accounts', JSON.stringify(accounts));
+  }
+
+  async function syncAccountsFromBackend() {
+    try {
+      if (window.MagumApi) {
+        const res = await window.MagumApi.getAccounts();
+        if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+          saveAccounts(res.data);
+          render();
+        }
+      }
+    } catch (e) {
+      console.warn('Sync accounts from backend warning:', e.message);
+    }
   }
 
   // 5. REFERENCIAS DE ELEMENTOS (CUENTAS)
@@ -327,6 +344,9 @@ document.addEventListener('DOMContentLoaded', () => {
           acc.status = (acc.status === 'active') ? 'inactive' : 'active';
           saveAccounts(accounts);
           render();
+          if (window.MagumApi) {
+            window.MagumApi.toggleAccountStatus(accId).catch(e => console.warn('Toggle status backend warning:', e.message));
+          }
         }
       });
     });
@@ -345,6 +365,9 @@ document.addEventListener('DOMContentLoaded', () => {
           if (ok) {
             saveAccounts(accounts.filter(a => a.id !== accId));
             render();
+            if (window.MagumApi) {
+              window.MagumApi.deleteAccount(accId).catch(e => console.warn('Delete account backend warning:', e.message));
+            }
             MagumAlert.success('Cuenta Eliminada', `La cuenta de "${acc.business}" fue eliminada.`);
           }
         }
@@ -440,24 +463,24 @@ document.addEventListener('DOMContentLoaded', () => {
       accounts.unshift(newAccount);
       saveAccounts(accounts);
 
-      // Sincronizar con backend si está disponible
+      // Sincronizar con backend PostgreSQL en Railway
       try {
-        if (window.MagumApiClient) {
-          const client = new MagumApiClient();
-          await client.request('/accounts', {
-            method: 'POST',
-            body: JSON.stringify({
-              firstName,
-              lastName,
-              business,
-              email,
-              password,
-              modules: { social: socialCheck, web: webCheck, crm: true }
-            })
-          }).catch(e => console.warn('Sync backend account warning:', e.message));
+        if (window.MagumApi) {
+          const apiRes = await window.MagumApi.createAccount({
+            firstName,
+            lastName,
+            business,
+            email,
+            password,
+            modules: { social: socialCheck, web: webCheck, crm: true }
+          });
+          if (apiRes && apiRes.data && apiRes.data.id) {
+            newId = apiRes.data.id;
+            newAccount.id = newId;
+          }
         }
       } catch (syncErr) {
-        console.warn('Sync backend error:', syncErr);
+        console.warn('Sync backend error:', syncErr.message || syncErr);
       }
 
       // También registrar automáticamente en el CRM de facturación
@@ -583,6 +606,20 @@ document.addEventListener('DOMContentLoaded', () => {
     return Math.ceil((date - new Date()) / (1000 * 60 * 60 * 24));
   }
 
+  async function syncBillingFromBackend() {
+    try {
+      if (window.MagumApi) {
+        const res = await window.MagumApi.getBilling();
+        if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+          saveBilling(res.data);
+          renderBillingTable();
+        }
+      }
+    } catch (e) {
+      console.warn('Sync billing warning:', e.message);
+    }
+  }
+
   function renderBillingTable() {
     const items = getBilling();
     const billingBody = document.getElementById('billing-table-body');
@@ -670,6 +707,9 @@ document.addEventListener('DOMContentLoaded', () => {
           if (ok) {
             saveBilling(items.filter(i => i.id !== id));
             renderBillingTable();
+            if (window.MagumApi) {
+              window.MagumApi.deleteBilling(id).catch(e => console.warn('Delete billing backend warning:', e.message));
+            }
             MagumAlert.success('Registro Eliminado', `El cobro de "${item.business}" fue retirado.`);
           }
         }
@@ -707,7 +747,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (formBilling) {
-    formBilling.addEventListener('submit', (e) => {
+    formBilling.addEventListener('submit', async (e) => {
       e.preventDefault();
       const clientName = document.getElementById('billing-client-name').value.trim();
       const business = document.getElementById('billing-business').value.trim();
@@ -722,9 +762,31 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      let newBillingId = 'B' + generate7CharId();
+
+      // Guardar en backend PostgreSQL de Railway
+      if (window.MagumApi) {
+        try {
+          const apiRes = await window.MagumApi.createBilling({
+            clientName,
+            business,
+            plan,
+            amount,
+            startDate,
+            modules,
+            notes
+          });
+          if (apiRes && apiRes.data && apiRes.data.id) {
+            newBillingId = apiRes.data.id;
+          }
+        } catch (apiErr) {
+          console.warn('Backend billing creation warning:', apiErr.message);
+        }
+      }
+
       const items = getBilling();
       items.unshift({
-        id: 'B' + generate7CharId(),
+        id: newBillingId,
         clientName,
         business,
         plan,
@@ -1075,5 +1137,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAdminSettings();
   render();
   renderAdminUsersTable();
+  syncAccountsFromBackend();
+  syncBillingFromBackend();
 
 });

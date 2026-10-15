@@ -213,7 +213,26 @@ class MagumApiClient {
       method: 'DELETE'
     });
   }
+
+  // Administradores de la Plataforma
+  async getAdmins() {
+    return this.request('/accounts/admins/list');
+  }
+
+  async createAdmin(data) {
+    return this.request('/accounts/admins', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  }
+
+  async deleteAdmin(id) {
+    return this.request(`/accounts/admins/${id}`, {
+      method: 'DELETE'
+    });
+  }
 }
 
-// Instancia global disponible en todos los scripts del frontend
+// Clases e instancias globales disponibles en todos los scripts del frontend
+window.MagumApiClient = MagumApiClient;
 window.MagumApi = new MagumApiClient();
