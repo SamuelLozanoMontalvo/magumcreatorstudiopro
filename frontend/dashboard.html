@@ -137,93 +137,71 @@
         </div>
       </header>
 
-      <!-- Selector de pestañas para móvil y desktop: acceso directo a Social Media y Web Editor -->
-      <nav class="marketing-tabs-nav" aria-label="Módulos de Marketing">
-        <button type="button" class="tab-btn active" data-view="view-marketing-social" id="tab-btn-social">
-          <i class="fa-solid fa-share-nodes"></i>
-          <span>Social Media</span>
-        </button>
-        <button type="button" class="tab-btn" data-view="view-marketing-web" id="tab-btn-web">
-          <i class="fa-solid fa-globe"></i>
-          <span>Web Editor</span>
-        </button>
-      </nav>
-
-      <!-- Vista Social Media -->
-      <div id="view-marketing-social" class="tab-view active">
+      <!-- Vista Principal: Dashboard Integral (Resumen de todo el negocio) -->
+      <div id="view-dashboard" class="tab-view active">
 
         <section class="banner-card">
           <div class="banner-info">
             <div class="banner-tag">
-              <i class="fa-solid fa-bolt"></i>
-              <span>Gestión de Redes Sociales</span>
+              <i class="fa-solid fa-chart-pie"></i>
+              <span>Panel Ejecutivo Integral</span>
             </div>
-            <h2 class="banner-title">Monitorea y programa tus canales</h2>
-            <p class="banner-desc">Supervisa métricas en tiempo real, programa publicaciones y descubre ideas de contenido personalizadas para tu sector.</p>
+            <h2 class="banner-title">Resumen General del Negocio</h2>
+            <p class="banner-desc">Supervisa en tiempo real el rendimiento de tus clientes (CRM), tus canales digitales y las acciones estratégicas sugeridas para aumentar tus ventas.</p>
           </div>
           <div class="status-pill">
             <span class="status-dot"></span>
-            <span>Canales conectados: <strong>Activos</strong></span>
+            <span>Ecosistema Digital: <strong>100% Operativo</strong></span>
           </div>
         </section>
 
+        <!-- Métricas 360° Integradas (Redes + Web + CRM) -->
         <section class="section-block">
           
           <div class="section-header">
             <div>
-              <h2 class="section-title">Rendimiento en Redes</h2>
-              <p class="section-subtitle">Últimos 30 días</p>
-            </div>
-            
-            <div class="connected-badges">
-              <span class="badge-network badge-instagram">
-                <i class="fa-brands fa-instagram"></i> Instagram
-              </span>
-              <span class="badge-network badge-facebook">
-                <i class="fa-brands fa-facebook"></i> Facebook
-              </span>
-              <span class="badge-network badge-tiktok">
-                <i class="fa-brands fa-tiktok"></i> TikTok
-              </span>
+              <h2 class="section-title">Rendimiento Consolidado</h2>
+              <p class="section-subtitle">Últimos 30 días en todos tus canales y clientes</p>
             </div>
           </div>
 
           <div class="metrics-grid">
+            
             <div class="metric-card">
               <div class="metric-icon-wrap icon-purple">
-                <i class="fa-solid fa-eye"></i>
+                <i class="fa-solid fa-share-nodes"></i>
               </div>
               <div class="metric-details">
-                <span class="metric-label">Alcance Total</span>
+                <span class="metric-label">Alcance en Redes</span>
                 <span class="metric-value">48,920</span>
                 <span class="metric-trend trend-up">
-                  <i class="fa-solid fa-arrow-trend-up"></i> +24.8% este mes
+                  <i class="fa-solid fa-arrow-trend-up"></i> +24.8% en canales
                 </span>
               </div>
             </div>
 
             <div class="metric-card">
               <div class="metric-icon-wrap icon-magenta">
-                <i class="fa-solid fa-user-plus"></i>
+                <i class="fa-solid fa-globe"></i>
               </div>
               <div class="metric-details">
-                <span class="metric-label">Nuevos Seguidores</span>
-                <span class="metric-value">+1,420</span>
+                <span class="metric-label">Visitas Sitio Web</span>
+                <span class="metric-value">12,450</span>
                 <span class="metric-trend trend-up">
-                  <i class="fa-solid fa-arrow-trend-up"></i> +12.3%
+                  <i class="fa-solid fa-arrow-trend-up"></i> +18.2% este mes
                 </span>
               </div>
             </div>
 
             <div class="metric-card">
               <div class="metric-icon-wrap icon-gold">
-                <i class="fa-solid fa-heart"></i>
+                <i class="fa-solid fa-users"></i>
               </div>
               <div class="metric-details">
-                <span class="metric-label">Interacciones</span>
-                <span class="metric-value">5,840</span>
+                <span class="metric-label">Clientes en CRM</span>
+                <span class="metric-value">1,240</span>
                 <span class="metric-trend trend-up">
-                  <i class="fa-solid fa-arrow-trend-up"></i> 6.8% engagement
+                  <i class="fa-solid fa-arrow-trend-up"></i> +38 nuevos este mes
                 </span>
               </div>
             </div>
@@ -240,11 +218,185 @@
                 </span>
               </div>
             </div>
+
           </div>
 
         </section>
 
-        <!-- Ideas de contenido -->
+        <!-- Sugerencias Inteligentes de Crecimiento & CRM ("¿Qué hacer hoy?") -->
+        <section class="section-block">
+          
+          <div class="section-header">
+            <div>
+              <div class="ai-badge">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> INTELIGENCIA DE NEGOCIO • ACCIONES SUGERIDAS
+              </div>
+              <h2 class="section-title">Sugerencias de Crecimiento para tu Negocio</h2>
+              <p class="section-subtitle">Acciones recomendadas con base en el estado de tus clientes y redes sociales para aumentar tus ventas esta semana:</p>
+            </div>
+          </div>
+
+          <div class="suggestions-grid">
+            
+            <!-- Sugerencia 1: Email Marketing Masivo (CRM) -->
+            <div class="suggestion-card">
+              <div class="suggestion-card-header">
+                <span class="suggestion-channel-badge badge-email">
+                  <i class="fa-solid fa-envelope-open-text"></i> EMAIL MARKETING • CRM
+                </span>
+                <span class="suggestion-goal-tag">Reactivación</span>
+              </div>
+              <h3 class="suggestion-title">"Enviemos un email masivo: Recordatorio de Mantenimiento Preventivo"</h3>
+              <p class="suggestion-target">
+                <i class="fa-solid fa-bullseye"></i> <strong>Audiencia:</strong> 142 clientes registrados con más de 60 días sin agendar cita.
+              </p>
+              <div class="suggestion-why-box">
+                <div class="why-header">
+                  <i class="fa-solid fa-lightbulb"></i> ¿Por qué hacerlo?
+                </div>
+                <p class="why-text">
+                  Reactiva clientes que ya confían en tu negocio sin costo publicitario. Un recordatorio oportuno suele generar entre 15 y 30 citas en menos de 48 horas.
+                </p>
+              </div>
+              <button class="btn-action-suggestion" type="button" data-action="email-campaign">
+                <i class="fa-solid fa-paper-plane"></i>
+                <span>Preparar Campaña de Email</span>
+              </button>
+            </div>
+
+            <!-- Sugerencia 2: WhatsApp VIP (CRM) -->
+            <div class="suggestion-card">
+              <div class="suggestion-card-header">
+                <span class="suggestion-channel-badge badge-whatsapp">
+                  <i class="fa-brands fa-whatsapp"></i> WHATSAPP • CRM
+                </span>
+                <span class="suggestion-goal-tag">Fidelización VIP</span>
+              </div>
+              <h3 class="suggestion-title">"Difusión VIP: Diagnóstico Computarizado de Frenos y Batería Gratis"</h3>
+              <p class="suggestion-target">
+                <i class="fa-solid fa-bullseye"></i> <strong>Audiencia:</strong> 85 clientes frecuentes con más de 2 visitas registradas.
+              </p>
+              <div class="suggestion-why-box">
+                <div class="why-header">
+                  <i class="fa-solid fa-lightbulb"></i> ¿Por qué hacerlo?
+                </div>
+                <p class="why-text">
+                  WhatsApp tiene una tasa de apertura del 98%. Ofrecer un diagnóstico gratuito asegura cupos llenos y genera reparaciones complementarias en 7 de cada 10 visitas.
+                </p>
+              </div>
+              <button class="btn-action-suggestion" type="button" data-action="whatsapp-broadcast">
+                <i class="fa-brands fa-whatsapp"></i>
+                <span>Enviar Difusión por WhatsApp</span>
+              </button>
+            </div>
+
+            <!-- Sugerencia 3: Redes Sociales -->
+            <div class="suggestion-card">
+              <div class="suggestion-card-header">
+                <span class="suggestion-channel-badge badge-social">
+                  <i class="fa-solid fa-video"></i> REDES • REEL / TIKTOK
+                </span>
+                <span class="suggestion-goal-tag">Atracción Local</span>
+              </div>
+              <h3 class="suggestion-title">"Publicar Reel: '3 ruidos en tu vehículo que nunca debes ignorar'"</h3>
+              <p class="suggestion-target">
+                <i class="fa-solid fa-bullseye"></i> <strong>Audiencia:</strong> Conductores y clientes locales de Cartagena en Instagram y TikTok.
+              </p>
+              <div class="suggestion-why-box">
+                <div class="why-header">
+                  <i class="fa-solid fa-lightbulb"></i> ¿Por qué hacerlo?
+                </div>
+                <p class="why-text">
+                  Los videos educativos resuelven dudas reales del conductor, tienen 3 veces más alcance orgánico y posicionan a tu taller como la opción experta.
+                </p>
+              </div>
+              <button class="btn-action-suggestion" type="button" data-action="social-post">
+                <i class="fa-solid fa-calendar-plus"></i>
+                <span>Programar Publicación</span>
+              </button>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- Resumen de Canales (Web + Redes) -->
+        <section class="section-block">
+          
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Estado de tus Canales Digitales</h2>
+              <p class="section-subtitle">Supervisión directa de tu sitio web y redes sociales conectadas</p>
+            </div>
+          </div>
+
+          <div class="channels-overview-grid">
+            
+            <!-- Canal Web -->
+            <div class="channel-summary-card">
+              <div class="channel-header">
+                <div class="channel-title-wrap">
+                  <div class="channel-icon channel-web-icon">
+                    <i class="fa-solid fa-laptop-code"></i>
+                  </div>
+                  <div>
+                    <span class="badge-web-online">Sitio Web Publicado</span>
+                    <h3 class="channel-name">www.automotorcartagena.com</h3>
+                    <span class="channel-meta">Certificado SSL Activo • 99.9% Disponibilidad</span>
+                  </div>
+                </div>
+              </div>
+              <div class="channel-stats-row">
+                <div class="stat-mini">
+                  <span class="stat-mini-num">12,450</span>
+                  <span class="stat-mini-label">Visitas este mes</span>
+                </div>
+                <div class="stat-mini">
+                  <span class="stat-mini-num">84</span>
+                  <span class="stat-mini-label">Formularios recibidos</span>
+                </div>
+              </div>
+              <button class="btn-action-suggestion" type="button" data-action="open-web-editor">
+                <i class="fa-solid fa-pen-to-square"></i>
+                <span>Abrir Editor Visual de Página Web</span>
+              </button>
+            </div>
+
+            <!-- Canal Redes -->
+            <div class="channel-summary-card">
+              <div class="channel-header">
+                <div class="channel-title-wrap">
+                  <div class="channel-icon channel-social-icon">
+                    <i class="fa-solid fa-share-nodes"></i>
+                  </div>
+                  <div>
+                    <span class="badge-web-online">3 Redes Vinculadas</span>
+                    <h3 class="channel-name">Instagram, Facebook, TikTok</h3>
+                    <span class="channel-meta">Canales sincronizados para emisión simultánea</span>
+                  </div>
+                </div>
+              </div>
+              <div class="channel-stats-row">
+                <div class="stat-mini">
+                  <span class="stat-mini-num">48,920</span>
+                  <span class="stat-mini-label">Alcance consolidado</span>
+                </div>
+                <div class="stat-mini">
+                  <span class="stat-mini-num">14</span>
+                  <span class="stat-mini-label">Posts en cola</span>
+                </div>
+              </div>
+              <button class="btn-action-suggestion" type="button" id="btn-summary-to-social">
+                <i class="fa-solid fa-calendar-check"></i>
+                <span>Gestionar y Programar Publicaciones</span>
+              </button>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- Ideas de contenido para publicar -->
         <section class="section-block">
           
           <div class="section-header">
@@ -253,7 +405,7 @@
                 <i class="fa-solid fa-wand-magic-sparkles"></i> GENERADOR DE IDEAS
               </div>
               <h2 class="section-title">Contenido en Tendencia para tu Negocio</h2>
-              <p class="section-subtitle">Sugerencias estratégicas para publicar esta semana</p>
+              <p class="section-subtitle">Sugerencias estratégicas para publicar esta semana en tus redes</p>
             </div>
           </div>
 
