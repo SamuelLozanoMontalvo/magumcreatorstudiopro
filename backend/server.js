@@ -72,11 +72,18 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Manejo preventivo de excepciones
+process.on('unhandledRejection', (reason) => {
+  console.error('⚠️ Promesa no manejada:', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('⚠️ Excepción no capturada:', err);
+});
+
 // Iniciar servidor e inicializar base de datos
-app.listen(PORT, async () => {
+app.listen(PORT, '0.0.0.0', async () => {
   console.log(`=======================================================`);
-  console.log(`🚀 MAGUM Creator Studio Backend activo en puerto ${PORT}`);
-  console.log(`🌐 URL Local: http://localhost:${PORT}`);
+  console.log(`🚀 MAGUM Creator Studio Backend activo en puerto ${PORT} (0.0.0.0)`);
   console.log(`🔍 Healthcheck: http://localhost:${PORT}/api/health`);
   console.log(`=======================================================`);
 
@@ -84,7 +91,7 @@ app.listen(PORT, async () => {
   try {
     await initDatabase();
   } catch (err) {
-    console.error('Nota: La base de datos se conectará cuando DATABASE_URL esté disponible en Railway/local.');
+    console.error('Nota: La base de datos se conectará cuando DATABASE_URL esté disponible en Railway/local:', err.message);
   }
 });
 

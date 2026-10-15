@@ -3,21 +3,23 @@ const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const connectionString = process.env.DATABASE_URL;
-const isProduction = process.env.NODE_ENV === 'production' || (connectionString && !connectionString.includes('localhost'));
+const isInternal = connectionString && connectionString.includes('railway.internal');
+const requiresSsl = Boolean(connectionString && !connectionString.includes('localhost') && !isInternal);
 
 const pool = new Pool({
   connectionString: connectionString || 'postgresql://postgres:postgres@localhost:5432/magum_creator_studio',
-  ssl: isProduction ? { rejectUnauthorized: false } : false
+  ssl: requiresSsl ? { rejectUnauthorized: false } : false
 });
 
 pool.on('error', (err) => {
-  console.error('❌ Error imprevisto en el pool de PostgreSQL:', err);
+  console.error('❌ Error imprevisto en el pool de PostgreSQL:', err.message);
 });
 
 // Función para inicializar tablas y seed si la BD está vacía
 async function initDatabase() {
-  const client = await pool.connect();
+  let client = null;
   try {
+    client = await pool.connect();
     console.log('🔄 Inicializando esquema de base de datos PostgreSQL...');
 
     await client.query(`
@@ -143,7 +145,7 @@ async function initDatabase() {
   } catch (error) {
     console.error('❌ Error al inicializar tablas en PostgreSQL:', error.message);
   } finally {
-    client.release();
+    if (client) client.release();
   }
 }
 
