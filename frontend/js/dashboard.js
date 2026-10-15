@@ -348,14 +348,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function syncCrmFromBackend() {
     try {
-      if (window.MagumApi) {
-        const res = await window.MagumApi.getCrmContacts();
-        if (res && res.success && Array.isArray(res.data)) {
-          if (res.data.length > 0 || !isDemoAccount) {
-            saveCrmContacts(res.data);
-            renderCrm();
+      if (!window.MagumApi) return;
+      const localContacts = getCrmContacts();
+      const res = await window.MagumApi.getCrmContacts();
+
+      if (res && res.success && Array.isArray(res.data)) {
+        let backendContacts = res.data;
+        const backendIds = new Set(backendContacts.map(c => String(c.id)));
+        const backendEmails = new Set(backendContacts.map(c => (c.email || '').toLowerCase().trim()));
+
+        // Encontrar contactos creados localmente que aún no están en PostgreSQL (ej. kkkkkkkkkkkkkkkk y sasasasas)
+        const unsynced = localContacts.filter(c => {
+          if (!c || !c.name) return false;
+          // Omitir contactos estáticos de prueba si es cuenta demo
+          if (isDemoAccount && ['C-101', 'C-102', 'C-103', 'C-104'].includes(c.id)) return false;
+          // Si ya existe en backend por ID o por correo exacto
+          if (backendIds.has(String(c.id))) return false;
+          if (c.email && backendEmails.has(c.email.toLowerCase().trim())) return false;
+          return true;
+        });
+
+        // Subir cada contacto pendiente a PostgreSQL en Railway
+        for (const contact of unsynced) {
+          try {
+            const createRes = await window.MagumApi.createCrmContact({
+              name: contact.name,
+              email: contact.email,
+              phone: contact.phone,
+              age: contact.age,
+              company: contact.company,
+              segment: contact.segment,
+              notes: contact.notes
+            });
+            if (createRes && createRes.data) {
+              backendContacts.unshift(createRes.data);
+            }
+          } catch (err) {
+            console.warn('Auto-sync unsynced CRM contact warning:', err);
           }
         }
+
+        if (backendContacts.length > 0) {
+          saveCrmContacts(backendContacts);
+        } else if (!isDemoAccount && localContacts.length > 0) {
+          saveCrmContacts(localContacts);
+        }
+        renderCrm();
       }
     } catch (e) {
       console.warn('Sync CRM from backend warning:', e.message);
@@ -854,18 +892,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } else {
         let newId = 'C-' + Math.floor(1000 + Math.random() * 9000);
-        const newContact = { id: newId, name, email, phone, age, company, segment, notes };
+        let newContact = { id: newId, name, email, phone, age, company, segment, notes };
         contacts.unshift(newContact);
 
         if (window.MagumApi) {
-          window.MagumApi.createCrmContact({ name, email, phone, age, company, segment, notes })
-            .then(res => {
-              if (res && res.data && res.data.id) {
-                newContact.id = res.data.id;
-                saveCrmContacts(contacts);
-              }
-            })
-            .catch(e => console.warn('Create CRM backend warning:', e.message));
+          try {
+            const res = await window.MagumApi.createCrmContact({ name, email, phone, age, company, segment, notes });
+            if (res && res.data && res.data.id) {
+              newContact.id = res.data.id;
+            }
+          } catch (e) {
+            console.warn('Create CRM backend warning:', e.message);
+          }
         }
       }
 
@@ -1037,14 +1075,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function syncTeamFromBackend() {
     try {
-      if (window.MagumApi) {
-        const res = await window.MagumApi.getTeam();
-        if (res && res.success && Array.isArray(res.data)) {
-          if (res.data.length > 0 || !isDemoAccount) {
-            saveProfessionals(res.data);
-            renderProfessionals();
+      if (!window.MagumApi) return;
+      const localProfs = getProfessionals();
+      const res = await window.MagumApi.getTeam();
+      if (res && res.success && Array.isArray(res.data)) {
+        let backendTeam = res.data;
+        const backendIds = new Set(backendTeam.map(p => String(p.id)));
+        const backendEmails = new Set(backendTeam.map(p => (p.email || '').toLowerCase().trim()));
+
+        const unsynced = localProfs.filter(p => {
+          if (!p || !p.name) return false;
+          if (isDemoAccount && ['P-101', 'P-102', 'P-103'].includes(p.id)) return false;
+          if (backendIds.has(String(p.id))) return false;
+          if (p.email && backendEmails.has(p.email.toLowerCase().trim())) return false;
+          return true;
+        });
+
+        for (const prof of unsynced) {
+          try {
+            const createRes = await window.MagumApi.createTeamMember(prof);
+            if (createRes && createRes.data) {
+              backendTeam.unshift(createRes.data);
+            }
+          } catch (err) {
+            console.warn('Auto-sync unsynced team member warning:', err);
           }
         }
+
+        if (backendTeam.length > 0) {
+          saveProfessionals(backendTeam);
+        } else if (!isDemoAccount && localProfs.length > 0) {
+          saveProfessionals(localProfs);
+        }
+        renderProfessionals();
       }
     } catch (e) {
       console.warn('Sync team from backend warning:', e.message);
@@ -1257,6 +1320,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function loadBrandSettings() {
     try {
+      // 1. Revisar si hay un favicon global de la plataforma configurado por el Super Admin
+      const adminSaved = localStorage.getItem('magum_admin_settings');
+      let platformFavicon = '';
+      if (adminSaved) {
+        try {
+          const adm = JSON.parse(adminSaved);
+          if (adm.faviconUrl) platformFavicon = adm.faviconUrl;
+        } catch {}
+      }
+
       const saved = localStorage.getItem(BRAND_STORAGE_KEY);
       if (saved) {
         const data = JSON.parse(saved);
@@ -1267,7 +1340,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (inputColorSecondary && data.colorSecondary) inputColorSecondary.value = data.colorSecondary;
         if (inputColorBg && data.colorBg) inputColorBg.value = data.colorBg;
 
+        if (!data.faviconUrl && platformFavicon) {
+          data.faviconUrl = platformFavicon;
+        }
         applyBrandingLive(data);
+      } else if (platformFavicon) {
+        applyBrandingLive({ faviconUrl: platformFavicon });
+      }
+
+      // Sincronizar en segundo plano desde el backend si hay MagumApi
+      if (window.MagumApi) {
+        window.MagumApi.getSetting('platform_branding').then(res => {
+          if (res && res.data && res.data.faviconUrl) {
+            const curFav = dynamicFavicon ? dynamicFavicon.getAttribute('href') : '';
+            if (!curFav || curFav === 'favicon.ico') {
+              applyBrandingLive({ faviconUrl: res.data.faviconUrl });
+            }
+          }
+        }).catch(() => {});
       }
     } catch (e) {
       console.warn('Error cargando ajustes de marca:', e);

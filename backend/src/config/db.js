@@ -166,7 +166,9 @@ async function initDatabase() {
       const samyHash = await bcrypt.hash('Auto2026*', 10);
       await client.query(`
         INSERT INTO accounts (id, first_name, last_name, business, email, password_hash, module_social, module_web, module_crm, status)
-        VALUES ('SL7K92X', 'Samuel', 'Lozano', 'AutoMotor Cartagena', 'samylozano00@gmail.com', $1, true, true, true, 'active')
+        VALUES 
+          ('SL7K92X', 'Samuel', 'Lozano', 'AutoMotor Cartagena', 'samylozano00@gmail.com', $1, true, true, true, 'active'),
+          ('MC8K29L', 'Carlos', 'Mendoza', 'AutoMotor Cartagena', 'cliente@automotor.com', $1, true, true, true, 'active')
         ON CONFLICT (email) DO NOTHING;
       `, [samyHash]);
 

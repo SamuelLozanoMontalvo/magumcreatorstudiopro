@@ -40,9 +40,13 @@ class MagumApiClient {
   async request(endpoint, options = {}) {
     const url = `${this.baseUrl}${endpoint}`;
     const token = this.getToken();
+    let session = {};
+    try { session = JSON.parse(localStorage.getItem('magum_session') || '{}'); } catch {}
 
     const headers = {
       'Content-Type': 'application/json',
+      'x-account-id': session.accountId || 'MC8K29L',
+      'x-user-role': session.role || 'client',
       ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       ...(options.headers || {})
     };

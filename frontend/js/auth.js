@@ -286,4 +286,32 @@ document.addEventListener('DOMContentLoaded', () => {
     alertBox.style.display = 'block';
   }
 
+  // Cargar Favicon y Branding de la plataforma configurado por el Super Admin
+  function loadPlatformBranding() {
+    try {
+      const dynamicFavicon = document.getElementById('dynamic-favicon');
+      const brandLogo = document.querySelector('.brand-logo');
+      const saved = localStorage.getItem('magum_admin_settings');
+
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (data.faviconUrl && dynamicFavicon) dynamicFavicon.href = data.faviconUrl;
+        if (data.logoUrl && brandLogo) brandLogo.src = data.logoUrl;
+      }
+
+      if (window.MagumApi) {
+        window.MagumApi.getSetting('platform_branding').then(res => {
+          if (res && res.data) {
+            if (res.data.faviconUrl && dynamicFavicon) dynamicFavicon.href = res.data.faviconUrl;
+            if (res.data.logoUrl && brandLogo) brandLogo.src = res.data.logoUrl;
+          }
+        }).catch(() => {});
+      }
+    } catch (e) {
+      console.warn('Error cargando branding en login:', e);
+    }
+  }
+
+  loadPlatformBranding();
+
 });

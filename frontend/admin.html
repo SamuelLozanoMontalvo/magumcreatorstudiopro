@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
   <link rel="stylesheet" href="css/admin.css">
+  <link rel="icon" id="dynamic-favicon" href="https://lirp.cdn-website.com/e4e4cefa/dms3rep/multi/opt/Magum_logo+magenta-1920w.png">
 </head>
 <body class="admin-body">
 
@@ -331,6 +332,19 @@
                 <input type="file" id="admin-logo-file" accept="image/*" style="display:none;">
                 <button type="button" class="btn-brand-upload-admin" onclick="document.getElementById('admin-logo-file').click()">
                   <i class="fa-solid fa-cloud-arrow-up"></i> Cargar Logo
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Favicon del Navegador (Icono de pestaña 32×32 px o cuadrado)</label>
+              <div class="brand-upload-row">
+                <div class="brand-logo-preview admin-logo-preview" style="width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.06); border-radius: 10px; border: 1px dashed rgba(255, 0, 219, 0.4);">
+                  <img id="admin-favicon-preview-img" src="favicon.ico" alt="Favicon" style="max-width: 32px; max-height: 32px; object-fit: contain;">
+                </div>
+                <input type="file" id="admin-favicon-file" accept="image/x-icon,image/png,image/svg+xml,image/jpeg" style="display:none;">
+                <button type="button" class="btn-brand-upload-admin" onclick="document.getElementById('admin-favicon-file').click()">
+                  <i class="fa-solid fa-cloud-arrow-up"></i> Cargar Favicon
                 </button>
               </div>
             </div>

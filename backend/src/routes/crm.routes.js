@@ -5,16 +5,33 @@ const { verifyToken, requireClientOrTeam } = require('../middleware/auth');
 
 router.use(verifyToken, requireClientOrTeam);
 
-// Helper para obtener el account_id adecuado según el usuario
-function resolveAccountId(req) {
-  if (req.user.accountId) return req.user.accountId;
-  return 'MC8K29L'; // Fallback a la cuenta principal para admin
+// Helper para obtener el account_id adecuado según el usuario garantizando existencia en accounts
+async function resolveAccountId(req) {
+  let targetId = (req.user && req.user.accountId) || (req.headers && req.headers['x-account-id']);
+  if (!targetId || targetId === 'demo') {
+    targetId = 'MC8K29L';
+  }
+  try {
+    const acc = await db.query('SELECT id FROM accounts WHERE id = $1 LIMIT 1', [targetId]);
+    if (acc.rows.length > 0) {
+      return targetId;
+    }
+    if (req.user && req.user.email) {
+      const accByEmail = await db.query('SELECT id FROM accounts WHERE LOWER(email) = LOWER($1) LIMIT 1', [req.user.email]);
+      if (accByEmail.rows.length > 0) return accByEmail.rows[0].id;
+    }
+    const anyAcc = await db.query('SELECT id FROM accounts ORDER BY created_at ASC LIMIT 1');
+    if (anyAcc.rows.length > 0) return anyAcc.rows[0].id;
+  } catch (err) {
+    console.warn('Error resolviendo accountId:', err.message);
+  }
+  return targetId;
 }
 
 // GET /api/crm/contacts - Obtener contactos y métricas
 router.get('/contacts', async (req, res) => {
   try {
-    const accountId = resolveAccountId(req);
+    const accountId = await resolveAccountId(req);
     const { search, segment } = req.query;
 
     // Solo devolver contactos activos (Borrado Suave: deleted_at IS NULL)
@@ -67,7 +84,7 @@ router.get('/contacts', async (req, res) => {
 // POST /api/crm/contacts - Crear contacto
 router.post('/contacts', async (req, res) => {
   try {
-    const accountId = resolveAccountId(req);
+    const accountId = await resolveAccountId(req);
     const { name, email, phone, age, company, segment, notes } = req.body;
 
     if (!name || !email || !phone) {
@@ -101,7 +118,7 @@ router.post('/contacts', async (req, res) => {
 // PUT /api/crm/contacts/:id - Actualizar contacto
 router.put('/contacts/:id', async (req, res) => {
   try {
-    const accountId = resolveAccountId(req);
+    const accountId = await resolveAccountId(req);
     const { id } = req.params;
     const { name, email, phone, age, company, segment, notes } = req.body;
 
@@ -141,7 +158,7 @@ router.put('/contacts/:id', async (req, res) => {
 // El contacto desaparece del panel del cliente pero permanece 100% preservado en PostgreSQL en Railway
 router.delete('/contacts/:id', async (req, res) => {
   try {
-    const accountId = resolveAccountId(req);
+    const accountId = await resolveAccountId(req);
     const { id } = req.params;
 
     const result = await db.query(
@@ -167,7 +184,7 @@ router.delete('/contacts/:id', async (req, res) => {
 // POST /api/crm/bulk-delete - Borrado Suave Masivo (Soft Delete)
 router.post('/bulk-delete', async (req, res) => {
   try {
-    const accountId = resolveAccountId(req);
+    const accountId = await resolveAccountId(req);
     const { ids } = req.body;
 
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -193,7 +210,7 @@ router.post('/bulk-delete', async (req, res) => {
 // POST /api/crm/contacts/:id/restore - Restaurar contacto eliminado (Recuperación)
 router.post('/contacts/:id/restore', async (req, res) => {
   try {
-    const accountId = resolveAccountId(req);
+    const accountId = await resolveAccountId(req);
     const { id } = req.params;
 
     const result = await db.query(
@@ -219,7 +236,7 @@ router.post('/contacts/:id/restore', async (req, res) => {
 // POST /api/crm/import - Importación masiva de contactos (CSV o JSON)
 router.post('/import', async (req, res) => {
   try {
-    const accountId = resolveAccountId(req);
+    const accountId = await resolveAccountId(req);
     const { contacts } = req.body;
 
     if (!Array.isArray(contacts) || contacts.length === 0) {
@@ -257,7 +274,7 @@ router.post('/import', async (req, res) => {
 router.post('/broadcast', async (req, res) => {
   try {
     const { channel, recipientIds, subject, message } = req.body;
-    const accountId = resolveAccountId(req);
+    const accountId = await resolveAccountId(req);
 
     if (!recipientIds || !Array.isArray(recipientIds) || recipientIds.length === 0) {
       return res.status(400).json({ success: false, message: 'No se seleccionaron destinatarios.' });

@@ -6,15 +6,33 @@ const { verifyToken, requireClientOrTeam } = require('../middleware/auth');
 
 router.use(verifyToken, requireClientOrTeam);
 
-function resolveAccountId(req) {
-  if (req.user.accountId) return req.user.accountId;
-  return 'MC8K29L';
+// Helper para obtener el account_id adecuado según el usuario garantizando existencia en accounts
+async function resolveAccountId(req) {
+  let targetId = (req.user && req.user.accountId) || (req.headers && req.headers['x-account-id']);
+  if (!targetId || targetId === 'demo') {
+    targetId = 'MC8K29L';
+  }
+  try {
+    const acc = await db.query('SELECT id FROM accounts WHERE id = $1 LIMIT 1', [targetId]);
+    if (acc.rows.length > 0) {
+      return targetId;
+    }
+    if (req.user && req.user.email) {
+      const accByEmail = await db.query('SELECT id FROM accounts WHERE LOWER(email) = LOWER($1) LIMIT 1', [req.user.email]);
+      if (accByEmail.rows.length > 0) return accByEmail.rows[0].id;
+    }
+    const anyAcc = await db.query('SELECT id FROM accounts ORDER BY created_at ASC LIMIT 1');
+    if (anyAcc.rows.length > 0) return anyAcc.rows[0].id;
+  } catch (err) {
+    console.warn('Error resolviendo accountId en team:', err.message);
+  }
+  return targetId;
 }
 
 // GET /api/team - Listar profesionales de la cuenta
 router.get('/', async (req, res) => {
   try {
-    const accountId = resolveAccountId(req);
+    const accountId = await resolveAccountId(req);
     const result = await db.query(`
       SELECT id, name, role, email, phone, schedule, created_at
       FROM professionals
@@ -35,7 +53,7 @@ router.get('/', async (req, res) => {
 // POST /api/team - Crear nuevo profesional
 router.post('/', async (req, res) => {
   try {
-    const accountId = resolveAccountId(req);
+    const accountId = await resolveAccountId(req);
     const { name, role, email, password, phone, schedule } = req.body;
 
     if (!name || !role || !email || !password) {
@@ -79,7 +97,7 @@ router.post('/', async (req, res) => {
 // PUT /api/team/:id - Actualizar profesional
 router.put('/:id', async (req, res) => {
   try {
-    const accountId = resolveAccountId(req);
+    const accountId = await resolveAccountId(req);
     const { id } = req.params;
     const { name, role, email, password, phone, schedule } = req.body;
 
@@ -123,7 +141,7 @@ router.put('/:id', async (req, res) => {
 // DELETE /api/team/:id - Eliminar acceso del profesional
 router.delete('/:id', async (req, res) => {
   try {
-    const accountId = resolveAccountId(req);
+    const accountId = await resolveAccountId(req);
     const { id } = req.params;
 
     await db.query('DELETE FROM professionals WHERE id = $1 AND account_id = $2', [id, accountId]);

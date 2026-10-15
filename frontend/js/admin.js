@@ -812,31 +812,54 @@ document.addEventListener('DOMContentLoaded', () => {
   const adminSettingName = document.getElementById('admin-setting-name');
   const adminLogoPreviewImg = document.getElementById('admin-logo-preview-img');
   const adminLogoFile = document.getElementById('admin-logo-file');
+  const adminFaviconPreviewImg = document.getElementById('admin-favicon-preview-img');
+  const adminFaviconFile = document.getElementById('admin-favicon-file');
   const adminColorPrimary = document.getElementById('admin-color-primary');
   const adminColorAccent = document.getElementById('admin-color-accent');
   const adminSupportEmail = document.getElementById('admin-support-email');
 
-  function loadAdminSettings() {
+  async function loadAdminSettings() {
     try {
       const raw = localStorage.getItem(ADMIN_SETTINGS_KEY);
       if (raw) {
         const data = JSON.parse(raw);
-        if (adminSettingName && data.platformName) adminSettingName.value = data.platformName;
-        if (adminLogoPreviewImg && data.logoUrl) adminLogoPreviewImg.src = data.logoUrl;
-        if (adminColorPrimary && data.colorPrimary) adminColorPrimary.value = data.colorPrimary;
-        if (adminColorAccent && data.colorAccent) adminColorAccent.value = data.colorAccent;
-        if (adminSupportEmail && data.supportEmail) adminSupportEmail.value = data.supportEmail;
-
-        applyAdminSettingsLive(data);
+        applySettingsToFormAndLive(data);
+      }
+      if (window.MagumApi) {
+        const res = await window.MagumApi.request('/settings/platform_branding').catch(() => null);
+        if (res && res.success && res.data) {
+          applySettingsToFormAndLive(res.data);
+          localStorage.setItem(ADMIN_SETTINGS_KEY, JSON.stringify(res.data));
+        }
       }
     } catch (e) {
       console.warn('Error cargando ajustes admin:', e);
     }
   }
 
+  function applySettingsToFormAndLive(data) {
+    if (adminSettingName && data.platformName) adminSettingName.value = data.platformName;
+    if (adminLogoPreviewImg && data.logoUrl) adminLogoPreviewImg.src = data.logoUrl;
+    if (adminFaviconPreviewImg && data.faviconUrl) adminFaviconPreviewImg.src = data.faviconUrl;
+    if (adminColorPrimary && data.colorPrimary) adminColorPrimary.value = data.colorPrimary;
+    if (adminColorAccent && data.colorAccent) adminColorAccent.value = data.colorAccent;
+    if (adminSupportEmail && data.supportEmail) adminSupportEmail.value = data.supportEmail;
+
+    applyAdminSettingsLive(data);
+  }
+
   function applyAdminSettingsLive(data) {
     if (data.logoUrl) {
       document.querySelectorAll('.admin-brand-logo').forEach(img => { img.src = data.logoUrl; });
+    }
+    if (data.faviconUrl) {
+      let link = document.querySelector("link[rel*='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'shortcut icon';
+        document.head.appendChild(link);
+      }
+      link.href = data.faviconUrl;
     }
     if (data.colorPrimary) {
       document.documentElement.style.setProperty('--brand-indigo', data.colorPrimary);
@@ -859,14 +882,29 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  if (adminFaviconFile && adminFaviconPreviewImg) {
+    adminFaviconFile.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          adminFaviconPreviewImg.src = ev.target.result;
+          applyAdminSettingsLive({ faviconUrl: ev.target.result });
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
   // Botón guardar configuración del panel maestro
   const btnSaveAdminSettings = document.querySelector('#view-admin-settings .btn-submit-account');
   if (btnSaveAdminSettings) {
     btnSaveAdminSettings.onclick = null; // Reemplazar alert falso
-    btnSaveAdminSettings.addEventListener('click', () => {
+    btnSaveAdminSettings.addEventListener('click', async () => {
       const settings = {
         platformName: adminSettingName ? adminSettingName.value.trim() : 'MAGUM Creator Studio',
         logoUrl: adminLogoPreviewImg ? adminLogoPreviewImg.src : '',
+        faviconUrl: adminFaviconPreviewImg ? adminFaviconPreviewImg.src : '',
         colorPrimary: adminColorPrimary ? adminColorPrimary.value : '#210087',
         colorAccent: adminColorAccent ? adminColorAccent.value : '#FF00DB',
         supportEmail: adminSupportEmail ? adminSupportEmail.value.trim() : 'soporte@magumcreator.com',
@@ -875,6 +913,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       localStorage.setItem(ADMIN_SETTINGS_KEY, JSON.stringify(settings));
       applyAdminSettingsLive(settings);
+
+      if (window.MagumApi) {
+        window.MagumApi.request('/settings/platform_branding', {
+          method: 'POST',
+          body: JSON.stringify({ value: settings })
+        }).catch(e => console.warn('Sync platform branding warning:', e.message));
+      }
 
       const originalHtml = btnSaveAdminSettings.innerHTML;
       btnSaveAdminSettings.innerHTML = '<i class="fa-solid fa-check"></i> <span>¡Configuración Guardada!</span>';
