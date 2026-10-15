@@ -54,7 +54,7 @@ async function initDatabase() {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
 
-      -- 3. Tabla de Contactos del CRM
+      -- 3. Tabla de Contactos del CRM (con soporte de Borrado Suave / Soft Delete)
       CREATE TABLE IF NOT EXISTS crm_contacts (
         id VARCHAR(20) PRIMARY KEY,
         account_id VARCHAR(10) REFERENCES accounts(id) ON DELETE CASCADE,
@@ -65,6 +65,7 @@ async function initDatabase() {
         company VARCHAR(150),
         segment VARCHAR(30) DEFAULT 'client',
         notes TEXT,
+        deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -89,6 +90,11 @@ async function initDatabase() {
         setting_value JSONB NOT NULL,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
+
+      -- Migraciones automáticas: Asegurar que la columna deleted_at existe en tablas existentes
+      ALTER TABLE crm_contacts ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
+      ALTER TABLE accounts ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
+      ALTER TABLE professionals ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
     `);
 
     // Comprobar si ya existe la cuenta seed "AutoMotor Cartagena"
