@@ -506,21 +506,34 @@ body.dark-mode .icon-magenta { background: rgba(255, 0, 219, 0.15); color: var(-
 body.dark-mode .icon-gold { background: rgba(253, 211, 68, 0.15); color: var(--brand-gold); }
 body.dark-mode .icon-blue { background: rgba(2, 132, 199, 0.2); color: #38bdf8; }
 
+.metric-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
 .metric-label {
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.82rem;
+  font-weight: 500;
   color: var(--text-muted);
+  line-height: 1.2;
 }
 
 .metric-value {
-  font-size: 1.55rem;
-  font-weight: 800;
-  margin: 3px 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.2;
+  letter-spacing: -0.3px;
 }
 
 .metric-trend {
-  font-size: 0.74rem;
-  font-weight: 700;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .trend-up { color: var(--status-online); }
@@ -709,8 +722,8 @@ body.dark-mode .badge-web-online {
 }
 
 .stat-mini-num {
-  font-size: 1.15rem;
-  font-weight: 800;
+  font-size: 1.1rem;
+  font-weight: 700;
   display: block;
 }
 
