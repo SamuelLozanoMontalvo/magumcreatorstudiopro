@@ -92,11 +92,21 @@
         </ul>
       </nav>
 
-      <!-- Pie del menú lateral sin foto, solo nombre del cliente -->
+      <!-- Pie del menú lateral con soporte multi-cuenta y selector desplegable -->
       <div class="sidebar-footer">
-        <div class="user-profile-simple">
+        <div class="user-profile-simple" style="flex: 1; min-width: 0;">
           <span class="user-name" id="sidebar-account-name">AutoMotor Cartagena</span>
-          <span class="user-role">Cuenta Activa</span>
+          <span class="user-role" id="sidebar-account-role">Cuenta Activa</span>
+
+          <!-- Desplegable para pasar de una empresa a otra si tiene varias -->
+          <div class="account-switcher-box" id="account-switcher-box" style="display: none; margin-top: 8px;">
+            <label for="account-switcher-select" style="font-size: 0.72rem; color: rgba(255,255,255,0.7); display: block; margin-bottom: 3px;">
+              <i class="fa-solid fa-arrows-rotate" style="margin-right: 4px;"></i> Cambiar empresa:
+            </label>
+            <select id="account-switcher-select" class="account-switcher-select" style="width: 100%; background: rgba(0,0,0,0.3); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); border-radius: 8px; padding: 5px 8px; font-size: 0.78rem; font-weight: 600; cursor: pointer; outline: none;">
+              <!-- Rellenado dinámicamente con las empresas asignadas al usuario -->
+            </select>
+          </div>
         </div>
         <a href="login" class="btn-logout" id="btn-logout" title="Cerrar sesión">
           <i class="fa-solid fa-right-from-bracket"></i>

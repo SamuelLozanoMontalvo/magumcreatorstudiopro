@@ -114,6 +114,60 @@ document.addEventListener('DOMContentLoaded', () => {
           if (btnCreatePost) btnCreatePost.style.display = 'none';
         }
       }
+
+      // ======================================================================
+      // 3.5. SELECTOR DE MULTI-EMPRESA (SWITCHER EN EL PIE DEL SIDEBAR)
+      // ======================================================================
+      const accountSwitcherBox = document.getElementById('account-switcher-box');
+      const accountSwitcherSelect = document.getElementById('account-switcher-select');
+
+      let availableAccounts = session.availableAccounts || [];
+
+      // Si no vienen en la sesión pero hay cuentas en el almacenamiento con este mismo correo
+      if (availableAccounts.length <= 1 && session.email) {
+        try {
+          const allAccs = JSON.parse(localStorage.getItem('magum_accounts') || '[]');
+          const userAccs = allAccs.filter(a => (a.email || '').toLowerCase() === session.email.toLowerCase());
+          if (userAccs.length > 1) {
+            availableAccounts = userAccs;
+          }
+        } catch {}
+      }
+
+      if (availableAccounts.length > 1 && accountSwitcherBox && accountSwitcherSelect) {
+        accountSwitcherBox.style.display = 'block';
+        accountSwitcherSelect.innerHTML = '';
+
+        availableAccounts.forEach(acc => {
+          const opt = document.createElement('option');
+          opt.value = acc.id;
+          opt.textContent = acc.business;
+          if (acc.id === session.accountId) {
+            opt.selected = true;
+          }
+          accountSwitcherSelect.appendChild(opt);
+        });
+
+        accountSwitcherSelect.addEventListener('change', () => {
+          const targetId = accountSwitcherSelect.value;
+          const targetAcc = availableAccounts.find(a => a.id === targetId);
+          if (targetAcc && targetId !== session.accountId) {
+            const updatedSession = {
+              ...session,
+              accountId: targetAcc.id,
+              business: targetAcc.business,
+              clientName: targetAcc.clientName || session.clientName,
+              modules: targetAcc.modules || session.modules,
+              availableAccounts: availableAccounts
+            };
+            localStorage.setItem('magum_session', JSON.stringify(updatedSession));
+            MagumAlert.info('Cambiando de Empresa...', `Cargando la información de "${targetAcc.business}".`);
+            setTimeout(() => {
+              window.location.reload();
+            }, 500);
+          }
+        });
+      }
     } catch (e) {
       console.warn('Error leyendo sesión:', e);
     }
