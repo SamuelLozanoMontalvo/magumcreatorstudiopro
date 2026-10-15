@@ -1788,4 +1788,142 @@ body.dark-mode .form-input {
 .btn-submit-account:hover {
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(255, 0, 219, 0.45);
-}
+}
+
+/* ==========================================================================
+   BARRA DE ACCIONES MASIVAS DE CRM & SELECCIÓN
+   ========================================================================== */
+
+.crm-bulk-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 12px 18px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+.crm-selection-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--text-main);
+  background: rgba(33, 0, 135, 0.06);
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(33, 0, 135, 0.12);
+}
+
+body.dark-mode .crm-selection-badge {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.crm-selection-badge i {
+  color: var(--brand-magenta);
+}
+
+.crm-bulk-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-bulk-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-bulk-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  filter: grayscale(0.6);
+}
+
+.btn-bulk-action:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.btn-bulk-whatsapp:not(:disabled):hover {
+  border-color: #25d366;
+  color: #25d366;
+  background: rgba(37, 211, 102, 0.08);
+}
+
+.btn-bulk-email:not(:disabled):hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.btn-bulk-dual:not(:disabled):hover {
+  border-color: #ff00db;
+  color: #ff00db;
+  background: rgba(255, 0, 219, 0.08);
+}
+
+.btn-bulk-edit:not(:disabled):hover {
+  border-color: #f59e0b;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.btn-bulk-delete:not(:disabled):hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+/* Checkboxes personalizados para CRM */
+.crm-custom-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--brand-magenta);
+  vertical-align: middle;
+}
+
+/* Resaltado de fila seleccionada */
+tr.row-selected {
+  background: rgba(255, 0, 219, 0.05) !important;
+}
+
+body.dark-mode tr.row-selected {
+  background: rgba(255, 0, 219, 0.1) !important;
+}
+
+/* Tarjeta informativa en modales de envío */
+.recipients-chip-wrap {
+  background: #f8fafc;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  margin-bottom: 14px;
+  border-left: 3px solid var(--brand-magenta);
+}
+
+body.dark-mode .recipients-chip-wrap {
+  background: rgba(255, 255, 255, 0.04);
+}
+

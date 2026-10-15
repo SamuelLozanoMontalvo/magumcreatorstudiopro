@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MAGUM CREATOR STUDIO - CONTROL DE ACCESO (CLIENTES Y SUPER ADMIN)
+   MAGUM CREATOR STUDIO - CONTROL DE ACCESO (AUTENTICACIÓN SEGURA)
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -10,8 +10,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const passwordInput = document.getElementById('password');
   const eyeIcon = document.getElementById('eye-icon');
 
+  // Utilidad para hashing SHA-256 nativo en el navegador
+  async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  // Hash inicial de la nueva contraseña del Super Administrador:
+  // Usuario: McSAdmin
+  // Clave maestra actualizada: MagumAdmin#2030
+  // SHA-256 de "MagumAdmin#2030":
+  const DEFAULT_ADMIN_HASH = '2bbfe068565b93d6d028feebaeaa6981cf3157db9e8ff244e83c317db6913eef';
+
   // Mostrar u ocultar contraseña
-  if (togglePasswordBtn) {
+  if (togglePasswordBtn && passwordInput && eyeIcon) {
     togglePasswordBtn.addEventListener('click', () => {
       const isPassword = passwordInput.type === 'password';
       passwordInput.type = isPassword ? 'text' : 'password';
@@ -21,92 +35,153 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Procesar inicio de sesión
   if (loginForm) {
-    loginForm.addEventListener('submit', (e) => {
+    loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const userOrEmail = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
+      const password = passwordInput.value;
 
       if (!userOrEmail || !password) {
-        showAlert('Por favor completa todos los campos.', 'error');
+        showAlert('Por favor completa todos los campos requeridos.', 'error');
         return;
       }
 
-      // 1. Verificación de credenciales de Super Administrador
-      const isAdmin = (userOrEmail.toLowerCase() === 'mcsadmin') && (password === 'M2030cs');
+      const inputHash = await sha256(password);
 
-      if (isAdmin) {
-        localStorage.setItem('magum_session', JSON.stringify({
-          role: 'admin',
-          username: 'McSAdmin',
-          name: 'Super Administrador',
-          loggedAt: new Date().toISOString()
-        }));
+      // ======================================================================
+      // 1. VERIFICACIÓN DE CREDENCIALES DE SUPER ADMINISTRADOR
+      // ======================================================================
+      if (userOrEmail.toLowerCase() === 'mcsadmin') {
+        const storedAdminHash = localStorage.getItem('magum_admin_hash') || DEFAULT_ADMIN_HASH;
 
-        showAlert('Acceso Super Admin verificado. Abriendo panel maestro...', 'success');
+        if (inputHash === storedAdminHash) {
+          localStorage.setItem('magum_session', JSON.stringify({
+            role: 'admin',
+            username: 'McSAdmin',
+            name: 'Super Administrador',
+            loggedAt: new Date().toISOString()
+          }));
 
-        setTimeout(() => {
-          if (window.location.protocol === 'file:') {
-            window.location.href = 'admin.html';
-          } else {
-            window.location.href = 'admin';
+          showAlert('Acceso Super Admin verificado. Abriendo panel maestro...', 'success');
+
+          setTimeout(() => {
+            const targetUrl = (window.location.protocol === 'file:') ? 'admin.html' : 'admin';
+            window.location.href = targetUrl;
+          }, 450);
+          return;
+        } else {
+          showAlert('Contraseña de administrador incorrecta.', 'error');
+          return;
+        }
+      }
+
+      // ======================================================================
+      // 2. VERIFICACIÓN DE CUENTA DE CLIENTE REGISTRADA
+      // ======================================================================
+      const rawAccounts = localStorage.getItem('magum_accounts');
+      let accounts = [];
+      if (rawAccounts) {
+        try {
+          accounts = JSON.parse(rawAccounts);
+        } catch (err) {
+          accounts = [];
+        }
+      }
+
+      const matchedAccount = accounts.find(a => a.email.toLowerCase() === userOrEmail.toLowerCase());
+
+      if (matchedAccount) {
+        // Verificar si la cuenta está suspendida
+        if (matchedAccount.status === 'inactive') {
+          showAlert('Esta cuenta se encuentra suspendida. Comunícate con el administrador.', 'error');
+          return;
+        }
+
+        // Validar contraseña (por hash SHA-256 o texto plano si es seed legacy)
+        const passwordMatches = (matchedAccount.passwordHash && matchedAccount.passwordHash === inputHash) ||
+                                (matchedAccount.password && matchedAccount.password === password);
+
+        if (passwordMatches) {
+          // Migrar a hash si aún tenía contraseña en claro
+          if (!matchedAccount.passwordHash) {
+            matchedAccount.passwordHash = inputHash;
+            delete matchedAccount.password;
+            localStorage.setItem('magum_accounts', JSON.stringify(accounts));
           }
-        }, 500);
-        return;
+
+          localStorage.setItem('magum_session', JSON.stringify({
+            role: 'client',
+            accountId: matchedAccount.id,
+            clientName: `${matchedAccount.firstName} ${matchedAccount.lastName}`,
+            business: matchedAccount.business,
+            email: matchedAccount.email,
+            modules: matchedAccount.modules,
+            loggedAt: new Date().toISOString()
+          }));
+
+          showAlert(`Bienvenido a ${matchedAccount.business}. Ingresando a tu panel...`, 'success');
+
+          setTimeout(() => {
+            const targetUrl = (window.location.protocol === 'file:') ? 'dashboard.html' : 'dashboard';
+            window.location.href = targetUrl;
+          }, 450);
+          return;
+        } else {
+          showAlert('Contraseña incorrecta. Por favor verifica tus datos.', 'error');
+          return;
+        }
       }
 
-      // 2. Verificación si es un Profesional del equipo autorizado
+      // ======================================================================
+      // 3. VERIFICACIÓN DE PROFESIONAL DEL EQUIPO AUTORIZADO
+      // ======================================================================
       const rawProfs = localStorage.getItem('magum_team_professionals');
+      let profs = [];
       if (rawProfs) {
         try {
-          const profs = JSON.parse(rawProfs);
-          const matchedProf = profs.find(p => p.email.toLowerCase() === userOrEmail.toLowerCase() && p.password === password);
-          if (matchedProf) {
-            localStorage.setItem('magum_session', JSON.stringify({
-              role: 'team_member',
-              name: matchedProf.name,
-              email: matchedProf.email,
-              business: 'AutoMotor Cartagena',
-              loggedAt: new Date().toISOString()
-            }));
-
-            showAlert(`Acceso autorizado para ${matchedProf.name} (${matchedProf.role}). Ingresando...`, 'success');
-
-            setTimeout(() => {
-              if (window.location.protocol === 'file:') {
-                window.location.href = 'dashboard.html';
-              } else {
-                window.location.href = 'dashboard';
-              }
-            }, 500);
-            return;
-          }
-        } catch (e) {
-          console.warn(e);
+          profs = JSON.parse(rawProfs);
+        } catch (err) {
+          profs = [];
         }
       }
 
-      // 3. Acceso como Cliente / Negocio
-      localStorage.setItem('magum_session', JSON.stringify({
-        role: 'client',
-        email: userOrEmail,
-        business: 'AutoMotor Cartagena',
-        loggedAt: new Date().toISOString()
-      }));
+      const matchedProf = profs.find(p => p.email.toLowerCase() === userOrEmail.toLowerCase());
 
-      showAlert('Credenciales correctas. Ingresando a tu panel...', 'success');
+      if (matchedProf) {
+        const profMatches = (matchedProf.password === password) ||
+                            (matchedProf.passwordHash && matchedProf.passwordHash === inputHash);
 
-      setTimeout(() => {
-        if (window.location.protocol === 'file:') {
-          window.location.href = 'dashboard.html';
+        if (profMatches) {
+          localStorage.setItem('magum_session', JSON.stringify({
+            role: 'team_member',
+            profId: matchedProf.id,
+            name: matchedProf.name,
+            roleTitle: matchedProf.role,
+            email: matchedProf.email,
+            business: 'AutoMotor Cartagena',
+            loggedAt: new Date().toISOString()
+          }));
+
+          showAlert(`Acceso autorizado para ${matchedProf.name} (${matchedProf.role}). Ingresando...`, 'success');
+
+          setTimeout(() => {
+            const targetUrl = (window.location.protocol === 'file:') ? 'dashboard.html' : 'dashboard';
+            window.location.href = targetUrl;
+          }, 450);
+          return;
         } else {
-          window.location.href = 'dashboard';
+          showAlert('Contraseña incorrecta para este usuario profesional.', 'error');
+          return;
         }
-      }, 500);
+      }
+
+      // Si no coincide con ninguna cuenta existente en la plataforma
+      showAlert('No existe una cuenta registrada con este correo electrónico. Contacta al administrador para habilitar tu acceso.', 'error');
     });
   }
 
   function showAlert(message, type) {
+    if (!alertBox) return;
     alertBox.textContent = message;
     alertBox.className = `alert-box alert-${type}`;
     alertBox.style.display = 'block';

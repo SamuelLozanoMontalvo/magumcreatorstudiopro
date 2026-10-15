@@ -549,7 +549,7 @@
           <div class="section-header" style="flex-wrap: wrap; gap: 14px;">
             <div>
               <h2 class="section-title">Directorio de Contactos</h2>
-              <p class="section-subtitle">Visualiza, edita o contacta directamente a cada cliente de tu negocio</p>
+              <p class="section-subtitle">Selecciona contactos individuales o todos para ejecutar envíos masivos o gestionar tu base de datos</p>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
               <div class="search-input-wrap" style="min-width: 280px;">
@@ -564,19 +564,56 @@
             </div>
           </div>
 
-          <div class="table-card">
+          <!-- Barra Superior de Acciones Masivas y Selección -->
+          <div class="crm-bulk-toolbar" id="crm-bulk-toolbar">
+            <div class="crm-selection-badge">
+              <i class="fa-solid fa-check-double"></i>
+              <span id="crm-selected-counter">0 contactos seleccionados</span>
+            </div>
+            
+            <div class="crm-bulk-actions-group">
+              <button type="button" class="btn-bulk-action btn-bulk-whatsapp" id="btn-bulk-whatsapp" disabled title="Enviar WhatsApp a los seleccionados">
+                <i class="fa-brands fa-whatsapp"></i>
+                <span>Enviar WhatsApp</span>
+              </button>
+
+              <button type="button" class="btn-bulk-action btn-bulk-email" id="btn-bulk-email" disabled title="Enviar correos masivos a los seleccionados">
+                <i class="fa-solid fa-paper-plane"></i>
+                <span>Enviar Correos</span>
+              </button>
+
+              <button type="button" class="btn-bulk-action btn-bulk-dual" id="btn-bulk-dual" disabled title="Emisión simultánea por WhatsApp y Correo">
+                <i class="fa-solid fa-bolt"></i>
+                <span>Envío Dual (WP + Email)</span>
+              </button>
+
+              <button type="button" class="btn-bulk-action btn-bulk-edit" id="btn-bulk-edit" disabled title="Editar contacto seleccionado (1)">
+                <i class="fa-solid fa-pen"></i>
+                <span>Editar</span>
+              </button>
+
+              <button type="button" class="btn-bulk-action btn-bulk-delete" id="btn-bulk-delete" disabled title="Eliminar contactos seleccionados">
+                <i class="fa-solid fa-trash-can"></i>
+                <span>Eliminar</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="table-card" style="margin-top: 10px;">
             <div class="table-responsive">
               <table class="admin-table">
                 <thead>
                   <tr>
+                    <th style="width: 44px; text-align: center;">
+                      <input type="checkbox" id="crm-select-all" class="crm-custom-checkbox" title="Seleccionar todos">
+                    </th>
                     <th>Nombre</th>
                     <th>Correo</th>
-                    <th>Celular</th>
+                    <th>Celular / WhatsApp</th>
                     <th>Edad</th>
                     <th>Empresa</th>
                     <th>Segmento</th>
                     <th>Notas</th>
-                    <th class="th-actions">Acciones</th>
                   </tr>
                 </thead>
                 <tbody id="crm-table-body">
@@ -1097,6 +1134,175 @@
           <button type="submit" class="btn-submit-account">
             <i class="fa-solid fa-check"></i>
             <span id="prof-modal-submit-label">Guardar Profesional</span>
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Envío Masivo por WhatsApp -->
+  <div class="modal-backdrop" id="modal-bulk-whatsapp" style="display: none;">
+    <div class="modal-card">
+      <header class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-badge-icon" style="color: #25d366; background: rgba(37, 211, 102, 0.12);">
+            <i class="fa-brands fa-whatsapp"></i>
+          </div>
+          <div>
+            <h2 class="modal-title">Campaña Masiva de WhatsApp</h2>
+            <p class="modal-subtitle">Envía mensajes directos a los clientes seleccionados</p>
+          </div>
+        </div>
+        <button id="btn-close-whatsapp-modal" class="btn-close-modal" type="button" aria-label="Cerrar modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </header>
+
+      <form id="form-bulk-whatsapp" class="modal-form">
+        <div class="recipients-chip-wrap" id="whatsapp-recipients-info">
+          <i class="fa-solid fa-users" style="color: #25d366; margin-right: 6px;"></i>
+          <span id="whatsapp-recipients-text">0 contactos seleccionados</span>
+        </div>
+
+        <div class="form-group">
+          <label for="whatsapp-message-input" class="form-label">Mensaje personalizado</label>
+          <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px;">
+            Puedes usar <code>{nombre}</code> y <code>{empresa}</code> para personalizar el texto automáticamente.
+          </p>
+          <textarea 
+            id="whatsapp-message-input" 
+            class="form-input" 
+            rows="5" 
+            placeholder="Hola {nombre}, desde AutoMotor Cartagena te recordamos que tienes mantenimiento preventivo pendiente..."
+            required
+            style="resize: vertical;"
+          ></textarea>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" id="btn-cancel-whatsapp-modal" class="btn-cancel">Cancelar</button>
+          <button type="submit" class="btn-submit-account" style="background: linear-gradient(135deg, #128c7e 0%, #25d366 100%);">
+            <i class="fa-brands fa-whatsapp"></i>
+            <span>Iniciar Envío Masivo</span>
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Envío Masivo por Correo Electrónico -->
+  <div class="modal-backdrop" id="modal-bulk-email" style="display: none;">
+    <div class="modal-card">
+      <header class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-badge-icon" style="color: #3b82f6; background: rgba(59, 130, 246, 0.12);">
+            <i class="fa-solid fa-paper-plane"></i>
+          </div>
+          <div>
+            <h2 class="modal-title">Campaña Masiva de Correo</h2>
+            <p class="modal-subtitle">Difusión a los contactos seleccionados en tu CRM</p>
+          </div>
+        </div>
+        <button id="btn-close-email-modal" class="btn-close-modal" type="button" aria-label="Cerrar modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </header>
+
+      <form id="form-bulk-email" class="modal-form">
+        <div class="recipients-chip-wrap" id="email-recipients-info">
+          <i class="fa-solid fa-envelope-circle-check" style="color: #3b82f6; margin-right: 6px;"></i>
+          <span id="email-recipients-text">0 contactos seleccionados</span>
+        </div>
+
+        <div class="form-group">
+          <label for="email-subject-input" class="form-label">Asunto del Correo *</label>
+          <input 
+            type="text" 
+            id="email-subject-input" 
+            class="form-input" 
+            placeholder="Ej. Promoción Especial de Temporada para {nombre}" 
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="email-body-input" class="form-label">Cuerpo del Correo *</label>
+          <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px;">
+            Soporta las variables dinámicas <code>{nombre}</code> y <code>{empresa}</code>.
+          </p>
+          <textarea 
+            id="email-body-input" 
+            class="form-input" 
+            rows="6" 
+            placeholder="Estimado/a {nombre},&#10;&#10;Queremos invitarte a conocer nuestras novedades de este mes..."
+            required
+            style="resize: vertical;"
+          ></textarea>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" id="btn-cancel-email-modal" class="btn-cancel">Cancelar</button>
+          <button type="submit" class="btn-submit-account" style="background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>Enviar Correos</span>
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Envío Dual Masivo (WhatsApp + Email) -->
+  <div class="modal-backdrop" id="modal-bulk-dual" style="display: none;">
+    <div class="modal-card">
+      <header class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-badge-icon" style="color: #ff00db; background: rgba(255, 0, 219, 0.12);">
+            <i class="fa-solid fa-bolt"></i>
+          </div>
+          <div>
+            <h2 class="modal-title">Envío Dual Simultáneo</h2>
+            <p class="modal-subtitle">Impacto omnicanal: WhatsApp y Correo al mismo tiempo</p>
+          </div>
+        </div>
+        <button id="btn-close-dual-modal" class="btn-close-modal" type="button" aria-label="Cerrar modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </header>
+
+      <form id="form-bulk-dual" class="modal-form">
+        <div class="recipients-chip-wrap" id="dual-recipients-info">
+          <i class="fa-solid fa-bolt" style="color: #ff00db; margin-right: 6px;"></i>
+          <span id="dual-recipients-text">0 contactos seleccionados para emisión dual</span>
+        </div>
+
+        <div class="form-group">
+          <label for="dual-email-subject" class="form-label">Asunto para el Correo *</label>
+          <input 
+            type="text" 
+            id="dual-email-subject" 
+            class="form-input" 
+            placeholder="Aviso Urgente / Beneficio Exclusivo" 
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="dual-common-message" class="form-label">Mensaje Multicanal (WhatsApp y Correo) *</label>
+          <textarea 
+            id="dual-common-message" 
+            class="form-input" 
+            rows="5" 
+            placeholder="Hola {nombre}, tenemos una noticia especial sobre tu cuenta en AutoMotor..."
+            required
+            style="resize: vertical;"
+          ></textarea>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" id="btn-cancel-dual-modal" class="btn-cancel">Cancelar</button>
+          <button type="submit" class="btn-submit-account" style="background: linear-gradient(135deg, #210087 0%, #ff00db 100%);">
+            <i class="fa-solid fa-bolt"></i>
+            <span>Disparar Envío Dual</span>
           </button>
         </footer>
       </form>

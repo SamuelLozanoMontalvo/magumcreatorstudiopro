@@ -2,9 +2,48 @@
    MAGUM CREATOR STUDIO - LÓGICA DEL DASHBOARD INTEGRAL
    ========================================================================== */
 
+// 0. GUARDIA DE SEGURIDAD Y VERIFICACIÓN DE SESIÓN ACTIVA
+(function verifyDashboardSession() {
+  const rawSession = localStorage.getItem('magum_session');
+  if (!rawSession) {
+    window.location.href = (window.location.protocol === 'file:') ? 'index.html' : '/';
+    return;
+  }
+  try {
+    const session = JSON.parse(rawSession);
+    if (!session || !session.role) {
+      throw new Error('Sesión inválida');
+    }
+    // Si es super admin y no está en modo simulación de cliente, llevar a admin
+    if (session.role === 'admin' && !session.impersonatedByAdmin) {
+      window.location.href = (window.location.protocol === 'file:') ? 'admin.html' : 'admin';
+      return;
+    }
+  } catch (e) {
+    localStorage.removeItem('magum_session');
+    window.location.href = (window.location.protocol === 'file:') ? 'index.html' : '/';
+  }
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
 
-  // 1. CONMUTADOR DE MODO CLARO / OSCURO
+  // ==========================================================================
+  // 1. HELPERS & SANITIZACIÓN XSS
+  // ==========================================================================
+
+  function escapeHtml(str) {
+    if (!str && str !== 0) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // ==========================================================================
+  // 2. CONMUTADOR DE MODO CLARO / OSCURO
+  // ==========================================================================
   const themeToggleBtn = document.getElementById('btn-theme-toggle');
   const themeIcon = document.getElementById('theme-icon');
   const themeText = document.getElementById('theme-text');
@@ -37,24 +76,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 1.1 LEER SESIÓN ACTIVA Y APLICAR PERMISOS DE MÓDULOS
+  // ==========================================================================
+  // 3. LEER SESIÓN ACTIVA Y APLICAR PERMISOS DE MÓDULOS
+  // ==========================================================================
   const rawSession = localStorage.getItem('magum_session');
   if (rawSession) {
     try {
       const session = JSON.parse(rawSession);
-      if (session.business) {
-        const topbarName = document.getElementById('topbar-account-name');
-        const sidebarName = document.getElementById('sidebar-account-name');
-        if (topbarName) topbarName.textContent = session.business;
-        if (sidebarName) sidebarName.textContent = session.business;
-      }
+      const bizName = session.business || 'Mi Negocio';
 
-      // Si fue abierto por el Super Admin, mostrar barra para volver al panel maestro
+      const topbarName = document.getElementById('topbar-account-name');
+      const sidebarName = document.getElementById('sidebar-account-name');
+      if (topbarName) topbarName.textContent = bizName;
+      if (sidebarName) sidebarName.textContent = bizName;
+
+      // Si fue abierto por el Super Admin, mostrar banner superior seguro
       if (session.impersonatedByAdmin) {
         const banner = document.createElement('div');
         banner.style.cssText = 'background: #210087; color: #fff; padding: 10px 20px; font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2);';
         banner.innerHTML = `
-          <span><i class="fa-solid fa-user-shield"></i> Vista previa de cliente: <strong>${session.business}</strong></span>
+          <span><i class="fa-solid fa-user-shield"></i> Vista previa de cliente: <strong>${escapeHtml(bizName)}</strong></span>
           <a href="${window.location.protocol === 'file:' ? 'admin.html' : 'admin'}" style="color: #FDD344; text-decoration: none; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-arrow-left"></i> Volver a Super Admin</a>
         `;
         document.body.prepend(banner);
@@ -78,7 +119,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 2. MENÚ MÓVIL (HAMBURGUESA Y TELÓN DE FONDO)
+  // ==========================================================================
+  // 4. MENÚ MÓVIL (HAMBURGUESA Y TELÓN DE FONDO)
+  // ==========================================================================
   const sidebar = document.getElementById('sidebar');
   const sidebarToggleBtn = document.getElementById('btn-sidebar-toggle');
   const sidebarBackdrop = document.getElementById('sidebar-backdrop');
@@ -101,7 +144,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sidebarBackdrop) sidebarBackdrop.classList.remove('active');
   }
 
-  // 3. NAVEGACIÓN ENTRE VISTAS DEL MENÚ LATERAL
+  // ==========================================================================
+  // 5. NAVEGACIÓN ENTRE VISTAS DEL MENÚ LATERAL
+  // ==========================================================================
   const views = {
     'view-dashboard': document.getElementById('view-dashboard'),
     'view-crm': document.getElementById('view-crm'),
@@ -145,15 +190,29 @@ document.addEventListener('DOMContentLoaded', () => {
     if (hashLink) hashLink.click();
   }
 
-  // 4. ACCIONES DE SUGERENCIAS INTELIGENTES (CRM & MARKETING)
+  // ==========================================================================
+  // 6. ACCIONES DE SUGERENCIAS INTELIGENTES (CRM & MARKETING)
+  // ==========================================================================
   const suggestionButtons = document.querySelectorAll('.btn-action-suggestion');
   suggestionButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       const action = btn.getAttribute('data-action');
       if (action === 'email-campaign') {
-        alert('📧 Preparando Campaña de Email Masivo:\n\nAsunto: Recordatorio de Mantenimiento Preventivo\nAudiencia: 142 clientes inactivos (+60 días)\n\nRedactor de campañas listo con la plantilla optimizada.');
+        const linkCrm = document.querySelector('[data-view="view-crm"]');
+        if (linkCrm) linkCrm.click();
+        setTimeout(() => {
+          if (btnBulkEmail) {
+            btnBulkEmail.click();
+          }
+        }, 150);
       } else if (action === 'whatsapp-broadcast') {
-        alert('💬 Preparando Difusión por WhatsApp:\n\nCampaña: Diagnóstico VIP Gratuito de Frenos y Batería\nAudiencia: 85 clientes VIP seleccionados\n\nConectando difusión directa a WhatsApp.');
+        const linkCrm = document.querySelector('[data-view="view-crm"]');
+        if (linkCrm) linkCrm.click();
+        setTimeout(() => {
+          if (btnBulkWhatsapp) {
+            btnBulkWhatsapp.click();
+          }
+        }, 150);
       } else if (action === 'social-post') {
         const linkSocial = document.getElementById('link-social-media');
         if (linkSocial) linkSocial.click();
@@ -172,7 +231,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 5. BOTÓN CREAR POST (TOPBAR)
   const btnCreatePost = document.getElementById('btn-create-post');
   if (btnCreatePost) {
     btnCreatePost.addEventListener('click', () => {
@@ -181,7 +239,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 6. DESPLEGABLE DEL SUBMENÚ MARKETING EN SIDEBAR
   const submenuToggle = document.querySelector('.nav-submenu-toggle');
   if (submenuToggle) {
     submenuToggle.addEventListener('click', () => {
@@ -190,7 +247,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 7. PROGRAMAR PUBLICACIÓN DESDE IDEAS
   const useIdeaButtons = document.querySelectorAll('.btn-use-idea');
   useIdeaButtons.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -201,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================================================
-  // 8. CRM: CRUD COMPLETO + IMPORTACIÓN EXCEL/CSV + PLANTILLA
+  // 7. CRM: MULTISELECCIÓN, ACCIONES MASIVAS, CRUD Y EXCEL/CSV
   // ==========================================================================
 
   const DEFAULT_CRM_CONTACTS = [
@@ -264,14 +320,29 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('magum_crm_contacts', JSON.stringify(contacts));
   }
 
+  // Estado de selección múltiple (IDs seleccionados)
+  const selectedContactIds = new Set();
+
   const crmTableBody = document.getElementById('crm-table-body');
   const crmEmptyState = document.getElementById('crm-empty-state');
   const crmSearchInput = document.getElementById('crm-search-input');
+  const crmSelectAll = document.getElementById('crm-select-all');
+  const crmSelectedCounter = document.getElementById('crm-selected-counter');
+
+  // Botones de la barra superior de acciones masivas
+  const btnBulkWhatsapp = document.getElementById('btn-bulk-whatsapp');
+  const btnBulkEmail = document.getElementById('btn-bulk-email');
+  const btnBulkDual = document.getElementById('btn-bulk-dual');
+  const btnBulkEdit = document.getElementById('btn-bulk-edit');
+  const btnBulkDelete = document.getElementById('btn-bulk-delete');
+
+  // Métricas
   const crmStatTotal = document.getElementById('crm-stat-total');
   const crmStatVip = document.getElementById('crm-stat-vip');
   const crmStatProspects = document.getElementById('crm-stat-prospects');
   const crmStatInactive = document.getElementById('crm-stat-inactive');
 
+  // Modal Contacto (CRUD)
   const modalCrm = document.getElementById('modal-crm-contact');
   const btnOpenCrmModal = document.getElementById('btn-open-crm-modal');
   const btnCloseCrmModal = document.getElementById('btn-close-crm-modal');
@@ -288,14 +359,70 @@ document.addEventListener('DOMContentLoaded', () => {
   const crmModalTitle = document.getElementById('crm-modal-title');
   const crmModalSubmitLabel = document.getElementById('crm-modal-submit-label');
 
+  // Modal Bulk WhatsApp
+  const modalBulkWp = document.getElementById('modal-bulk-whatsapp');
+  const formBulkWp = document.getElementById('form-bulk-whatsapp');
+  const wpRecipientsText = document.getElementById('whatsapp-recipients-text');
+  const wpMessageInput = document.getElementById('whatsapp-message-input');
+  const btnCloseBulkWp = document.getElementById('btn-close-whatsapp-modal');
+  const btnCancelBulkWp = document.getElementById('btn-cancel-whatsapp-modal');
+
+  // Modal Bulk Email
+  const modalBulkEmail = document.getElementById('modal-bulk-email');
+  const formBulkEmail = document.getElementById('form-bulk-email');
+  const emailRecipientsText = document.getElementById('email-recipients-text');
+  const emailSubjectInput = document.getElementById('email-subject-input');
+  const emailBodyInput = document.getElementById('email-body-input');
+  const btnCloseBulkEmail = document.getElementById('btn-close-email-modal');
+  const btnCancelBulkEmail = document.getElementById('btn-cancel-email-modal');
+
+  // Modal Bulk Dual
+  const modalBulkDual = document.getElementById('modal-bulk-dual');
+  const formBulkDual = document.getElementById('form-bulk-dual');
+  const dualRecipientsText = document.getElementById('dual-recipients-text');
+  const dualEmailSubject = document.getElementById('dual-email-subject');
+  const dualCommonMessage = document.getElementById('dual-common-message');
+  const btnCloseBulkDual = document.getElementById('btn-close-dual-modal');
+  const btnCancelBulkDual = document.getElementById('btn-cancel-dual-modal');
+
+  // Plantilla e importación masiva
   const btnDownloadCsvTemplate = document.getElementById('btn-download-csv-template');
   const crmImportFile = document.getElementById('crm-import-file');
+
+  function updateBulkToolbar(filteredContacts = []) {
+    const count = selectedContactIds.size;
+    if (crmSelectedCounter) {
+      crmSelectedCounter.textContent = `${count} contacto${count === 1 ? '' : 's'} seleccionado${count === 1 ? '' : 's'}`;
+    }
+
+    const hasSelection = count > 0;
+    if (btnBulkWhatsapp) btnBulkWhatsapp.disabled = !hasSelection;
+    if (btnBulkEmail) btnBulkEmail.disabled = !hasSelection;
+    if (btnBulkDual) btnBulkDual.disabled = !hasSelection;
+    if (btnBulkDelete) btnBulkDelete.disabled = !hasSelection;
+    // Editar solo habilitado cuando hay exactamente 1 contacto seleccionado
+    if (btnBulkEdit) btnBulkEdit.disabled = (count !== 1);
+
+    // Actualizar estado del checkbox general "Seleccionar todos"
+    if (crmSelectAll) {
+      if (filteredContacts.length > 0 && filteredContacts.every(c => selectedContactIds.has(c.id))) {
+        crmSelectAll.checked = true;
+        crmSelectAll.indeterminate = false;
+      } else if (filteredContacts.some(c => selectedContactIds.has(c.id))) {
+        crmSelectAll.checked = false;
+        crmSelectAll.indeterminate = true;
+      } else {
+        crmSelectAll.checked = false;
+        crmSelectAll.indeterminate = false;
+      }
+    }
+  }
 
   function renderCrm() {
     if (!crmTableBody) return;
     const contacts = getCrmContacts();
 
-    // Actualizar métricas
+    // Actualizar métricas del CRM
     if (crmStatTotal) crmStatTotal.textContent = contacts.length;
     if (crmStatVip) crmStatVip.textContent = contacts.filter(c => c.segment === 'vip').length;
     if (crmStatProspects) crmStatProspects.textContent = contacts.filter(c => c.segment === 'prospect').length;
@@ -322,6 +449,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       filtered.forEach(c => {
         const tr = document.createElement('tr');
+        const isSelected = selectedContactIds.has(c.id);
+        if (isSelected) tr.classList.add('row-selected');
 
         let segmentBadge = '';
         if (c.segment === 'vip') {
@@ -334,81 +463,287 @@ document.addEventListener('DOMContentLoaded', () => {
           segmentBadge = '<span class="badge-status badge-status-active"><span class="status-indicator-dot"></span> Cliente</span>';
         }
 
-        const cleanPhone = (c.phone || '').replace(/[^0-9]/g, '');
-
         tr.innerHTML = `
+          <td style="text-align: center; width: 44px;">
+            <input type="checkbox" class="crm-custom-checkbox crm-row-check" data-id="${escapeHtml(c.id)}" ${isSelected ? 'checked' : ''} title="Seleccionar fila">
+          </td>
           <td class="client-name-cell">${escapeHtml(c.name)}</td>
           <td class="email-cell">${escapeHtml(c.email)}</td>
           <td><span style="font-weight:600;">${escapeHtml(c.phone)}</span></td>
           <td>${c.age ? c.age + ' años' : '<span style="color:var(--text-muted);">—</span>'}</td>
           <td>${c.company ? escapeHtml(c.company) : '<span style="color:var(--text-muted);">—</span>'}</td>
           <td>${segmentBadge}</td>
-          <td style="max-width: 180px; font-size: 0.8rem; color: var(--text-muted);">${escapeHtml(c.notes || '—')}</td>
-          <td>
-            <div class="actions-cell">
-              <a href="https://wa.me/${cleanPhone}" target="_blank" class="btn-row-action btn-whatsapp" title="Escribir por WhatsApp">
-                <i class="fa-brands fa-whatsapp"></i>
-              </a>
-              <button class="btn-row-action btn-edit-crm" title="Editar contacto" data-id="${c.id}">
-                <i class="fa-solid fa-pen"></i>
-              </button>
-              <button class="btn-row-action btn-delete btn-delete-crm" title="Eliminar contacto" data-id="${c.id}">
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
-            </div>
-          </td>
+          <td style="max-width: 220px; font-size: 0.8rem; color: var(--text-muted);">${escapeHtml(c.notes || '—')}</td>
         `;
+
         crmTableBody.appendChild(tr);
       });
     }
 
-    attachCrmRowListeners();
+    updateBulkToolbar(filtered);
+    attachCrmSelectionListeners(filtered);
   }
 
-  function attachCrmRowListeners() {
-    document.querySelectorAll('.btn-edit-crm').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-id');
-        const contact = getCrmContacts().find(c => c.id === id);
-        if (contact) {
-          crmContactId.value = contact.id;
-          crmInputName.value = contact.name || '';
-          crmInputEmail.value = contact.email || '';
-          crmInputPhone.value = contact.phone || '';
-          crmInputAge.value = contact.age || '';
-          crmInputCompany.value = contact.company || '';
-          crmInputSegment.value = contact.segment || 'client';
-          crmInputNotes.value = contact.notes || '';
-
-          if (crmModalTitle) crmModalTitle.textContent = 'Editar Contacto';
-          if (crmModalSubmitLabel) crmModalSubmitLabel.textContent = 'Guardar Cambios';
-          modalCrm.style.display = 'flex';
-          crmInputName.focus();
+  function attachCrmSelectionListeners(filtered) {
+    document.querySelectorAll('.crm-row-check').forEach(chk => {
+      chk.addEventListener('change', (e) => {
+        e.stopPropagation();
+        const id = chk.getAttribute('data-id');
+        const tr = chk.closest('tr');
+        if (chk.checked) {
+          selectedContactIds.add(id);
+          if (tr) tr.classList.add('row-selected');
+        } else {
+          selectedContactIds.delete(id);
+          if (tr) tr.classList.remove('row-selected');
         }
+        updateBulkToolbar(filtered);
       });
     });
 
-    document.querySelectorAll('.btn-delete-crm').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-id');
-        const contacts = getCrmContacts();
-        const contact = contacts.find(c => c.id === id);
-        if (contact && confirm(`¿Deseas eliminar a "${contact.name}" de tus contactos?`)) {
-          saveCrmContacts(contacts.filter(c => c.id !== id));
-          renderCrm();
+    crmTableBody.querySelectorAll('tr').forEach(tr => {
+      tr.addEventListener('click', (e) => {
+        if (e.target.tagName.toLowerCase() === 'input') return;
+        const chk = tr.querySelector('.crm-row-check');
+        if (chk) {
+          chk.checked = !chk.checked;
+          chk.dispatchEvent(new Event('change'));
         }
       });
     });
   }
 
-  // Abrir modal CRM
+  // Selección general "Seleccionar Todos"
+  if (crmSelectAll) {
+    crmSelectAll.addEventListener('change', () => {
+      const contacts = getCrmContacts();
+      const query = (crmSearchInput ? crmSearchInput.value : '').trim().toLowerCase();
+      const filtered = contacts.filter(c => {
+        if (!query) return true;
+        return (
+          (c.name && c.name.toLowerCase().includes(query)) ||
+          (c.email && c.email.toLowerCase().includes(query)) ||
+          (c.phone && c.phone.toLowerCase().includes(query)) ||
+          (c.company && c.company.toLowerCase().includes(query))
+        );
+      });
+
+      if (crmSelectAll.checked) {
+        filtered.forEach(c => selectedContactIds.add(c.id));
+      } else {
+        filtered.forEach(c => selectedContactIds.delete(c.id));
+      }
+      renderCrm();
+    });
+  }
+
+  if (crmSearchInput) {
+    crmSearchInput.addEventListener('input', renderCrm);
+  }
+
+  // ==========================================================================
+  // ACCIONES MASIVAS DE LA BARRA SUPERIOR
+  // ==========================================================================
+
+  // 1. Eliminar seleccionados
+  if (btnBulkDelete) {
+    btnBulkDelete.addEventListener('click', () => {
+      const count = selectedContactIds.size;
+      if (count === 0) return;
+
+      const confirmMsg = (count === 1)
+        ? '¿Deseas eliminar el contacto seleccionado de tu base de datos?'
+        : `¿Deseas eliminar los ${count} contactos seleccionados de tu base de datos? Esta acción es permanente.`;
+
+      if (confirm(confirmMsg)) {
+        let contacts = getCrmContacts();
+        contacts = contacts.filter(c => !selectedContactIds.has(c.id));
+        saveCrmContacts(contacts);
+        selectedContactIds.clear();
+        renderCrm();
+      }
+    });
+  }
+
+  // 2. Editar seleccionado (solo cuando se selecciona 1)
+  if (btnBulkEdit) {
+    btnBulkEdit.addEventListener('click', () => {
+      if (selectedContactIds.size !== 1) return;
+      const targetId = Array.from(selectedContactIds)[0];
+      const contact = getCrmContacts().find(c => c.id === targetId);
+      if (contact) {
+        crmContactId.value = contact.id;
+        crmInputName.value = contact.name || '';
+        crmInputEmail.value = contact.email || '';
+        crmInputPhone.value = contact.phone || '';
+        crmInputAge.value = contact.age || '';
+        crmInputCompany.value = contact.company || '';
+        crmInputSegment.value = contact.segment || 'client';
+        crmInputNotes.value = contact.notes || '';
+
+        if (crmModalTitle) crmModalTitle.textContent = 'Editar Contacto';
+        if (crmModalSubmitLabel) crmModalSubmitLabel.textContent = 'Guardar Cambios';
+        if (modalCrm) modalCrm.style.display = 'flex';
+        crmInputName.focus();
+      }
+    });
+  }
+
+  // 3. Enviar WhatsApp Masivo
+  if (btnBulkWhatsapp) {
+    btnBulkWhatsapp.addEventListener('click', () => {
+      const count = selectedContactIds.size;
+      if (count === 0) return;
+
+      const contacts = getCrmContacts().filter(c => selectedContactIds.has(c.id));
+      const namesList = contacts.slice(0, 3).map(c => c.name).join(', ') + (count > 3 ? ` y ${count - 3} más` : '');
+
+      if (wpRecipientsText) {
+        wpRecipientsText.textContent = `${count} contacto${count === 1 ? '' : 's'} seleccionado${count === 1 ? '' : 's'} (${namesList})`;
+      }
+      if (modalBulkWp) modalBulkWp.style.display = 'flex';
+      if (wpMessageInput) wpMessageInput.focus();
+    });
+  }
+
+  function closeBulkWpModal() {
+    if (modalBulkWp) modalBulkWp.style.display = 'none';
+  }
+  if (btnCloseBulkWp) btnCloseBulkWp.addEventListener('click', closeBulkWpModal);
+  if (btnCancelBulkWp) btnCancelBulkWp.addEventListener('click', closeBulkWpModal);
+  if (modalBulkWp) {
+    modalBulkWp.addEventListener('click', (e) => {
+      if (e.target === modalBulkWp) closeBulkWpModal();
+    });
+  }
+
+  if (formBulkWp) {
+    formBulkWp.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const rawMsg = (wpMessageInput ? wpMessageInput.value : '').trim();
+      if (!rawMsg) {
+        alert('Por favor ingresa un mensaje para la difusión por WhatsApp.');
+        return;
+      }
+
+      const contacts = getCrmContacts().filter(c => selectedContactIds.has(c.id));
+      if (contacts.length === 1) {
+        // Un solo contacto: abrir chat directo con mensaje personalizado
+        const target = contacts[0];
+        const personalized = rawMsg
+          .replace(/{nombre}/gi, target.name || '')
+          .replace(/{empresa}/gi, target.company || '');
+        const cleanPhone = (target.phone || '').replace(/[^0-9]/g, '');
+        window.open(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(personalized)}`, '_blank');
+      } else {
+        // Masivo: simulación de envío masivo en lote
+        alert(`💬 ¡Campaña de WhatsApp enviada con éxito!\n\nDestinatarios: ${contacts.length} contactos procesados.\nMensaje personalizado transmitido a cada número de celular.`);
+      }
+
+      closeBulkWpModal();
+    });
+  }
+
+  // 4. Enviar Correos Masivos
+  if (btnBulkEmail) {
+    btnBulkEmail.addEventListener('click', () => {
+      const count = selectedContactIds.size;
+      if (count === 0) return;
+
+      const contacts = getCrmContacts().filter(c => selectedContactIds.has(c.id));
+      const namesList = contacts.slice(0, 3).map(c => c.name).join(', ') + (count > 3 ? ` y ${count - 3} más` : '');
+
+      if (emailRecipientsText) {
+        emailRecipientsText.textContent = `${count} contacto${count === 1 ? '' : 's'} seleccionado${count === 1 ? '' : 's'} (${namesList})`;
+      }
+      if (modalBulkEmail) modalBulkEmail.style.display = 'flex';
+      if (emailSubjectInput) emailSubjectInput.focus();
+    });
+  }
+
+  function closeBulkEmailModal() {
+    if (modalBulkEmail) modalBulkEmail.style.display = 'none';
+  }
+  if (btnCloseBulkEmail) btnCloseBulkEmail.addEventListener('click', closeBulkEmailModal);
+  if (btnCancelBulkEmail) btnCancelBulkEmail.addEventListener('click', closeBulkEmailModal);
+  if (modalBulkEmail) {
+    modalBulkEmail.addEventListener('click', (e) => {
+      if (e.target === modalBulkEmail) closeBulkEmailModal();
+    });
+  }
+
+  if (formBulkEmail) {
+    formBulkEmail.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const subject = (emailSubjectInput ? emailSubjectInput.value : '').trim();
+      const body = (emailBodyInput ? emailBodyInput.value : '').trim();
+
+      if (!subject || !body) {
+        alert('Por favor completa el asunto y el contenido del correo.');
+        return;
+      }
+
+      const contacts = getCrmContacts().filter(c => selectedContactIds.has(c.id));
+      alert(`📧 ¡Campaña Masiva de Correo ejecutada!\n\nAsunto: "${subject}"\nTotal enviados: ${contacts.length} correos electrónicos.\nEstado de entrega: 100% completado.`);
+
+      closeBulkEmailModal();
+    });
+  }
+
+  // 5. Envío Dual Simultáneo (WhatsApp + Email)
+  if (btnBulkDual) {
+    btnBulkDual.addEventListener('click', () => {
+      const count = selectedContactIds.size;
+      if (count === 0) return;
+
+      if (dualRecipientsText) {
+        dualRecipientsText.textContent = `${count} contacto${count === 1 ? '' : 's'} seleccionados para impacto dual (WhatsApp + Correo)`;
+      }
+      if (modalBulkDual) modalBulkDual.style.display = 'flex';
+      if (dualEmailSubject) dualEmailSubject.focus();
+    });
+  }
+
+  function closeBulkDualModal() {
+    if (modalBulkDual) modalBulkDual.style.display = 'none';
+  }
+  if (btnCloseBulkDual) btnCloseBulkDual.addEventListener('click', closeBulkDualModal);
+  if (btnCancelBulkDual) btnCancelBulkDual.addEventListener('click', closeBulkDualModal);
+  if (modalBulkDual) {
+    modalBulkDual.addEventListener('click', (e) => {
+      if (e.target === modalBulkDual) closeBulkDualModal();
+    });
+  }
+
+  if (formBulkDual) {
+    formBulkDual.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const subject = (dualEmailSubject ? dualEmailSubject.value : '').trim();
+      const msg = (dualCommonMessage ? dualCommonMessage.value : '').trim();
+
+      if (!subject || !msg) {
+        alert('Por favor completa el asunto y el mensaje para el envío dual.');
+        return;
+      }
+
+      const count = selectedContactIds.size;
+      alert(`⚡ ¡Envío Dual Masivo Completado!\n\nAsunto de Email: "${subject}"\nContactos impactados: ${count}\nCanales activados: WhatsApp Directo + Email Marketing`);
+
+      closeBulkDualModal();
+    });
+  }
+
+  // ==========================================================================
+  // CREACIÓN MANUAL Y EDICIÓN DE CONTACTO CRM
+  // ==========================================================================
+
   if (btnOpenCrmModal) {
     btnOpenCrmModal.addEventListener('click', () => {
       formCrm.reset();
       crmContactId.value = '';
       if (crmModalTitle) crmModalTitle.textContent = 'Registrar Contacto';
       if (crmModalSubmitLabel) crmModalSubmitLabel.textContent = 'Guardar Contacto';
-      modalCrm.style.display = 'flex';
+      if (modalCrm) modalCrm.style.display = 'flex';
       crmInputName.focus();
     });
   }
@@ -460,10 +795,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (crmSearchInput) {
-    crmSearchInput.addEventListener('input', renderCrm);
-  }
-
   // Descargar plantilla CSV de clientes
   if (btnDownloadCsvTemplate) {
     btnDownloadCsvTemplate.addEventListener('click', () => {
@@ -512,7 +843,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const notesIdx = header.findIndex(h => h.includes('nota') || h.includes('notes'));
 
           if (nameIdx === -1 || emailIdx === -1 || phoneIdx === -1) {
-            alert('Formato no reconocido. Asegúrate de incluir las columnas obligatorias: Nombre, Correo y Celular.\n\nPuedes descargar la plantilla con el botón "Descargar Plantilla CSV".');
+            alert('Formato no reconocido. Asegúrate de incluir las columnas obligatorias: Nombre, Correo y Celular.\n\nPuedes descargar la plantilla oficial con el botón "Descargar Plantilla CSV".');
             return;
           }
 
@@ -561,7 +892,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================================================
-  // 9. PROFESIONALES: CRUD DE MIEMBROS CON ACCESO A LA CUENTA
+  // 8. PROFESIONALES: CRUD DE MIEMBROS CON ACCESO A LA CUENTA
   // ==========================================================================
 
   const DEFAULT_PROFESSIONALS = [
@@ -570,7 +901,7 @@ document.addEventListener('DOMContentLoaded', () => {
       name: 'Ing. Mateo Saldarriaga',
       role: 'Jefe de Taller & Diagnóstico',
       email: 'mateo@automotor.com',
-      password: 'Mateo2026*',
+      password: '••••••••',
       phone: '+57 311 000 1122',
       schedule: 'Lun - Sáb (8:00 AM - 5:00 PM)'
     },
@@ -579,7 +910,7 @@ document.addEventListener('DOMContentLoaded', () => {
       name: 'Andrés Camilo Rojas',
       role: 'Mecánico General Senior',
       email: 'andres.rojas@automotor.com',
-      password: 'Rojas2026*',
+      password: '••••••••',
       phone: '+57 314 222 3344',
       schedule: 'Lun - Vie (8:00 AM - 6:00 PM)'
     },
@@ -588,7 +919,7 @@ document.addEventListener('DOMContentLoaded', () => {
       name: 'Laura Sofía Morales',
       role: 'Asesora Comercial / CRM',
       email: 'laura.morales@automotor.com',
-      password: 'Laura2026*',
+      password: '••••••••',
       phone: '+57 318 444 5566',
       schedule: 'Lun - Sáb (9:00 AM - 6:00 PM)'
     }
@@ -645,15 +976,15 @@ document.addEventListener('DOMContentLoaded', () => {
           <td class="client-name-cell">${escapeHtml(p.name)}</td>
           <td><span style="font-weight:700; color: var(--brand-magenta);">${escapeHtml(p.role)}</span></td>
           <td class="email-cell">${escapeHtml(p.email)}</td>
-          <td><code style="background: rgba(0,0,0,0.06); padding: 3px 8px; border-radius: 6px; font-size: 0.8rem;">${escapeHtml(p.password)}</code></td>
+          <td><code style="background: rgba(0,0,0,0.06); padding: 3px 8px; border-radius: 6px; font-size: 0.8rem;"><i class="fa-solid fa-lock" style="font-size: 0.7rem; margin-right: 4px;"></i>Protegida</code></td>
           <td>${p.phone ? escapeHtml(p.phone) : '<span style="color:var(--text-muted);">—</span>'}</td>
           <td style="font-size: 0.82rem;">${p.schedule ? escapeHtml(p.schedule) : '<span style="color:var(--text-muted);">—</span>'}</td>
           <td>
             <div class="actions-cell">
-              <button class="btn-row-action btn-edit-prof" title="Editar profesional" data-id="${p.id}">
+              <button class="btn-row-action btn-edit-prof" title="Editar profesional" data-id="${escapeHtml(p.id)}">
                 <i class="fa-solid fa-pen"></i>
               </button>
-              <button class="btn-row-action btn-delete btn-delete-prof" title="Eliminar profesional" data-id="${p.id}">
+              <button class="btn-row-action btn-delete btn-delete-prof" title="Eliminar profesional" data-id="${escapeHtml(p.id)}">
                 <i class="fa-solid fa-trash-can"></i>
               </button>
             </div>
@@ -676,7 +1007,7 @@ document.addEventListener('DOMContentLoaded', () => {
           profInputName.value = prof.name || '';
           profInputRole.value = prof.role || '';
           profInputEmail.value = prof.email || '';
-          profInputPassword.value = prof.password || '';
+          profInputPassword.value = '';
           profInputPhone.value = prof.phone || '';
           profInputSchedule.value = prof.schedule || '';
 
@@ -728,23 +1059,30 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       const name = profInputName.value.trim();
       const role = profInputRole.value.trim();
-      const email = profInputEmail.value.trim();
+      const email = profInputEmail.value.trim().toLowerCase();
       const password = profInputPassword.value.trim();
       const phone = profInputPhone.value.trim();
       const schedule = profInputSchedule.value.trim();
 
-      if (!name || !role || !email || !password) {
+      const editId = profUserId.value;
+      if (!name || !role || !email || (!password && !editId)) {
         alert('Nombre, cargo, correo y contraseña son obligatorios para habilitar el acceso.');
         return;
       }
 
       const profs = getProfessionals();
-      const editId = profUserId.value;
 
       if (editId) {
         const idx = profs.findIndex(p => p.id === editId);
         if (idx !== -1) {
-          profs[idx] = { ...profs[idx], name, role, email, password, phone, schedule };
+          profs[idx].name = name;
+          profs[idx].role = role;
+          profs[idx].email = email;
+          profs[idx].phone = phone;
+          profs[idx].schedule = schedule;
+          if (password) {
+            profs[idx].password = password;
+          }
         }
       } else {
         const newId = 'P-' + Math.floor(1000 + Math.random() * 9000);
@@ -754,12 +1092,12 @@ document.addEventListener('DOMContentLoaded', () => {
       saveProfessionals(profs);
       closeProfModal();
       renderProfessionals();
-      alert(`✅ Profesional guardado exitosamente.\n\nPuede acceder con:\nUsuario/Correo: ${email}\nContraseña: ${password}`);
+      alert(`✅ Profesional guardado exitosamente.\n\nTiene acceso habilitado con el correo: ${email}`);
     });
   }
 
   // ==========================================================================
-  // 10. AJUSTES DE MARCA (WHITE LABEL)
+  // 9. AJUSTES DE MARCA (WHITE LABEL)
   // ==========================================================================
 
   const BRAND_STORAGE_KEY = 'magum_brand_settings';
@@ -869,7 +1207,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 11. CIERRE DE SESIÓN LIMPIO
+  // ==========================================================================
+  // 10. CIERRE DE SESIÓN SEGURO
+  // ==========================================================================
   const logoutBtn = document.getElementById('btn-logout');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', (e) => {
@@ -879,18 +1219,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Helpers
-  function escapeHtml(str) {
-    if (!str && str !== 0) return '';
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-  }
-
-  // Carga inicial
+  // Carga inicial de datos
   loadBrandSettings();
   renderCrm();
   renderProfessionals();

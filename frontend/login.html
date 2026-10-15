@@ -2,113 +2,13 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Acceso | Magum Creator Studio</title>
-  
-  <!-- Tipografía moderna oficial -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <!-- Iconos -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  
-  <!-- Estilos visuales de MAGUM -->
-  <link rel="stylesheet" href="css/auth.css">
+  <meta http-equiv="refresh" content="0; url=index.html">
+  <title>Redireccionando | Magum Creator Studio</title>
+  <script>
+    window.location.replace('index.html');
+  </script>
 </head>
-<body>
-
-  <!-- Fondo decorativo con resplandores neón -->
-  <div class="glow-bg glow-purple"></div>
-  <div class="glow-bg glow-magenta"></div>
-
-  <main class="login-container">
-    <div class="login-card">
-      
-      <!-- Cabecera de la tarjeta con el logo oficial -->
-      <header class="card-header">
-        <img 
-          src="https://lirp.cdn-website.com/e4e4cefa/dms3rep/multi/opt/Magum_logo+magenta-1920w.png" 
-          alt="Logo MAGUM" 
-          class="brand-logo"
-        >
-        <span class="badge-studio">CREATOR STUDIO</span>
-        <h1 class="login-title">Portal de Clientes</h1>
-        <p class="login-subtitle">Ingresa tus credenciales para administrar tu negocio</p>
-      </header>
-
-      <!-- Mensaje de alerta para errores o éxito -->
-      <div id="alert-box" class="alert-box" style="display: none;"></div>
-
-      <!-- Formulario de inicio de sesión -->
-      <form id="login-form" class="login-form">
-        
-        <!-- Campo: Correo electrónico -->
-        <div class="form-group">
-          <label for="email" class="form-label">Correo electrónico</label>
-          <div class="input-wrapper">
-            <i class="fa-regular fa-envelope input-icon"></i>
-            <input 
-              type="email" 
-              id="email" 
-              name="email" 
-              class="form-input" 
-              placeholder="tu-correo@empresa.com" 
-              required
-              autocomplete="email"
-            >
-          </div>
-        </div>
-
-        <!-- Campo: Contraseña -->
-        <div class="form-group">
-          <label for="password" class="form-label">Contraseña</label>
-          <div class="input-wrapper">
-            <i class="fa-solid fa-lock input-icon"></i>
-            <input 
-              type="password" 
-              id="password" 
-              name="password" 
-              class="form-input" 
-              placeholder="••••••••••••" 
-              required
-              autocomplete="current-password"
-            >
-            <button type="button" id="toggle-password" class="btn-toggle-password" title="Mostrar u ocultar contraseña">
-              <i class="fa-regular fa-eye" id="eye-icon"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- Opciones adicionales -->
-        <div class="form-options">
-          <label class="checkbox-container">
-            <input type="checkbox" id="remember-me">
-            <span class="checkmark"></span>
-            Recordar mi sesión
-          </label>
-          <a href="#" id="forgot-password-link" class="link-support">¿Problemas de acceso?</a>
-        </div>
-
-        <!-- Botón de ingresar -->
-        <button type="submit" id="btn-submit" class="btn-submit">
-          <span class="btn-text">Ingresar a mi panel</span>
-          <i class="fa-solid fa-arrow-right btn-icon"></i>
-        </button>
-
-      </form>
-
-      <!-- Pie de tarjeta -->
-      <footer class="card-footer">
-        <p class="footer-note">
-          <i class="fa-solid fa-shield-halved"></i> ¿No tienes acceso? Contacta a tu asesor de <strong>MAGUM</strong>.
-        </p>
-      </footer>
-
-    </div>
-  </main>
-
-  <!-- Lógica interactiva del formulario -->
-  <script src="js/auth.js"></script>
+<body style="background: #080017; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">
+  <p>Redireccionando al portal de acceso... <a href="index.html" style="color: #FF00DB;">Haz clic aquí si no redirige automáticamente</a>.</p>
 </body>
 </html>
