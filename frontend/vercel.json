@@ -2,10 +2,12 @@
   "cleanUrls": true,
   "rewrites": [
     { "source": "/dashboard", "destination": "/dashboard.html" },
+    { "source": "/admin", "destination": "/admin.html" },
     { "source": "/login", "destination": "/index.html" }
   ],
   "redirects": [
     { "source": "/dashboard.html", "destination": "/dashboard", "permanent": true },
+    { "source": "/admin.html", "destination": "/admin", "permanent": true },
     { "source": "/index.html", "destination": "/", "permanent": true }
   ]
 }

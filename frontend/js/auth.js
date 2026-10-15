@@ -1,3 +1,7 @@
+/* ==========================================================================
+   MAGUM CREATOR STUDIO - CONTROL DE ACCESO (CLIENTES Y SUPER ADMIN)
+   ========================================================================== */
+
 document.addEventListener('DOMContentLoaded', () => {
 
   const loginForm = document.getElementById('login-form');
@@ -18,22 +22,50 @@ document.addEventListener('DOMContentLoaded', () => {
   // Procesar inicio de sesión
   if (loginForm) {
     loginForm.addEventListener('submit', (e) => {
-      // Evita que los datos se manden por GET y se expongan en la URL
       e.preventDefault();
 
-      const email = document.getElementById('email').value.trim();
+      const userOrEmail = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value.trim();
 
-      if (!email || !password) {
+      if (!userOrEmail || !password) {
         showAlert('Por favor completa todos los campos.', 'error');
         return;
       }
 
-      // Simulación de acceso exitoso (luego conectaremos con la base de datos)
-      showAlert('Credenciales correctas. Ingresando...', 'success');
+      // 1. Verificación de credenciales de Super Administrador
+      const isAdmin = (userOrEmail.toLowerCase() === 'mcsadmin') && (password === 'M2030cs');
+
+      if (isAdmin) {
+        localStorage.setItem('magum_session', JSON.stringify({
+          role: 'admin',
+          username: 'McSAdmin',
+          name: 'Super Administrador',
+          loggedAt: new Date().toISOString()
+        }));
+
+        showAlert('Acceso Super Admin verificado. Abriendo panel maestro...', 'success');
+
+        setTimeout(() => {
+          if (window.location.protocol === 'file:') {
+            window.location.href = 'admin.html';
+          } else {
+            window.location.href = 'admin';
+          }
+        }, 500);
+        return;
+      }
+
+      // 2. Acceso como Cliente / Negocio
+      localStorage.setItem('magum_session', JSON.stringify({
+        role: 'client',
+        email: userOrEmail,
+        business: 'AutoMotor Cartagena',
+        loggedAt: new Date().toISOString()
+      }));
+
+      showAlert('Credenciales correctas. Ingresando a tu panel...', 'success');
 
       setTimeout(() => {
-        // En Vercel / producción redirige a dashboard limpio, en local a dashboard.html
         if (window.location.protocol === 'file:') {
           window.location.href = 'dashboard.html';
         } else {
