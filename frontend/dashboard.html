@@ -475,15 +475,27 @@
               <i class="fa-solid fa-users"></i>
               <span>Gestión de Clientes & CRM</span>
             </div>
-            <h2 class="banner-title">Directorio de Contactos y Oportunidades</h2>
-            <p class="banner-desc">Monitorea tus prospectos, fideliza clientes existentes y coordina comunicaciones masivas efectivas.</p>
+            <h2 class="banner-title">Directorio de Contactos y Base de Datos</h2>
+            <p class="banner-desc">Administra, filtra e importa tus clientes. Registra nuevos prospectos o integra tu base de datos mediante archivo CSV / Excel.</p>
           </div>
-          <button class="btn-quick-action" type="button" onclick="alert('Formulario para registrar nuevo contacto en el CRM')">
-            <i class="fa-solid fa-user-plus"></i>
-            <span>Nuevo Contacto</span>
-          </button>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <button class="btn-quick-action" type="button" id="btn-open-crm-modal">
+              <i class="fa-solid fa-user-plus"></i>
+              <span>Nuevo Contacto</span>
+            </button>
+            <button class="btn-quick-action" type="button" id="btn-download-csv-template" style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);">
+              <i class="fa-solid fa-file-arrow-down"></i>
+              <span>Descargar Plantilla CSV</span>
+            </button>
+            <label class="btn-quick-action" style="cursor: pointer; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); margin: 0;">
+              <i class="fa-solid fa-file-csv"></i>
+              <span>Importar CSV / Excel</span>
+              <input type="file" id="crm-import-file" accept=".csv" style="display: none;">
+            </label>
+          </div>
         </section>
 
+        <!-- Métricas CRM -->
         <section class="section-block">
           <div class="metrics-grid">
             <div class="metric-card">
@@ -491,31 +503,31 @@
                 <i class="fa-solid fa-users"></i>
               </div>
               <div class="metric-content">
-                <span class="metric-label">Total Clientes</span>
-                <span class="metric-value">348</span>
-                <span class="metric-subtext"><i class="fa-solid fa-arrow-trend-up"></i> +12 este mes</span>
+                <span class="metric-label">Total Contactos</span>
+                <span class="metric-value" id="crm-stat-total">0</span>
+                <span class="metric-subtext">En tu base de datos</span>
               </div>
             </div>
 
             <div class="metric-card">
               <div class="metric-icon-wrap" style="color: #FF00DB; background: rgba(255, 0, 219, 0.1);">
-                <i class="fa-solid fa-user-check"></i>
+                <i class="fa-solid fa-star"></i>
               </div>
               <div class="metric-content">
                 <span class="metric-label">Clientes VIP</span>
-                <span class="metric-value">85</span>
+                <span class="metric-value" id="crm-stat-vip">0</span>
                 <span class="metric-subtext">Alta frecuencia</span>
               </div>
             </div>
 
             <div class="metric-card">
               <div class="metric-icon-wrap" style="color: #3b82f6; background: rgba(59, 130, 246, 0.1);">
-                <i class="fa-solid fa-envelope-circle-check"></i>
+                <i class="fa-solid fa-user-tag"></i>
               </div>
               <div class="metric-content">
-                <span class="metric-label">En Campañas Activas</span>
-                <span class="metric-value">227</span>
-                <span class="metric-subtext">65% de apertura</span>
+                <span class="metric-label">Prospectos</span>
+                <span class="metric-value" id="crm-stat-prospects">0</span>
+                <span class="metric-subtext">En seguimiento</span>
               </div>
             </div>
 
@@ -524,9 +536,9 @@
                 <i class="fa-solid fa-user-clock"></i>
               </div>
               <div class="metric-content">
-                <span class="metric-label">Por Reactivar</span>
-                <span class="metric-value">142</span>
-                <span class="metric-subtext">+60 días inactivos</span>
+                <span class="metric-label">Inactivos (+60d)</span>
+                <span class="metric-value" id="crm-stat-inactive">0</span>
+                <span class="metric-subtext">Campaña pendiente</span>
               </div>
             </div>
           </div>
@@ -534,10 +546,21 @@
 
         <!-- Tabla de Clientes en CRM -->
         <section class="section-block">
-          <div class="section-header">
+          <div class="section-header" style="flex-wrap: wrap; gap: 14px;">
             <div>
-              <h2 class="section-title">Clientes Registrados</h2>
-              <p class="section-subtitle">Listado de prospectos y clientes en tu base de datos centralizada</p>
+              <h2 class="section-title">Directorio de Contactos</h2>
+              <p class="section-subtitle">Visualiza, edita o contacta directamente a cada cliente de tu negocio</p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <div class="search-input-wrap" style="min-width: 280px;">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input 
+                  type="text" 
+                  id="crm-search-input" 
+                  class="input-search" 
+                  placeholder="Buscar por nombre, correo, empresa..."
+                >
+              </div>
             </div>
           </div>
 
@@ -546,50 +569,26 @@
               <table class="admin-table">
                 <thead>
                   <tr>
-                    <th>Cliente</th>
-                    <th>Teléfono / WhatsApp</th>
-                    <th>Correo Electrónico</th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Celular</th>
+                    <th>Edad</th>
+                    <th>Empresa</th>
                     <th>Segmento</th>
-                    <th>Última Interacción</th>
-                    <th>Acciones</th>
+                    <th>Notas</th>
+                    <th class="th-actions">Acciones</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr>
-                    <td class="client-name-cell">Carlos Morales</td>
-                    <td>+57 310 458 9201</td>
-                    <td>carlos.morales@gmail.com</td>
-                    <td><span class="badge-status badge-status-active"><span class="status-indicator-dot"></span> Cliente VIP</span></td>
-                    <td>Ayer, 4:30 PM</td>
-                    <td>
-                      <button class="btn-row-action" title="Enviar WhatsApp" onclick="alert('Abriendo WhatsApp directo con Carlos Morales')"><i class="fa-brands fa-whatsapp"></i></button>
-                      <button class="btn-row-action" title="Enviar Correo" onclick="alert('Abriendo redactor de correo para Carlos Morales')"><i class="fa-regular fa-envelope"></i></button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="client-name-cell">Diana María Rincón</td>
-                    <td>+57 315 889 1234</td>
-                    <td>diana.rincon@hotmail.com</td>
-                    <td><span class="badge-status badge-status-active"><span class="status-indicator-dot"></span> En Seguimiento</span></td>
-                    <td>Hace 3 días</td>
-                    <td>
-                      <button class="btn-row-action" title="Enviar WhatsApp" onclick="alert('Abriendo WhatsApp directo con Diana María')"><i class="fa-brands fa-whatsapp"></i></button>
-                      <button class="btn-row-action" title="Enviar Correo" onclick="alert('Abriendo redactor de correo para Diana María')"><i class="fa-regular fa-envelope"></i></button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="client-name-cell">Jorge Alberto Vega</td>
-                    <td>+57 301 223 9988</td>
-                    <td>jvega.transportes@yahoo.com</td>
-                    <td><span class="badge-status badge-status-inactive"><span class="status-indicator-dot"></span> Inactivo (+60d)</span></td>
-                    <td>Hace 64 días</td>
-                    <td>
-                      <button class="btn-row-action" title="Enviar WhatsApp" onclick="alert('Abriendo WhatsApp para reactivar a Jorge Alberto')"><i class="fa-brands fa-whatsapp"></i></button>
-                      <button class="btn-row-action" title="Enviar Campaña de Reactivación" onclick="alert('Enviando campaña de reactivación')"><i class="fa-regular fa-envelope"></i></button>
-                    </td>
-                  </tr>
+                <tbody id="crm-table-body">
+                  <!-- Se llena dinámicamente con JavaScript -->
                 </tbody>
               </table>
+            </div>
+
+            <div id="crm-empty-state" class="empty-state" style="display: none;">
+              <i class="fa-solid fa-users empty-icon"></i>
+              <h3>No se encontraron contactos</h3>
+              <p>Agrega un contacto manualmente o importa una base de datos con el botón "Importar CSV / Excel".</p>
             </div>
           </div>
         </section>
@@ -742,66 +741,57 @@
 
       </div>
 
-      <!-- Vista Profesionales -->
+      <!-- Vista Profesionales (Usuarios con acceso a la cuenta) -->
       <div id="view-profesionales" class="tab-view" style="display: none;">
         
         <section class="banner-card">
           <div class="banner-info">
             <div class="banner-tag">
               <i class="fa-solid fa-id-card-clip"></i>
-              <span>Equipo de Trabajo</span>
+              <span>Acceso y Equipo de Trabajo</span>
             </div>
-            <h2 class="banner-title">Profesionales & Especialistas</h2>
-            <p class="banner-desc">Administra el personal del negocio encargado de atender a los clientes y servicios.</p>
+            <h2 class="banner-title">Profesionales & Miembros con Acceso</h2>
+            <p class="banner-desc">Agrega y administra los colaboradores autorizados para acceder y gestionar el panel de tu negocio con sus propias credenciales.</p>
           </div>
-          <button class="btn-quick-action" type="button" onclick="alert('Formulario para registrar nuevo especialista')">
-            <i class="fa-solid fa-plus"></i>
-            <span>Nuevo Profesional</span>
+          <button class="btn-quick-action" type="button" id="btn-open-prof-modal">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Agregar Profesional</span>
           </button>
         </section>
 
         <section class="section-block">
-          <div class="ideas-grid">
-            
-            <article class="idea-card">
-              <div class="idea-header">
-                <span class="idea-type"><i class="fa-solid fa-user-gear"></i> JEFE DE TALLER</span>
-                <span class="badge-web-online">Disponible</span>
-              </div>
-              <h3 class="idea-title">Ing. Mateo Saldarriaga</h3>
-              <p class="idea-desc">Especialista en diagnóstico computarizado y sistemas de inyección electrónica.</p>
-              <div class="idea-meta">
-                <div class="meta-item"><i class="fa-solid fa-phone"></i> +57 311 000 1122</div>
-                <div class="meta-item"><i class="fa-regular fa-calendar-check"></i> Turno: Lun - Sáb (8am - 5pm)</div>
-              </div>
-            </article>
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Colaboradores Autorizados</h2>
+              <p class="section-subtitle">Cada profesional cuenta con credenciales activas para iniciar sesión en tu panel</p>
+            </div>
+          </div>
 
-            <article class="idea-card">
-              <div class="idea-header">
-                <span class="idea-type"><i class="fa-solid fa-wrench"></i> MECÁNICA GENERAL</span>
-                <span class="badge-web-online">Disponible</span>
-              </div>
-              <h3 class="idea-title">Andrés Camilo Rojas</h3>
-              <p class="idea-desc">Técnico experto en suspensión, frenos ABS y transmisiones automáticas.</p>
-              <div class="idea-meta">
-                <div class="meta-item"><i class="fa-solid fa-phone"></i> +57 314 222 3344</div>
-                <div class="meta-item"><i class="fa-regular fa-calendar-check"></i> Turno: Lun - Vie (8am - 6pm)</div>
-              </div>
-            </article>
+          <div class="table-card">
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Cargo / Rol</th>
+                    <th>Correo de Acceso</th>
+                    <th>Contraseña</th>
+                    <th>Teléfono</th>
+                    <th>Horario / Turno</th>
+                    <th class="th-actions">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="prof-table-body">
+                  <!-- Se llena dinámicamente con JavaScript -->
+                </tbody>
+              </table>
+            </div>
 
-            <article class="idea-card">
-              <div class="idea-header">
-                <span class="idea-type"><i class="fa-solid fa-headset"></i> ASESOR COMERCIAL</span>
-                <span class="badge-web-online">En Atención</span>
-              </div>
-              <h3 class="idea-title">Laura Sofía Morales</h3>
-              <p class="idea-desc">Gestión y cierre de cotizaciones CRM y seguimiento personalizado a clientes VIP.</p>
-              <div class="idea-meta">
-                <div class="meta-item"><i class="fa-solid fa-phone"></i> +57 318 444 5566</div>
-                <div class="meta-item"><i class="fa-regular fa-calendar-check"></i> Turno: Lun - Sáb (9am - 6pm)</div>
-              </div>
-            </article>
-
+            <div id="prof-empty-state" class="empty-state" style="display: none;">
+              <i class="fa-solid fa-id-card-clip empty-icon"></i>
+              <h3>No hay profesionales registrados</h3>
+              <p>Agrega a tu primer colaborador usando el botón "Agregar Profesional".</p>
+            </div>
           </div>
         </section>
 
@@ -934,6 +924,183 @@
 
     </main>
 
+  </div>
+
+  <!-- Modal: Crear / Editar Contacto CRM -->
+  <div class="modal-backdrop" id="modal-crm-contact" style="display: none;">
+    <div class="modal-card">
+      <header class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-badge-icon">
+            <i class="fa-solid fa-user-plus"></i>
+          </div>
+          <div>
+            <h2 class="modal-title" id="crm-modal-title">Registrar Contacto</h2>
+            <p class="modal-subtitle">Los campos con * son obligatorios para el seguimiento</p>
+          </div>
+        </div>
+        <button id="btn-close-crm-modal" class="btn-close-modal" type="button" aria-label="Cerrar modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </header>
+
+      <form id="form-crm-contact" class="modal-form">
+        <input type="hidden" id="crm-contact-id">
+
+        <div class="form-grid-2">
+          <!-- Nombre (Obligatorio) -->
+          <div class="form-group">
+            <label for="crm-input-name" class="form-label">Nombre Completo *</label>
+            <input type="text" id="crm-input-name" class="form-input" placeholder="Ej. Carlos Morales" required>
+          </div>
+
+          <!-- Correo (Obligatorio) -->
+          <div class="form-group">
+            <label for="crm-input-email" class="form-label">Correo Electrónico *</label>
+            <div class="input-with-icon">
+              <i class="fa-regular fa-envelope"></i>
+              <input type="email" id="crm-input-email" class="form-input" placeholder="cliente@correo.com" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <!-- Celular (Obligatorio) -->
+          <div class="form-group">
+            <label for="crm-input-phone" class="form-label">Celular / WhatsApp *</label>
+            <div class="input-with-icon">
+              <i class="fa-brands fa-whatsapp"></i>
+              <input type="tel" id="crm-input-phone" class="form-input" placeholder="+57 300 123 4567" required>
+            </div>
+          </div>
+
+          <!-- Edad (Opcional) -->
+          <div class="form-group">
+            <label for="crm-input-age" class="form-label">Edad (Opcional)</label>
+            <input type="number" id="crm-input-age" class="form-input" placeholder="Ej. 34" min="1" max="120">
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <!-- Empresa (Opcional) -->
+          <div class="form-group">
+            <label for="crm-input-company" class="form-label">Empresa / Negocio (Opcional)</label>
+            <div class="input-with-icon">
+              <i class="fa-solid fa-building"></i>
+              <input type="text" id="crm-input-company" class="form-input" placeholder="Ej. Transportes del Norte">
+            </div>
+          </div>
+
+          <!-- Segmento -->
+          <div class="form-group">
+            <label for="crm-input-segment" class="form-label">Segmento / Estado</label>
+            <select id="crm-input-segment" class="form-input">
+              <option value="vip">Cliente VIP</option>
+              <option value="prospect">Prospecto</option>
+              <option value="client">Cliente Regular</option>
+              <option value="inactive">Inactivo (+60 días)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Notas -->
+        <div class="form-group">
+          <label for="crm-input-notes" class="form-label">Notas / Observaciones del Contacto</label>
+          <textarea id="crm-input-notes" class="form-input" rows="2" placeholder="Detalles de interés, preferencias, historial breve..." style="resize: vertical;"></textarea>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" id="btn-cancel-crm-modal" class="btn-cancel">Cancelar</button>
+          <button type="submit" class="btn-submit-account">
+            <i class="fa-solid fa-check"></i>
+            <span id="crm-modal-submit-label">Guardar Contacto</span>
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Crear / Editar Profesional (Usuario con acceso a la cuenta) -->
+  <div class="modal-backdrop" id="modal-prof-user" style="display: none;">
+    <div class="modal-card">
+      <header class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-badge-icon">
+            <i class="fa-solid fa-id-card-clip"></i>
+          </div>
+          <div>
+            <h2 class="modal-title" id="prof-modal-title">Agregar Profesional</h2>
+            <p class="modal-subtitle">Tendrá acceso directo a este panel de control con sus credenciales</p>
+          </div>
+        </div>
+        <button id="btn-close-prof-modal" class="btn-close-modal" type="button" aria-label="Cerrar modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </header>
+
+      <form id="form-prof-user" class="modal-form">
+        <input type="hidden" id="prof-user-id">
+
+        <div class="form-grid-2">
+          <!-- Nombre completo * -->
+          <div class="form-group">
+            <label for="prof-input-name" class="form-label">Nombre y Apellido *</label>
+            <input type="text" id="prof-input-name" class="form-input" placeholder="Ej. Mateo Saldarriaga" required>
+          </div>
+
+          <!-- Cargo / Rol * -->
+          <div class="form-group">
+            <label for="prof-input-role" class="form-label">Cargo / Especialidad *</label>
+            <input type="text" id="prof-input-role" class="form-input" placeholder="Ej. Jefe de Taller / Recepcionista" required>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <!-- Correo de Acceso * -->
+          <div class="form-group">
+            <label for="prof-input-email" class="form-label">Correo de Acceso (Usuario) *</label>
+            <div class="input-with-icon">
+              <i class="fa-regular fa-envelope"></i>
+              <input type="email" id="prof-input-email" class="form-input" placeholder="mateo@automotor.com" required>
+            </div>
+          </div>
+
+          <!-- Contraseña * -->
+          <div class="form-group">
+            <label for="prof-input-password" class="form-label">Contraseña de Acceso *</label>
+            <div class="input-with-icon">
+              <i class="fa-solid fa-lock"></i>
+              <input type="text" id="prof-input-password" class="form-input" placeholder="Clave de ingreso" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <!-- Teléfono -->
+          <div class="form-group">
+            <label for="prof-input-phone" class="form-label">Teléfono de Contacto (Opcional)</label>
+            <div class="input-with-icon">
+              <i class="fa-solid fa-phone"></i>
+              <input type="tel" id="prof-input-phone" class="form-input" placeholder="+57 311 000 1122">
+            </div>
+          </div>
+
+          <!-- Turno / Horario -->
+          <div class="form-group">
+            <label for="prof-input-schedule" class="form-label">Turno / Horario de Atención</label>
+            <input type="text" id="prof-input-schedule" class="form-input" placeholder="Ej. Lun - Sáb (8:00 AM - 5:00 PM)">
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" id="btn-cancel-prof-modal" class="btn-cancel">Cancelar</button>
+          <button type="submit" class="btn-submit-account">
+            <i class="fa-solid fa-check"></i>
+            <span id="prof-modal-submit-label">Guardar Profesional</span>
+          </button>
+        </footer>
+      </form>
+    </div>
   </div>
 
   <script src="js/dashboard.js"></script>

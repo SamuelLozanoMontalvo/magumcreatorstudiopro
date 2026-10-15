@@ -55,7 +55,38 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // 2. Acceso como Cliente / Negocio
+      // 2. Verificación si es un Profesional del equipo autorizado
+      const rawProfs = localStorage.getItem('magum_team_professionals');
+      if (rawProfs) {
+        try {
+          const profs = JSON.parse(rawProfs);
+          const matchedProf = profs.find(p => p.email.toLowerCase() === userOrEmail.toLowerCase() && p.password === password);
+          if (matchedProf) {
+            localStorage.setItem('magum_session', JSON.stringify({
+              role: 'team_member',
+              name: matchedProf.name,
+              email: matchedProf.email,
+              business: 'AutoMotor Cartagena',
+              loggedAt: new Date().toISOString()
+            }));
+
+            showAlert(`Acceso autorizado para ${matchedProf.name} (${matchedProf.role}). Ingresando...`, 'success');
+
+            setTimeout(() => {
+              if (window.location.protocol === 'file:') {
+                window.location.href = 'dashboard.html';
+              } else {
+                window.location.href = 'dashboard';
+              }
+            }, 500);
+            return;
+          }
+        } catch (e) {
+          console.warn(e);
+        }
+      }
+
+      // 3. Acceso como Cliente / Negocio
       localStorage.setItem('magum_session', JSON.stringify({
         role: 'client',
         email: userOrEmail,

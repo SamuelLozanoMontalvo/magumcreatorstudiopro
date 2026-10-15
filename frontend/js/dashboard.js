@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const themeIcon = document.getElementById('theme-icon');
   const themeText = document.getElementById('theme-text');
 
-  // Cargar preferencia guardada o usar modo claro por defecto
   const savedTheme = localStorage.getItem('theme') || 'light';
   if (savedTheme === 'dark') {
     document.body.classList.add('dark-mode');
@@ -122,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
         switchView(targetViewId);
         closeMobileSidebar();
 
-        // Actualizar clase activa en enlaces
         navLinks.forEach(l => l.classList.remove('active'));
         link.classList.add('active');
       }
@@ -136,9 +134,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (viewId === 'view-crm') renderCrm();
+    if (viewId === 'view-profesionales') renderProfessionals();
   }
 
-  // Activar vista por hash si viene en la URL (ej. #ajustes)
+  // Activar vista por hash si viene en la URL (ej. #ajustes o #crm)
   if (window.location.hash) {
     const hashLink = document.querySelector(`.sidebar-nav [href="${window.location.hash}"]`);
     if (hashLink) hashLink.click();
@@ -149,22 +150,20 @@ document.addEventListener('DOMContentLoaded', () => {
   suggestionButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       const action = btn.getAttribute('data-action');
-      const card = btn.closest('.suggestion-card') || btn.closest('.channel-summary-card');
-      const title = card ? (card.querySelector('.suggestion-title') || card.querySelector('.channel-name')).textContent : 'Acción';
-
       if (action === 'email-campaign') {
-        alert(`📧 Preparando Campaña de Email Masivo:\n\nAsunto: Recordatorio de Mantenimiento Preventivo\nAudiencia: 142 clientes inactivos (+60 días)\n\nAquí se abrirá el redactor de correos con la plantilla optimizada.`);
+        alert('📧 Preparando Campaña de Email Masivo:\n\nAsunto: Recordatorio de Mantenimiento Preventivo\nAudiencia: 142 clientes inactivos (+60 días)\n\nRedactor de campañas listo con la plantilla optimizada.');
       } else if (action === 'whatsapp-broadcast') {
-        alert(`💬 Preparando Difusión por WhatsApp:\n\nCampaña: Diagnóstico VIP Gratuito de Frenos y Batería\nAudiencia: 85 clientes VIP seleccionados\n\nAquí se conectará el envío directo a WhatsApp Business.`);
+        alert('💬 Preparando Difusión por WhatsApp:\n\nCampaña: Diagnóstico VIP Gratuito de Frenos y Batería\nAudiencia: 85 clientes VIP seleccionados\n\nConectando difusión directa a WhatsApp.');
       } else if (action === 'social-post') {
-        alert(`📱 Programador de Publicaciones:\n\nPost: 3 ruidos en tu vehículo que nunca debes ignorar\nRedes: Instagram, Facebook y TikTok\n\nAbriendo el creador y programador de posts.`);
+        const linkSocial = document.getElementById('link-social-media');
+        if (linkSocial) linkSocial.click();
       } else if (action === 'open-web-editor') {
-        alert(`🌐 Abriendo Editor Visual de Página Web para www.automotorcartagena.com`);
+        const linkWeb = document.querySelector('[data-view="view-marketing-web"]');
+        if (linkWeb) linkWeb.click();
       }
     });
   });
 
-  // Botón directo para ir a Redes desde el resumen de canales
   const btnSummaryToSocial = document.getElementById('btn-summary-to-social');
   if (btnSummaryToSocial) {
     btnSummaryToSocial.addEventListener('click', () => {
@@ -177,11 +176,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCreatePost = document.getElementById('btn-create-post');
   if (btnCreatePost) {
     btnCreatePost.addEventListener('click', () => {
-      const ideasSection = document.querySelector('.ideas-grid');
-      if (ideasSection) {
-        ideasSection.scrollIntoView({ behavior: 'smooth' });
-      }
-      alert('📝 Abriendo el creador rápido de publicación para Instagram, Facebook y TikTok.');
+      const linkSocial = document.getElementById('link-social-media');
+      if (linkSocial) linkSocial.click();
     });
   }
 
@@ -194,23 +190,709 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 7. ACCIÓN EN BOTONES "PROGRAMAR PUBLICACIÓN" DE IDEAS
+  // 7. PROGRAMAR PUBLICACIÓN DESDE IDEAS
   const useIdeaButtons = document.querySelectorAll('.btn-use-idea');
   useIdeaButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       const card = btn.closest('.idea-card');
       const title = card ? card.querySelector('.idea-title').textContent : 'Publicación';
-      alert(`Preparando publicación:\n"${title}"\n\nAquí se abrirá el panel para redactar y enviar a tus redes.`);
+      alert(`Preparando publicación:\n"${title}"\n\nAbriendo programador multicanal para tus redes.`);
     });
   });
 
-  // 8. CIERRE DE SESIÓN LIMPIO
+  // ==========================================================================
+  // 8. CRM: CRUD COMPLETO + IMPORTACIÓN EXCEL/CSV + PLANTILLA
+  // ==========================================================================
+
+  const DEFAULT_CRM_CONTACTS = [
+    {
+      id: 'C-101',
+      name: 'Carlos Morales',
+      email: 'carlos.morales@gmail.com',
+      phone: '+57 310 458 9201',
+      age: 38,
+      company: 'Transportes Cartagena',
+      segment: 'vip',
+      notes: 'Mantenimiento de flota vehicular VIP'
+    },
+    {
+      id: 'C-102',
+      name: 'Diana María Rincón',
+      email: 'diana.rincon@hotmail.com',
+      phone: '+57 315 889 1234',
+      age: 29,
+      company: 'Inversiones Luna',
+      segment: 'prospect',
+      notes: 'Solicitó cotización de cambio de pastillas de freno'
+    },
+    {
+      id: 'C-103',
+      name: 'Jorge Alberto Vega',
+      email: 'jvega.transportes@yahoo.com',
+      phone: '+57 301 223 9988',
+      age: 45,
+      company: 'Logística Vega SAS',
+      segment: 'inactive',
+      notes: 'Inactivo hace más de 60 días. Candidato a reactivación.'
+    },
+    {
+      id: 'C-104',
+      name: 'Mariana Gómez',
+      email: 'mariana.gomez@outlook.com',
+      phone: '+57 320 678 4433',
+      age: 32,
+      company: 'Independiente',
+      segment: 'client',
+      notes: 'Revisión técnica anual al día'
+    }
+  ];
+
+  function getCrmContacts() {
+    const raw = localStorage.getItem('magum_crm_contacts');
+    if (!raw) {
+      localStorage.setItem('magum_crm_contacts', JSON.stringify(DEFAULT_CRM_CONTACTS));
+      return DEFAULT_CRM_CONTACTS;
+    }
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return DEFAULT_CRM_CONTACTS;
+    }
+  }
+
+  function saveCrmContacts(contacts) {
+    localStorage.setItem('magum_crm_contacts', JSON.stringify(contacts));
+  }
+
+  const crmTableBody = document.getElementById('crm-table-body');
+  const crmEmptyState = document.getElementById('crm-empty-state');
+  const crmSearchInput = document.getElementById('crm-search-input');
+  const crmStatTotal = document.getElementById('crm-stat-total');
+  const crmStatVip = document.getElementById('crm-stat-vip');
+  const crmStatProspects = document.getElementById('crm-stat-prospects');
+  const crmStatInactive = document.getElementById('crm-stat-inactive');
+
+  const modalCrm = document.getElementById('modal-crm-contact');
+  const btnOpenCrmModal = document.getElementById('btn-open-crm-modal');
+  const btnCloseCrmModal = document.getElementById('btn-close-crm-modal');
+  const btnCancelCrmModal = document.getElementById('btn-cancel-crm-modal');
+  const formCrm = document.getElementById('form-crm-contact');
+  const crmContactId = document.getElementById('crm-contact-id');
+  const crmInputName = document.getElementById('crm-input-name');
+  const crmInputEmail = document.getElementById('crm-input-email');
+  const crmInputPhone = document.getElementById('crm-input-phone');
+  const crmInputAge = document.getElementById('crm-input-age');
+  const crmInputCompany = document.getElementById('crm-input-company');
+  const crmInputSegment = document.getElementById('crm-input-segment');
+  const crmInputNotes = document.getElementById('crm-input-notes');
+  const crmModalTitle = document.getElementById('crm-modal-title');
+  const crmModalSubmitLabel = document.getElementById('crm-modal-submit-label');
+
+  const btnDownloadCsvTemplate = document.getElementById('btn-download-csv-template');
+  const crmImportFile = document.getElementById('crm-import-file');
+
+  function renderCrm() {
+    if (!crmTableBody) return;
+    const contacts = getCrmContacts();
+
+    // Actualizar métricas
+    if (crmStatTotal) crmStatTotal.textContent = contacts.length;
+    if (crmStatVip) crmStatVip.textContent = contacts.filter(c => c.segment === 'vip').length;
+    if (crmStatProspects) crmStatProspects.textContent = contacts.filter(c => c.segment === 'prospect').length;
+    if (crmStatInactive) crmStatInactive.textContent = contacts.filter(c => c.segment === 'inactive').length;
+
+    const query = (crmSearchInput ? crmSearchInput.value : '').trim().toLowerCase();
+
+    const filtered = contacts.filter(c => {
+      if (!query) return true;
+      return (
+        (c.name && c.name.toLowerCase().includes(query)) ||
+        (c.email && c.email.toLowerCase().includes(query)) ||
+        (c.phone && c.phone.toLowerCase().includes(query)) ||
+        (c.company && c.company.toLowerCase().includes(query))
+      );
+    });
+
+    crmTableBody.innerHTML = '';
+
+    if (filtered.length === 0) {
+      if (crmEmptyState) crmEmptyState.style.display = 'block';
+    } else {
+      if (crmEmptyState) crmEmptyState.style.display = 'none';
+
+      filtered.forEach(c => {
+        const tr = document.createElement('tr');
+
+        let segmentBadge = '';
+        if (c.segment === 'vip') {
+          segmentBadge = '<span class="badge-status badge-status-vip"><span class="status-indicator-dot"></span> Cliente VIP</span>';
+        } else if (c.segment === 'prospect') {
+          segmentBadge = '<span class="badge-status badge-status-prospect"><span class="status-indicator-dot"></span> Prospecto</span>';
+        } else if (c.segment === 'inactive') {
+          segmentBadge = '<span class="badge-status badge-status-inactive"><span class="status-indicator-dot"></span> Inactivo (+60d)</span>';
+        } else {
+          segmentBadge = '<span class="badge-status badge-status-active"><span class="status-indicator-dot"></span> Cliente</span>';
+        }
+
+        const cleanPhone = (c.phone || '').replace(/[^0-9]/g, '');
+
+        tr.innerHTML = `
+          <td class="client-name-cell">${escapeHtml(c.name)}</td>
+          <td class="email-cell">${escapeHtml(c.email)}</td>
+          <td><span style="font-weight:600;">${escapeHtml(c.phone)}</span></td>
+          <td>${c.age ? c.age + ' años' : '<span style="color:var(--text-muted);">—</span>'}</td>
+          <td>${c.company ? escapeHtml(c.company) : '<span style="color:var(--text-muted);">—</span>'}</td>
+          <td>${segmentBadge}</td>
+          <td style="max-width: 180px; font-size: 0.8rem; color: var(--text-muted);">${escapeHtml(c.notes || '—')}</td>
+          <td>
+            <div class="actions-cell">
+              <a href="https://wa.me/${cleanPhone}" target="_blank" class="btn-row-action btn-whatsapp" title="Escribir por WhatsApp">
+                <i class="fa-brands fa-whatsapp"></i>
+              </a>
+              <button class="btn-row-action btn-edit-crm" title="Editar contacto" data-id="${c.id}">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button class="btn-row-action btn-delete btn-delete-crm" title="Eliminar contacto" data-id="${c.id}">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        crmTableBody.appendChild(tr);
+      });
+    }
+
+    attachCrmRowListeners();
+  }
+
+  function attachCrmRowListeners() {
+    document.querySelectorAll('.btn-edit-crm').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        const contact = getCrmContacts().find(c => c.id === id);
+        if (contact) {
+          crmContactId.value = contact.id;
+          crmInputName.value = contact.name || '';
+          crmInputEmail.value = contact.email || '';
+          crmInputPhone.value = contact.phone || '';
+          crmInputAge.value = contact.age || '';
+          crmInputCompany.value = contact.company || '';
+          crmInputSegment.value = contact.segment || 'client';
+          crmInputNotes.value = contact.notes || '';
+
+          if (crmModalTitle) crmModalTitle.textContent = 'Editar Contacto';
+          if (crmModalSubmitLabel) crmModalSubmitLabel.textContent = 'Guardar Cambios';
+          modalCrm.style.display = 'flex';
+          crmInputName.focus();
+        }
+      });
+    });
+
+    document.querySelectorAll('.btn-delete-crm').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        const contacts = getCrmContacts();
+        const contact = contacts.find(c => c.id === id);
+        if (contact && confirm(`¿Deseas eliminar a "${contact.name}" de tus contactos?`)) {
+          saveCrmContacts(contacts.filter(c => c.id !== id));
+          renderCrm();
+        }
+      });
+    });
+  }
+
+  // Abrir modal CRM
+  if (btnOpenCrmModal) {
+    btnOpenCrmModal.addEventListener('click', () => {
+      formCrm.reset();
+      crmContactId.value = '';
+      if (crmModalTitle) crmModalTitle.textContent = 'Registrar Contacto';
+      if (crmModalSubmitLabel) crmModalSubmitLabel.textContent = 'Guardar Contacto';
+      modalCrm.style.display = 'flex';
+      crmInputName.focus();
+    });
+  }
+
+  function closeCrmModal() {
+    if (modalCrm) modalCrm.style.display = 'none';
+  }
+  if (btnCloseCrmModal) btnCloseCrmModal.addEventListener('click', closeCrmModal);
+  if (btnCancelCrmModal) btnCancelCrmModal.addEventListener('click', closeCrmModal);
+  if (modalCrm) {
+    modalCrm.addEventListener('click', (e) => {
+      if (e.target === modalCrm) closeCrmModal();
+    });
+  }
+
+  // Guardar contacto CRM (Solo Nombre, Correo y Celular son obligatorios)
+  if (formCrm) {
+    formCrm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = crmInputName.value.trim();
+      const email = crmInputEmail.value.trim();
+      const phone = crmInputPhone.value.trim();
+      const age = crmInputAge.value ? parseInt(crmInputAge.value, 10) : null;
+      const company = crmInputCompany.value.trim();
+      const segment = crmInputSegment.value;
+      const notes = crmInputNotes.value.trim();
+
+      if (!name || !email || !phone) {
+        alert('Nombre, correo y celular son obligatorios.');
+        return;
+      }
+
+      const contacts = getCrmContacts();
+      const editId = crmContactId.value;
+
+      if (editId) {
+        const idx = contacts.findIndex(c => c.id === editId);
+        if (idx !== -1) {
+          contacts[idx] = { ...contacts[idx], name, email, phone, age, company, segment, notes };
+        }
+      } else {
+        const newId = 'C-' + Math.floor(1000 + Math.random() * 9000);
+        contacts.unshift({ id: newId, name, email, phone, age, company, segment, notes });
+      }
+
+      saveCrmContacts(contacts);
+      closeCrmModal();
+      renderCrm();
+    });
+  }
+
+  if (crmSearchInput) {
+    crmSearchInput.addEventListener('input', renderCrm);
+  }
+
+  // Descargar plantilla CSV de clientes
+  if (btnDownloadCsvTemplate) {
+    btnDownloadCsvTemplate.addEventListener('click', () => {
+      const csvHeader = 'Nombre,Correo,Celular,Edad,Empresa,Segmento,Notas\r\n';
+      const sampleRows = [
+        'Carlos Morales,carlos@empresa.com,+57 310 000 0000,38,Transportes SAS,vip,Cliente corporativo frecuente',
+        'Diana Rincón,diana@correo.com,+57 315 111 2222,29,Inversiones Luna,prospect,Interesada en cotización',
+        'Jorge Vega,jorge@gmail.com,+57 301 222 3333,45,Logística Vega,inactive,Inactivo para reactivar'
+      ].join('\r\n');
+
+      const csvContent = '\uFEFF' + csvHeader + sampleRows;
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'plantilla_clientes_crm.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+  }
+
+  // Importar archivo CSV / Excel masivo
+  if (crmImportFile) {
+    crmImportFile.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const text = event.target.result;
+          const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+          if (lines.length <= 1) {
+            alert('El archivo CSV está vacío o solo contiene encabezados.');
+            return;
+          }
+
+          const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+          const nameIdx = header.findIndex(h => h.includes('nombre') || h.includes('name'));
+          const emailIdx = header.findIndex(h => h.includes('correo') || h.includes('email'));
+          const phoneIdx = header.findIndex(h => h.includes('celular') || h.includes('tel'));
+          const ageIdx = header.findIndex(h => h.includes('edad') || h.includes('age'));
+          const companyIdx = header.findIndex(h => h.includes('empresa') || h.includes('company'));
+          const segmentIdx = header.findIndex(h => h.includes('segmento') || h.includes('segment'));
+          const notesIdx = header.findIndex(h => h.includes('nota') || h.includes('notes'));
+
+          if (nameIdx === -1 || emailIdx === -1 || phoneIdx === -1) {
+            alert('Formato no reconocido. Asegúrate de incluir las columnas obligatorias: Nombre, Correo y Celular.\n\nPuedes descargar la plantilla con el botón "Descargar Plantilla CSV".');
+            return;
+          }
+
+          const contacts = getCrmContacts();
+          let importedCount = 0;
+
+          for (let i = 1; i < lines.length; i++) {
+            const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+            const name = cols[nameIdx];
+            const email = cols[emailIdx];
+            const phone = cols[phoneIdx];
+
+            if (name && email && phone) {
+              const age = (ageIdx !== -1 && cols[ageIdx]) ? parseInt(cols[ageIdx], 10) : null;
+              const company = (companyIdx !== -1 && cols[companyIdx]) ? cols[companyIdx] : '';
+              let segment = (segmentIdx !== -1 && cols[segmentIdx]) ? cols[segmentIdx].toLowerCase() : 'client';
+              if (!['vip', 'prospect', 'inactive', 'client'].includes(segment)) segment = 'client';
+              const notes = (notesIdx !== -1 && cols[notesIdx]) ? cols[notesIdx] : '';
+
+              contacts.push({
+                id: 'C-' + Math.floor(1000 + Math.random() * 9000),
+                name,
+                email,
+                phone,
+                age,
+                company,
+                segment,
+                notes
+              });
+              importedCount++;
+            }
+          }
+
+          saveCrmContacts(contacts);
+          renderCrm();
+          alert(`✅ ¡Importación masiva exitosa!\n\nSe importaron ${importedCount} contactos a tu base de datos.`);
+          crmImportFile.value = '';
+        } catch (err) {
+          console.error(err);
+          alert('Hubo un error al procesar el archivo CSV. Verifica el formato e intenta nuevamente.');
+        }
+      };
+
+      reader.readAsText(file);
+    });
+  }
+
+  // ==========================================================================
+  // 9. PROFESIONALES: CRUD DE MIEMBROS CON ACCESO A LA CUENTA
+  // ==========================================================================
+
+  const DEFAULT_PROFESSIONALS = [
+    {
+      id: 'P-101',
+      name: 'Ing. Mateo Saldarriaga',
+      role: 'Jefe de Taller & Diagnóstico',
+      email: 'mateo@automotor.com',
+      password: 'Mateo2026*',
+      phone: '+57 311 000 1122',
+      schedule: 'Lun - Sáb (8:00 AM - 5:00 PM)'
+    },
+    {
+      id: 'P-102',
+      name: 'Andrés Camilo Rojas',
+      role: 'Mecánico General Senior',
+      email: 'andres.rojas@automotor.com',
+      password: 'Rojas2026*',
+      phone: '+57 314 222 3344',
+      schedule: 'Lun - Vie (8:00 AM - 6:00 PM)'
+    },
+    {
+      id: 'P-103',
+      name: 'Laura Sofía Morales',
+      role: 'Asesora Comercial / CRM',
+      email: 'laura.morales@automotor.com',
+      password: 'Laura2026*',
+      phone: '+57 318 444 5566',
+      schedule: 'Lun - Sáb (9:00 AM - 6:00 PM)'
+    }
+  ];
+
+  function getProfessionals() {
+    const raw = localStorage.getItem('magum_team_professionals');
+    if (!raw) {
+      localStorage.setItem('magum_team_professionals', JSON.stringify(DEFAULT_PROFESSIONALS));
+      return DEFAULT_PROFESSIONALS;
+    }
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return DEFAULT_PROFESSIONALS;
+    }
+  }
+
+  function saveProfessionals(profs) {
+    localStorage.setItem('magum_team_professionals', JSON.stringify(profs));
+  }
+
+  const profTableBody = document.getElementById('prof-table-body');
+  const profEmptyState = document.getElementById('prof-empty-state');
+  const modalProf = document.getElementById('modal-prof-user');
+  const btnOpenProfModal = document.getElementById('btn-open-prof-modal');
+  const btnCloseProfModal = document.getElementById('btn-close-prof-modal');
+  const btnCancelProfModal = document.getElementById('btn-cancel-prof-modal');
+  const formProf = document.getElementById('form-prof-user');
+  const profUserId = document.getElementById('prof-user-id');
+  const profInputName = document.getElementById('prof-input-name');
+  const profInputRole = document.getElementById('prof-input-role');
+  const profInputEmail = document.getElementById('prof-input-email');
+  const profInputPassword = document.getElementById('prof-input-password');
+  const profInputPhone = document.getElementById('prof-input-phone');
+  const profInputSchedule = document.getElementById('prof-input-schedule');
+  const profModalTitle = document.getElementById('prof-modal-title');
+  const profModalSubmitLabel = document.getElementById('prof-modal-submit-label');
+
+  function renderProfessionals() {
+    if (!profTableBody) return;
+    const profs = getProfessionals();
+
+    profTableBody.innerHTML = '';
+
+    if (profs.length === 0) {
+      if (profEmptyState) profEmptyState.style.display = 'block';
+    } else {
+      if (profEmptyState) profEmptyState.style.display = 'none';
+
+      profs.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="client-name-cell">${escapeHtml(p.name)}</td>
+          <td><span style="font-weight:700; color: var(--brand-magenta);">${escapeHtml(p.role)}</span></td>
+          <td class="email-cell">${escapeHtml(p.email)}</td>
+          <td><code style="background: rgba(0,0,0,0.06); padding: 3px 8px; border-radius: 6px; font-size: 0.8rem;">${escapeHtml(p.password)}</code></td>
+          <td>${p.phone ? escapeHtml(p.phone) : '<span style="color:var(--text-muted);">—</span>'}</td>
+          <td style="font-size: 0.82rem;">${p.schedule ? escapeHtml(p.schedule) : '<span style="color:var(--text-muted);">—</span>'}</td>
+          <td>
+            <div class="actions-cell">
+              <button class="btn-row-action btn-edit-prof" title="Editar profesional" data-id="${p.id}">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button class="btn-row-action btn-delete btn-delete-prof" title="Eliminar profesional" data-id="${p.id}">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        profTableBody.appendChild(tr);
+      });
+    }
+
+    attachProfRowListeners();
+  }
+
+  function attachProfRowListeners() {
+    document.querySelectorAll('.btn-edit-prof').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        const prof = getProfessionals().find(p => p.id === id);
+        if (prof) {
+          profUserId.value = prof.id;
+          profInputName.value = prof.name || '';
+          profInputRole.value = prof.role || '';
+          profInputEmail.value = prof.email || '';
+          profInputPassword.value = prof.password || '';
+          profInputPhone.value = prof.phone || '';
+          profInputSchedule.value = prof.schedule || '';
+
+          if (profModalTitle) profModalTitle.textContent = 'Editar Profesional';
+          if (profModalSubmitLabel) profModalSubmitLabel.textContent = 'Guardar Cambios';
+          modalProf.style.display = 'flex';
+          profInputName.focus();
+        }
+      });
+    });
+
+    document.querySelectorAll('.btn-delete-prof').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        const profs = getProfessionals();
+        const prof = profs.find(p => p.id === id);
+        if (prof && confirm(`¿Deseas revocar el acceso a "${prof.name}"? Ya no podrá ingresar a la cuenta.`)) {
+          saveProfessionals(profs.filter(p => p.id !== id));
+          renderProfessionals();
+        }
+      });
+    });
+  }
+
+  if (btnOpenProfModal) {
+    btnOpenProfModal.addEventListener('click', () => {
+      formProf.reset();
+      profUserId.value = '';
+      if (profModalTitle) profModalTitle.textContent = 'Agregar Profesional';
+      if (profModalSubmitLabel) profModalSubmitLabel.textContent = 'Guardar Profesional';
+      modalProf.style.display = 'flex';
+      profInputName.focus();
+    });
+  }
+
+  function closeProfModal() {
+    if (modalProf) modalProf.style.display = 'none';
+  }
+  if (btnCloseProfModal) btnCloseProfModal.addEventListener('click', closeProfModal);
+  if (btnCancelProfModal) btnCancelProfModal.addEventListener('click', closeProfModal);
+  if (modalProf) {
+    modalProf.addEventListener('click', (e) => {
+      if (e.target === modalProf) closeProfModal();
+    });
+  }
+
+  if (formProf) {
+    formProf.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = profInputName.value.trim();
+      const role = profInputRole.value.trim();
+      const email = profInputEmail.value.trim();
+      const password = profInputPassword.value.trim();
+      const phone = profInputPhone.value.trim();
+      const schedule = profInputSchedule.value.trim();
+
+      if (!name || !role || !email || !password) {
+        alert('Nombre, cargo, correo y contraseña son obligatorios para habilitar el acceso.');
+        return;
+      }
+
+      const profs = getProfessionals();
+      const editId = profUserId.value;
+
+      if (editId) {
+        const idx = profs.findIndex(p => p.id === editId);
+        if (idx !== -1) {
+          profs[idx] = { ...profs[idx], name, role, email, password, phone, schedule };
+        }
+      } else {
+        const newId = 'P-' + Math.floor(1000 + Math.random() * 9000);
+        profs.unshift({ id: newId, name, role, email, password, phone, schedule });
+      }
+
+      saveProfessionals(profs);
+      closeProfModal();
+      renderProfessionals();
+      alert(`✅ Profesional guardado exitosamente.\n\nPuede acceder con:\nUsuario/Correo: ${email}\nContraseña: ${password}`);
+    });
+  }
+
+  // ==========================================================================
+  // 10. AJUSTES DE MARCA (WHITE LABEL)
+  // ==========================================================================
+
+  const BRAND_STORAGE_KEY = 'magum_brand_settings';
+
+  const formBrand = document.getElementById('form-brand-settings');
+  const inputBizName = document.getElementById('setting-business-name');
+  const inputLogoFile = document.getElementById('setting-logo-file');
+  const btnTriggerLogo = document.getElementById('btn-trigger-logo');
+  const previewLogoImg = document.getElementById('setting-logo-preview');
+  const inputFaviconFile = document.getElementById('setting-favicon-file');
+  const btnTriggerFavicon = document.getElementById('btn-trigger-favicon');
+  const previewFaviconImg = document.getElementById('setting-favicon-preview');
+  const inputColorPrimary = document.getElementById('setting-color-primary');
+  const inputColorSecondary = document.getElementById('setting-color-secondary');
+  const inputColorBg = document.getElementById('setting-color-bg');
+  const dynamicFavicon = document.getElementById('dynamic-favicon');
+  const clientBrandLogo = document.getElementById('client-brand-logo');
+
+  function loadBrandSettings() {
+    try {
+      const saved = localStorage.getItem(BRAND_STORAGE_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (inputBizName && data.businessName) inputBizName.value = data.businessName;
+        if (previewLogoImg && data.logoUrl) previewLogoImg.src = data.logoUrl;
+        if (previewFaviconImg && data.faviconUrl) previewFaviconImg.src = data.faviconUrl;
+        if (inputColorPrimary && data.colorPrimary) inputColorPrimary.value = data.colorPrimary;
+        if (inputColorSecondary && data.colorSecondary) inputColorSecondary.value = data.colorSecondary;
+        if (inputColorBg && data.colorBg) inputColorBg.value = data.colorBg;
+
+        applyBrandingLive(data);
+      }
+    } catch (e) {
+      console.warn('Error cargando ajustes de marca:', e);
+    }
+  }
+
+  function applyBrandingLive(data) {
+    if (data.logoUrl && clientBrandLogo) {
+      clientBrandLogo.src = data.logoUrl;
+    }
+    if (data.faviconUrl && dynamicFavicon) {
+      dynamicFavicon.href = data.faviconUrl;
+    }
+    if (data.colorPrimary) {
+      document.documentElement.style.setProperty('--brand-indigo', data.colorPrimary);
+    }
+    if (data.colorBg) {
+      document.documentElement.style.setProperty('--brand-magenta', data.colorBg);
+    }
+  }
+
+  if (btnTriggerLogo && inputLogoFile) {
+    btnTriggerLogo.addEventListener('click', () => inputLogoFile.click());
+    inputLogoFile.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (loadEvent) => {
+          if (previewLogoImg) previewLogoImg.src = loadEvent.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  if (btnTriggerFavicon && inputFaviconFile) {
+    btnTriggerFavicon.addEventListener('click', () => inputFaviconFile.click());
+    inputFaviconFile.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (loadEvent) => {
+          if (previewFaviconImg) previewFaviconImg.src = loadEvent.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  if (formBrand) {
+    formBrand.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const settingsData = {
+        businessName: inputBizName ? inputBizName.value.trim() : 'MAGUM',
+        logoUrl: previewLogoImg ? previewLogoImg.src : '',
+        faviconUrl: previewFaviconImg ? previewFaviconImg.src : '',
+        colorPrimary: inputColorPrimary ? inputColorPrimary.value : '#210087',
+        colorSecondary: inputColorSecondary ? inputColorSecondary.value : '#F8F3EB',
+        colorBg: inputColorBg ? inputColorBg.value : '#FF00DB',
+        savedAt: new Date().toISOString()
+      };
+
+      localStorage.setItem(BRAND_STORAGE_KEY, JSON.stringify(settingsData));
+      applyBrandingLive(settingsData);
+
+      const saveBtn = document.getElementById('btn-save-branding');
+      if (saveBtn) {
+        const originalHtml = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> <span>¡Cambios Guardados con Éxito!</span>';
+        saveBtn.style.background = '#10b981';
+        setTimeout(() => {
+          saveBtn.innerHTML = originalHtml;
+          saveBtn.style.background = '';
+        }, 2500);
+      }
+    });
+  }
+
+  // 11. CIERRE DE SESIÓN LIMPIO
   const logoutBtn = document.getElementById('btn-logout');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', (e) => {
       e.preventDefault();
+      localStorage.removeItem('magum_session');
       window.location.href = (window.location.protocol === 'file:') ? 'index.html' : '/';
     });
   }
+
+  // Helpers
+  function escapeHtml(str) {
+    if (!str && str !== 0) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // Carga inicial
+  loadBrandSettings();
+  renderCrm();
+  renderProfessionals();
 
 });
