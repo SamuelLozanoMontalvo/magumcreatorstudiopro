@@ -1238,7 +1238,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (formProf) {
-    formProf.addEventListener('submit', (e) => {
+    formProf.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = profInputName.value.trim();
       const role = profInputRole.value.trim();
@@ -1268,24 +1268,27 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
         if (window.MagumApi) {
-          window.MagumApi.updateTeamMember(editId, { name, role, email, phone, schedule, password })
-            .catch(e => console.warn('Update team backend warning:', e.message));
+          try {
+            await window.MagumApi.updateTeamMember(editId, { name, role, email, phone, schedule, password });
+          } catch (e) {
+            console.warn('Update team backend warning:', e.message);
+          }
         }
       } else {
         let newId = 'P-' + Math.floor(1000 + Math.random() * 9000);
-        const newProf = { id: newId, name, role, email, password, phone, schedule };
-        profs.unshift(newProf);
+        let newProf = { id: newId, name, role, email, password, phone, schedule };
 
         if (window.MagumApi) {
-          window.MagumApi.createTeamMember({ name, role, email, password, phone, schedule })
-            .then(res => {
-              if (res && res.data && res.data.id) {
-                newProf.id = res.data.id;
-                saveProfessionals(profs);
-              }
-            })
-            .catch(e => console.warn('Create team backend warning:', e.message));
+          try {
+            const res = await window.MagumApi.createTeamMember({ name, role, email, password, phone, schedule });
+            if (res && res.data && res.data.id) {
+              newProf = res.data;
+            }
+          } catch (e) {
+            console.warn('Create team backend warning:', e.message);
+          }
         }
+        profs.unshift(newProf);
       }
 
       saveProfessionals(profs);

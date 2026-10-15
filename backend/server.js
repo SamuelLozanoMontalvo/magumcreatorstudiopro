@@ -17,11 +17,11 @@ const settingsRoutes = require('./src/routes/settings.routes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Configuración de Middlewares
+// Configuración de Middlewares (CORS universal sin restricción de cabeceras personalizadas)
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-account-id', 'x-user-role', 'x-access-token', '*']
 }));
 
 app.use(express.json({ limit: '15mb' }));

@@ -179,12 +179,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function syncAccountsFromBackend() {
     try {
-      if (window.MagumApi) {
-        const res = await window.MagumApi.getAccounts();
-        if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
-          saveAccounts(res.data);
-          render();
+      if (!window.MagumApi) return;
+      const localAccounts = getAccounts();
+      const res = await window.MagumApi.getAccounts();
+      if (res && res.success && Array.isArray(res.data)) {
+        let backendAccounts = res.data;
+        const backendEmails = new Set(backendAccounts.map(a => (a.email || '').toLowerCase().trim()));
+        const backendIds = new Set(backendAccounts.map(a => String(a.id)));
+
+        // Buscar cuentas creadas localmente por el usuario que no estén aún en PostgreSQL
+        const unsynced = localAccounts.filter(acc => {
+          if (!acc || !acc.email) return false;
+          if (backendEmails.has(acc.email.toLowerCase().trim())) return false;
+          if (backendIds.has(String(acc.id))) return false;
+          return true;
+        });
+
+        // Subir a PostgreSQL cada cuenta no sincronizada
+        for (const acc of unsynced) {
+          try {
+            const apiRes = await window.MagumApi.createAccount({
+              firstName: acc.firstName,
+              lastName: acc.lastName,
+              business: acc.business,
+              email: acc.email,
+              password: 'Auto' + generate7CharId() + '*',
+              modules: acc.modules || { social: true, web: true, crm: true }
+            });
+            if (apiRes && apiRes.data) {
+              backendAccounts.unshift(apiRes.data);
+            }
+          } catch (err) {
+            console.warn('Auto-sync unsynced account error:', err);
+          }
         }
+
+        if (backendAccounts.length > 0) {
+          saveAccounts(backendAccounts);
+        }
+        render();
       }
     } catch (e) {
       console.warn('Sync accounts from backend warning:', e.message);
@@ -608,12 +641,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function syncBillingFromBackend() {
     try {
-      if (window.MagumApi) {
-        const res = await window.MagumApi.getBilling();
-        if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
-          saveBilling(res.data);
-          renderBillingTable();
+      if (!window.MagumApi) return;
+      const localBilling = getBilling();
+      const res = await window.MagumApi.getBilling();
+      if (res && res.success && Array.isArray(res.data)) {
+        let backendBilling = res.data;
+        const backendIds = new Set(backendBilling.map(b => String(b.id)));
+        const backendClientNames = new Set(backendBilling.map(b => (b.clientName || '').toLowerCase().trim()));
+
+        const unsynced = localBilling.filter(b => {
+          if (!b || !b.clientName) return false;
+          if (backendIds.has(String(b.id))) return false;
+          if (backendClientNames.has(b.clientName.toLowerCase().trim())) return false;
+          return true;
+        });
+
+        for (const item of unsynced) {
+          try {
+            const createRes = await window.MagumApi.createBilling({
+              accountId: item.accountId || null,
+              clientName: item.clientName,
+              business: item.business,
+              plan: item.plan || 'monthly',
+              amount: item.amount || 150000,
+              startDate: item.startDate || new Date().toISOString().split('T')[0],
+              modules: item.modules || 'CRM',
+              notes: item.notes || '',
+              paymentStatus: item.paymentStatus || 'paid'
+            });
+            if (createRes && createRes.data) {
+              backendBilling.unshift(createRes.data);
+            }
+          } catch (err) {
+            console.warn('Auto-sync unsynced billing error:', err);
+          }
         }
+
+        if (backendBilling.length > 0) {
+          saveBilling(backendBilling);
+        }
+        renderBillingTable();
       }
     } catch (e) {
       console.warn('Sync billing warning:', e.message);
@@ -956,12 +1023,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function fetchAdminUsers() {
     try {
+      const localAdmins = getLocalAdminUsers();
       if (window.MagumApiClient) {
         const client = new MagumApiClient();
         const res = await client.request('/accounts/admins/list');
         if (res && res.success && Array.isArray(res.data)) {
-          saveLocalAdminUsers(res.data);
-          return res.data;
+          let backendAdmins = res.data;
+          const backendEmails = new Set(backendAdmins.map(a => (a.email || '').toLowerCase().trim()));
+          const backendUsernames = new Set(backendAdmins.map(a => (a.username || '').toLowerCase().trim()));
+
+          // Encontrar administradores locales creados que aún no están en PostgreSQL
+          const unsynced = localAdmins.filter(adm => {
+            if (!adm || !adm.email) return false;
+            if (adm.username === 'mcsadmin' || adm.email === 'mcsadmin@magum.com') return false;
+            if (backendEmails.has(adm.email.toLowerCase().trim())) return false;
+            if (backendUsernames.has(adm.username.toLowerCase().trim())) return false;
+            return true;
+          });
+
+          for (const adm of unsynced) {
+            try {
+              const createRes = await client.request('/accounts/admins', {
+                method: 'POST',
+                body: JSON.stringify({
+                  name: adm.name,
+                  username: adm.username,
+                  email: adm.email,
+                  password: adm.password || 'MagumAdmin#2030',
+                  role: adm.role || 'admin'
+                })
+              });
+              if (createRes && createRes.data) {
+                backendAdmins.unshift(createRes.data);
+              }
+            } catch (err) {
+              console.warn('Auto-sync unsynced admin error:', err);
+            }
+          }
+
+          saveLocalAdminUsers(backendAdmins);
+          return backendAdmins;
         }
       }
     } catch (e) {

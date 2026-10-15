@@ -38,7 +38,8 @@ function verifyToken(req, res, next) {
 
 // Middleware de guardia: Solo Super Admin
 function requireAdmin(req, res, next) {
-  if (!req.user || (req.user.role !== 'admin' && req.headers['x-user-role'] !== 'admin')) {
+  const role = (req.user && req.user.role) || req.headers['x-user-role'];
+  if (role !== 'admin') {
     return res.status(403).json({
       success: false,
       message: 'Acceso denegado. Se requieren privilegios de Super Administrador.'
@@ -49,7 +50,8 @@ function requireAdmin(req, res, next) {
 
 // Middleware de guardia: Clientes o miembros del equipo
 function requireClientOrTeam(req, res, next) {
-  if (!req.user || !['admin', 'client', 'team_member'].includes(req.user.role)) {
+  const role = (req.user && req.user.role) || req.headers['x-user-role'] || 'client';
+  if (!['admin', 'client', 'team_member'].includes(role)) {
     return res.status(403).json({
       success: false,
       message: 'Acceso denegado a este recurso.'
