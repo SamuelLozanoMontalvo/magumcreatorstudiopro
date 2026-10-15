@@ -6,6 +6,9 @@ const connectionString = process.env.DATABASE_URL;
 const isInternal = connectionString && connectionString.includes('railway.internal');
 const requiresSsl = Boolean(connectionString && !connectionString.includes('localhost') && !isInternal);
 
+const maskedUrl = connectionString ? connectionString.replace(/:[^:@]+@/, ':****@') : 'NO DEFINIDA (usando localhost fallback)';
+console.log('📡 URL de Base de Datos configurada:', maskedUrl);
+
 const pool = new Pool({
   connectionString: connectionString || 'postgresql://postgres:postgres@localhost:5432/magum_creator_studio',
   ssl: requiresSsl ? { rejectUnauthorized: false } : false
@@ -20,7 +23,7 @@ async function initDatabase() {
   let client = null;
   try {
     client = await pool.connect();
-    console.log('🔄 Inicializando esquema de base de datos PostgreSQL...');
+    console.log('✅ Conexión establecida con PostgreSQL. Verificando esquema...');
 
     await client.query(`
       -- 1. Tabla de Cuentas de Clientes (Tenants)
@@ -143,7 +146,7 @@ async function initDatabase() {
 
     console.log('✅ Esquema de base de datos verificado y listo.');
   } catch (error) {
-    console.error('❌ Error al inicializar tablas en PostgreSQL:', error.message);
+    console.error('❌ Error al inicializar tablas en PostgreSQL:', error.message || error);
   } finally {
     if (client) client.release();
   }
