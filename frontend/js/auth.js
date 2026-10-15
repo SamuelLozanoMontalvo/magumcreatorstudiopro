@@ -124,6 +124,49 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // ======================================================================
+      // 1.5. VERIFICACIÓN DE ADMINISTRADORES ADICIONALES CREADOS
+      // ======================================================================
+      try {
+        const rawAdmins = localStorage.getItem('magum_admin_users');
+        const adminUsers = rawAdmins ? JSON.parse(rawAdmins) : [];
+        const matchedAdmin = adminUsers.find(a => 
+          (a.username || '').toLowerCase() === userClean || 
+          (a.email || '').toLowerCase() === userClean
+        );
+
+        if (matchedAdmin) {
+          const isMatch = (
+            rawPassword === matchedAdmin.password || 
+            pwdClean === matchedAdmin.password ||
+            inputHash === matchedAdmin.passwordHash
+          );
+
+          if (isMatch) {
+            localStorage.setItem('magum_session', JSON.stringify({
+              role: 'admin',
+              adminId: matchedAdmin.id,
+              username: matchedAdmin.username,
+              name: matchedAdmin.name,
+              email: matchedAdmin.email,
+              loggedAt: new Date().toISOString()
+            }));
+
+            showAlert(`Acceso verificado para ${matchedAdmin.name}. Ingresando al panel maestro...`, 'success');
+
+            setTimeout(() => {
+              window.location.href = 'admin.html';
+            }, 350);
+            return;
+          } else {
+            showAlert('Contraseña de administrador incorrecta.', 'error');
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Error verificando admin users local:', err);
+      }
+
+      // ======================================================================
       // 2. VERIFICACIÓN DE CUENTA DE CLIENTE REGISTRADA
       // ======================================================================
       const rawAccounts = localStorage.getItem('magum_accounts');

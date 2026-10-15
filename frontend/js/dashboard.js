@@ -252,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => {
       const card = btn.closest('.idea-card');
       const title = card ? card.querySelector('.idea-title').textContent : 'Publicación';
-      alert(`Preparando publicación:\n"${title}"\n\nAbriendo programador multicanal para tus redes.`);
+      MagumAlert.info('Programador Multicanal', `Preparando contenido: "${title}". Abriendo programador para tus redes sociales.`);
     });
   });
 
@@ -303,21 +303,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   ];
 
+  // Multi-Tenancy: Aislamiento estricto de base de datos CRM por cliente
+  const currentClientAccountId = (function () {
+    try {
+      const s = JSON.parse(localStorage.getItem('magum_session') || '{}');
+      return s.accountId || s.email || 'demo';
+    } catch {
+      return 'demo';
+    }
+  })();
+
+  const isDemoAccount = (currentClientAccountId === 'MC8K29L' || currentClientAccountId === 'SL7K92X' || currentClientAccountId === 'demo');
+
+  function getCrmStorageKey() {
+    return `magum_crm_contacts_${currentClientAccountId}`;
+  }
+
   function getCrmContacts() {
-    const raw = localStorage.getItem('magum_crm_contacts');
+    const key = getCrmStorageKey();
+    const raw = localStorage.getItem(key);
     if (!raw) {
-      localStorage.setItem('magum_crm_contacts', JSON.stringify(DEFAULT_CRM_CONTACTS));
-      return DEFAULT_CRM_CONTACTS;
+      // Solo las cuentas semilla de prueba tienen datos de demostración predefinidos
+      // Cada cliente nuevo arranca con su CRM totalmente independiente y limpio ([])
+      const initialContacts = isDemoAccount ? DEFAULT_CRM_CONTACTS : [];
+      localStorage.setItem(key, JSON.stringify(initialContacts));
+      return initialContacts;
     }
     try {
       return JSON.parse(raw);
     } catch {
-      return DEFAULT_CRM_CONTACTS;
+      return [];
     }
   }
 
   function saveCrmContacts(contacts) {
-    localStorage.setItem('magum_crm_contacts', JSON.stringify(contacts));
+    localStorage.setItem(getCrmStorageKey(), JSON.stringify(contacts));
   }
 
   // Estado de selección múltiple (IDs seleccionados)
@@ -547,15 +567,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 1. Eliminar seleccionados
   if (btnBulkDelete) {
-    btnBulkDelete.addEventListener('click', () => {
+    btnBulkDelete.addEventListener('click', async () => {
       const count = selectedContactIds.size;
       if (count === 0) return;
 
+      const title = (count === 1) ? '¿Eliminar contacto?' : `¿Eliminar ${count} contactos?`;
       const confirmMsg = (count === 1)
-        ? '¿Deseas eliminar el contacto seleccionado de tu base de datos?'
-        : `¿Deseas eliminar los ${count} contactos seleccionados de tu base de datos? Esta acción es permanente.`;
+        ? '¿Deseas eliminar permanentemente el contacto seleccionado de tu CRM?'
+        : `¿Deseas eliminar permanentemente los ${count} contactos seleccionados de tu base de datos?`;
 
-      if (confirm(confirmMsg)) {
+      const ok = await MagumAlert.confirm(title, confirmMsg, 'Sí, eliminar');
+
+      if (ok) {
         const idsToDelete = Array.from(selectedContactIds);
         if (window.MagumApi) {
           window.MagumApi.bulkDeleteCrmContacts(idsToDelete).catch(err => {
@@ -567,6 +590,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveCrmContacts(contacts);
         selectedContactIds.clear();
         renderCrm();
+        MagumAlert.success('Contactos Eliminados', `Se retiraron ${count} contacto(s) de tu CRM.`);
       }
     });
   }
@@ -628,11 +652,13 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       const rawMsg = (wpMessageInput ? wpMessageInput.value : '').trim();
       if (!rawMsg) {
-        alert('Por favor ingresa un mensaje para la difusión por WhatsApp.');
+        MagumAlert.error('Mensaje Requerido', 'Por favor ingresa un mensaje para la difusión por WhatsApp.');
         return;
       }
 
       const contacts = getCrmContacts().filter(c => selectedContactIds.has(c.id));
+      closeBulkWpModal();
+
       if (contacts.length === 1) {
         // Un solo contacto: abrir chat directo con mensaje personalizado
         const target = contacts[0];
@@ -642,11 +668,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const cleanPhone = (target.phone || '').replace(/[^0-9]/g, '');
         window.open(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(personalized)}`, '_blank');
       } else {
-        // Masivo: simulación de envío masivo en lote
-        alert(`💬 ¡Campaña de WhatsApp enviada con éxito!\n\nDestinatarios: ${contacts.length} contactos procesados.\nMensaje personalizado transmitido a cada número de celular.`);
+        // Masivo: simulación estética de envío en lote
+        MagumAlert.campaignDispatched(
+          'whatsapp',
+          contacts.length,
+          'Mensaje personalizado transmitido a cada número de celular registrado en tu base de datos.'
+        );
       }
-
-      closeBulkWpModal();
     });
   }
 
@@ -685,14 +713,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const body = (emailBodyInput ? emailBodyInput.value : '').trim();
 
       if (!subject || !body) {
-        alert('Por favor completa el asunto y el contenido del correo.');
+        MagumAlert.error('Campos Incompletos', 'Por favor completa el asunto y el contenido del correo.');
         return;
       }
 
       const contacts = getCrmContacts().filter(c => selectedContactIds.has(c.id));
-      alert(`📧 ¡Campaña Masiva de Correo ejecutada!\n\nAsunto: "${subject}"\nTotal enviados: ${contacts.length} correos electrónicos.\nEstado de entrega: 100% completado.`);
-
       closeBulkEmailModal();
+
+      MagumAlert.campaignDispatched(
+        'email',
+        contacts.length,
+        `Campaña masiva ejecutada con el asunto: "${subject}". Estado de entrega: 100% completado.`
+      );
     });
   }
 
@@ -728,14 +760,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const msg = (dualCommonMessage ? dualCommonMessage.value : '').trim();
 
       if (!subject || !msg) {
-        alert('Por favor completa el asunto y el mensaje para el envío dual.');
+        MagumAlert.error('Campos Incompletos', 'Por favor completa el asunto y el mensaje para el envío dual.');
         return;
       }
 
       const count = selectedContactIds.size;
-      alert(`⚡ ¡Envío Dual Masivo Completado!\n\nAsunto de Email: "${subject}"\nContactos impactados: ${count}\nCanales activados: WhatsApp Directo + Email Marketing`);
-
       closeBulkDualModal();
+
+      MagumAlert.campaignDispatched(
+        'dual',
+        count,
+        `Asunto: "${subject}". Canales activados simultáneamente: WhatsApp Directo + Email Marketing.`
+      );
     });
   }
 
@@ -778,7 +814,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const notes = crmInputNotes.value.trim();
 
       if (!name || !email || !phone) {
-        alert('Nombre, correo y celular son obligatorios.');
+        MagumAlert.error('Campos Obligatorios', 'Nombre, correo y celular son obligatorios.');
         return;
       }
 
@@ -798,6 +834,10 @@ document.addEventListener('DOMContentLoaded', () => {
       saveCrmContacts(contacts);
       closeCrmModal();
       renderCrm();
+      MagumAlert.success(
+        'Contacto Guardado',
+        editId ? 'Los datos del contacto se actualizaron con éxito.' : 'El contacto fue agregado a tu CRM.'
+      );
     });
   }
 
@@ -835,7 +875,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const text = event.target.result;
           const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
           if (lines.length <= 1) {
-            alert('El archivo CSV está vacío o solo contiene encabezados.');
+            MagumAlert.error('Archivo Vacío', 'El archivo CSV está vacío o solo contiene encabezados.');
             return;
           }
 
@@ -849,7 +889,10 @@ document.addEventListener('DOMContentLoaded', () => {
           const notesIdx = header.findIndex(h => h.includes('nota') || h.includes('notes'));
 
           if (nameIdx === -1 || emailIdx === -1 || phoneIdx === -1) {
-            alert('Formato no reconocido. Asegúrate de incluir las columnas obligatorias: Nombre, Correo y Celular.\n\nPuedes descargar la plantilla oficial con el botón "Descargar Plantilla CSV".');
+            MagumAlert.error(
+              'Formato No Reconocido',
+              'Asegúrate de incluir las columnas obligatorias: Nombre, Correo y Celular.\n\nPuedes descargar la plantilla oficial con el botón "Descargar Plantilla CSV".'
+            );
             return;
           }
 
@@ -885,11 +928,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
           saveCrmContacts(contacts);
           renderCrm();
-          alert(`✅ ¡Importación masiva exitosa!\n\nSe importaron ${importedCount} contactos a tu base de datos.`);
+          MagumAlert.success('¡Importación Exitosa!', `Se importaron ${importedCount} contactos a tu base de datos.`);
           crmImportFile.value = '';
         } catch (err) {
           console.error(err);
-          alert('Hubo un error al procesar el archivo CSV. Verifica el formato e intenta nuevamente.');
+          MagumAlert.error('Error al Procesar', 'Hubo un error al procesar el archivo CSV. Verifica el formato e intenta nuevamente.');
         }
       };
 
@@ -931,21 +974,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   ];
 
+  function getProfStorageKey() {
+    return `magum_team_professionals_${currentClientAccountId}`;
+  }
+
   function getProfessionals() {
-    const raw = localStorage.getItem('magum_team_professionals');
+    const key = getProfStorageKey();
+    const raw = localStorage.getItem(key);
     if (!raw) {
-      localStorage.setItem('magum_team_professionals', JSON.stringify(DEFAULT_PROFESSIONALS));
-      return DEFAULT_PROFESSIONALS;
+      const initialProfs = isDemoAccount ? DEFAULT_PROFESSIONALS : [];
+      localStorage.setItem(key, JSON.stringify(initialProfs));
+      return initialProfs;
     }
     try {
       return JSON.parse(raw);
     } catch {
-      return DEFAULT_PROFESSIONALS;
+      return [];
     }
   }
 
   function saveProfessionals(profs) {
-    localStorage.setItem('magum_team_professionals', JSON.stringify(profs));
+    localStorage.setItem(getProfStorageKey(), JSON.stringify(profs));
   }
 
   const profTableBody = document.getElementById('prof-table-body');
@@ -1026,13 +1075,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.querySelectorAll('.btn-delete-prof').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-id');
         const profs = getProfessionals();
         const prof = profs.find(p => p.id === id);
-        if (prof && confirm(`¿Deseas revocar el acceso a "${prof.name}"? Ya no podrá ingresar a la cuenta.`)) {
-          saveProfessionals(profs.filter(p => p.id !== id));
-          renderProfessionals();
+        if (prof) {
+          const ok = await MagumAlert.confirm(
+            '¿Revocar Acceso a Profesional?',
+            `¿Deseas revocar el acceso a "${prof.name}"? Ya no podrá ingresar a la cuenta de la empresa.`,
+            'Sí, revocar acceso'
+          );
+          if (ok) {
+            saveProfessionals(profs.filter(p => p.id !== id));
+            renderProfessionals();
+            MagumAlert.success('Acceso Revocado', `El usuario de ${prof.name} fue retirado del equipo.`);
+          }
         }
       });
     });
@@ -1072,7 +1129,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const editId = profUserId.value;
       if (!name || !role || !email || (!password && !editId)) {
-        alert('Nombre, cargo, correo y contraseña son obligatorios para habilitar el acceso.');
+        MagumAlert.error('Campos Obligatorios', 'Nombre, cargo, correo y contraseña son obligatorios para habilitar el acceso.');
         return;
       }
 
@@ -1098,7 +1155,10 @@ document.addEventListener('DOMContentLoaded', () => {
       saveProfessionals(profs);
       closeProfModal();
       renderProfessionals();
-      alert(`✅ Profesional guardado exitosamente.\n\nTiene acceso habilitado con el correo: ${email}`);
+      MagumAlert.success(
+        'Profesional Guardado',
+        `El usuario "${name}" tiene acceso habilitado con el correo: ${email}`
+      );
     });
   }
 

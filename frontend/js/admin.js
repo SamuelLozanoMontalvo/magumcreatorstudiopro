@@ -84,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         v.classList.toggle('active-view', v.id === targetId);
       });
       if (targetId === 'view-admin-crm') renderBillingTable();
+      if (targetId === 'view-admin-settings') renderAdminUsersTable();
     });
   });
 
@@ -331,15 +332,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.querySelectorAll('.btn-delete-acc').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const accId = btn.getAttribute('data-id');
         const accounts = getAccounts();
         const acc = accounts.find(a => a.id === accId);
         if (acc) {
-          const ok = confirm(`¿Estás seguro de eliminar permanentemente la cuenta de "${acc.business}" (ID: ${acc.id})?\n\nEsta acción eliminará todos los accesos del cliente.`);
+          const ok = await MagumAlert.confirm(
+            '¿Eliminar cuenta permanentemente?',
+            `¿Estás seguro de eliminar la cuenta de "${acc.business}" (ID: ${acc.id})? Esta acción eliminará permanentemente los datos y accesos del cliente.`,
+            'Sí, eliminar cuenta'
+          );
           if (ok) {
             saveAccounts(accounts.filter(a => a.id !== accId));
             render();
+            MagumAlert.success('Cuenta Eliminada', `La cuenta de "${acc.business}" fue eliminada.`);
           }
         }
       });
@@ -399,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const webCheck = document.getElementById('module-web-check').checked;
 
       if (!firstName || !lastName || !business || !email || !password) {
-        alert('Por favor completa todos los campos obligatorios.');
+        MagumAlert.error('Campos Obligatorios', 'Por favor completa todos los campos requeridos para dar de alta la cuenta.');
         return;
       }
 
@@ -408,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Validar si el correo ya existe
       const exists = accounts.find(a => a.email.toLowerCase() === email);
       if (exists) {
-        alert(`Ya existe una cuenta registrada con el correo "${email}".`);
+        MagumAlert.error('Correo ya Registrado', `Ya existe una cuenta creada con el correo electrónico "${email}".`);
         return;
       }
 
@@ -434,6 +440,26 @@ document.addEventListener('DOMContentLoaded', () => {
       accounts.unshift(newAccount);
       saveAccounts(accounts);
 
+      // Sincronizar con backend si está disponible
+      try {
+        if (window.MagumApiClient) {
+          const client = new MagumApiClient();
+          await client.request('/accounts', {
+            method: 'POST',
+            body: JSON.stringify({
+              firstName,
+              lastName,
+              business,
+              email,
+              password,
+              modules: { social: socialCheck, web: webCheck, crm: true }
+            })
+          }).catch(e => console.warn('Sync backend account warning:', e.message));
+        }
+      } catch (syncErr) {
+        console.warn('Sync backend error:', syncErr);
+      }
+
       // También registrar automáticamente en el CRM de facturación
       const billingItems = getBilling();
       billingItems.unshift({
@@ -452,8 +478,14 @@ document.addEventListener('DOMContentLoaded', () => {
       closeModal();
       render();
 
-      // Notificación sin exponer contraseña en texto plano
-      alert(`✅ ¡Cuenta creada con éxito!\n\nID: ${newId}\nNegocio: ${business}\nTitular: ${firstName} ${lastName}\nCorreo de acceso: ${email}\n\nEl cliente ya puede iniciar sesión desde el portal con sus credenciales.`);
+      // Notificación estética de alta fidelidad (SweetAlert2 personalizada)
+      MagumAlert.accountCreated({
+        id: newId,
+        business,
+        firstName,
+        lastName,
+        email
+      });
     });
   }
 
@@ -625,13 +657,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.querySelectorAll('.btn-delete-billing').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-id');
         const items = getBilling();
         const item = items.find(i => i.id === id);
-        if (item && confirm(`¿Deseas eliminar el registro de facturación de "${item.business}"?`)) {
-          saveBilling(items.filter(i => i.id !== id));
-          renderBillingTable();
+        if (item) {
+          const ok = await MagumAlert.confirm(
+            '¿Eliminar registro de facturación?',
+            `¿Deseas eliminar permanentemente el registro de "${item.business}"?`,
+            'Sí, eliminar'
+          );
+          if (ok) {
+            saveBilling(items.filter(i => i.id !== id));
+            renderBillingTable();
+            MagumAlert.success('Registro Eliminado', `El cobro de "${item.business}" fue retirado.`);
+          }
         }
       });
     });
@@ -678,7 +718,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const notes = document.getElementById('billing-notes').value.trim();
 
       if (!clientName || !business || !plan) {
-        alert('Completa los campos obligatorios: nombre, negocio y plan.');
+        MagumAlert.error('Campos Incompletos', 'Completa los campos obligatorios: nombre, negocio y plan.');
         return;
       }
 
@@ -698,7 +738,7 @@ document.addEventListener('DOMContentLoaded', () => {
       saveBilling(items);
       closeBillingModal();
       renderBillingTable();
-      alert(`✅ Registro guardado para "${business}".`);
+      MagumAlert.success('Registro Guardado', `Facturación registrada exitosamente para "${business}".`);
     });
   }
 
@@ -784,6 +824,227 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ==========================================================================
+  // 11.5. GESTIÓN DE ADMINISTRADORES DE LA PLATAFORMA (SUPER ADMIN)
+  // ==========================================================================
+
+  const ADMIN_USERS_STORAGE_KEY = 'magum_admin_users';
+
+  function getLocalAdminUsers() {
+    try {
+      const raw = localStorage.getItem(ADMIN_USERS_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveLocalAdminUsers(admins) {
+    try {
+      localStorage.setItem(ADMIN_USERS_STORAGE_KEY, JSON.stringify(admins));
+    } catch (e) {
+      console.warn('Error guardando administradores:', e);
+    }
+  }
+
+  async function fetchAdminUsers() {
+    try {
+      if (window.MagumApiClient) {
+        const client = new MagumApiClient();
+        const res = await client.request('/accounts/admins/list');
+        if (res && res.success && Array.isArray(res.data)) {
+          saveLocalAdminUsers(res.data);
+          return res.data;
+        }
+      }
+    } catch (e) {
+      console.warn('Backend admins endpoint no disponible, usando fallback local:', e.message);
+    }
+    return getLocalAdminUsers();
+  }
+
+  async function renderAdminUsersTable() {
+    const tbody = document.getElementById('admin-users-table-body');
+    if (!tbody) return;
+
+    const admins = await fetchAdminUsers();
+    tbody.innerHTML = '';
+
+    // 1. Fila de Super Administrador principal (inalterable)
+    const superAdminTr = document.createElement('tr');
+    superAdminTr.innerHTML = `
+      <td>
+        <div style="font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-crown" style="color: #f59e0b;"></i>
+          <span>Super Administrador</span>
+        </div>
+      </td>
+      <td><span style="font-family: monospace; font-weight: 700; color: #FF00DB;">McSAdmin</span></td>
+      <td style="color: var(--text-muted);">mcsadmin@magum.com</td>
+      <td>
+        <span style="background: rgba(255, 0, 219, 0.14); color: #FF00DB; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.78rem;">
+          Super Admin
+        </span>
+      </td>
+      <td class="th-actions">
+        <span style="color: #64748b; font-size: 0.8rem; font-style: italic;">Principal</span>
+      </td>
+    `;
+    tbody.appendChild(superAdminTr);
+
+    // 2. Administradores adicionales creados por el Super Admin
+    admins.forEach(adm => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div style="font-weight: 600; color: var(--text-color);">
+            ${escapeHtml(adm.name)}
+          </div>
+        </td>
+        <td><span style="font-family: monospace; font-weight: 600; color: var(--brand-indigo);">${escapeHtml(adm.username)}</span></td>
+        <td style="color: var(--text-muted);">${escapeHtml(adm.email)}</td>
+        <td>
+          <span style="background: rgba(59, 130, 246, 0.14); color: #3b82f6; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.78rem;">
+            ${escapeHtml(adm.role || 'Admin')}
+          </span>
+        </td>
+        <td class="th-actions">
+          <button class="btn-row-action btn-delete-admin" data-id="${escapeHtml(adm.id)}" data-name="${escapeHtml(adm.name)}" title="Eliminar administrador">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // Eventos de revocación de administradores
+    tbody.querySelectorAll('.btn-delete-admin').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const adminId = btn.getAttribute('data-id');
+        const adminName = btn.getAttribute('data-name');
+
+        const ok = await MagumAlert.confirm(
+          '¿Eliminar Administrador?',
+          `¿Estás seguro de revocar el acceso a "${adminName}"? Ya no podrá ingresar al panel de administración.`,
+          'Sí, revocar acceso'
+        );
+
+        if (ok) {
+          // Intentar borrar en backend
+          try {
+            if (window.MagumApiClient) {
+              const client = new MagumApiClient();
+              await client.request(`/accounts/admins/${adminId}`, { method: 'DELETE' });
+            }
+          } catch (e) {
+            console.warn('Advertencia backend al eliminar admin:', e.message);
+          }
+
+          const current = getLocalAdminUsers();
+          saveLocalAdminUsers(current.filter(a => a.id !== adminId));
+          renderAdminUsersTable();
+          MagumAlert.success('Acceso Revocado', `El administrador "${adminName}" fue retirado.`);
+        }
+      });
+    });
+  }
+
+  // Modal para crear nuevo administrador
+  const modalCreateAdmin = document.getElementById('modal-create-admin');
+  const btnOpenAdminModal = document.getElementById('btn-open-admin-modal');
+  const btnCloseAdminModal = document.getElementById('btn-close-admin-modal');
+  const btnCancelAdminModal = document.getElementById('btn-cancel-admin-modal');
+  const formCreateAdmin = document.getElementById('form-create-admin');
+
+  function openAdminModal() {
+    if (modalCreateAdmin) {
+      modalCreateAdmin.style.display = 'flex';
+      if (formCreateAdmin) formCreateAdmin.reset();
+      const firstInput = document.getElementById('admin-input-name');
+      if (firstInput) setTimeout(() => firstInput.focus(), 80);
+    }
+  }
+
+  function closeAdminModal() {
+    if (modalCreateAdmin) modalCreateAdmin.style.display = 'none';
+  }
+
+  if (btnOpenAdminModal) btnOpenAdminModal.addEventListener('click', openAdminModal);
+  if (btnCloseAdminModal) btnCloseAdminModal.addEventListener('click', closeAdminModal);
+  if (btnCancelAdminModal) btnCancelAdminModal.addEventListener('click', closeAdminModal);
+  if (modalCreateAdmin) {
+    modalCreateAdmin.addEventListener('click', (e) => {
+      if (e.target === modalCreateAdmin) closeAdminModal();
+    });
+  }
+
+  if (formCreateAdmin) {
+    formCreateAdmin.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('admin-input-name').value.trim();
+      const username = document.getElementById('admin-input-username').value.trim().toLowerCase();
+      const email = document.getElementById('admin-input-email').value.trim().toLowerCase();
+      const password = document.getElementById('admin-input-password').value;
+
+      if (!name || !username || !email || !password) {
+        MagumAlert.error('Campos Incompletos', 'Por favor llena todos los campos del nuevo administrador.');
+        return;
+      }
+
+      if (username === 'mcsadmin' || username === 'admin' || email === 'mcsadmin@magum.com') {
+        MagumAlert.error('Usuario Reservado', 'Ese nombre de usuario o correo pertenece al Super Administrador.');
+        return;
+      }
+
+      const existingAdmins = getLocalAdminUsers();
+      if (existingAdmins.some(a => a.username.toLowerCase() === username || a.email.toLowerCase() === email)) {
+        MagumAlert.error('Administrador Duplicado', `Ya existe un administrador registrado con el usuario "${username}" o correo "${email}".`);
+        return;
+      }
+
+      const newAdminId = 'ADM-' + generate7CharId();
+      const newAdmin = {
+        id: newAdminId,
+        name,
+        username,
+        email,
+        password, // Guardado localmente para validación offline
+        role: 'admin',
+        createdAt: new Date().toISOString()
+      };
+
+      // Registrar en backend PostgreSQL
+      try {
+        if (window.MagumApiClient) {
+          const client = new MagumApiClient();
+          await client.request('/accounts/admins', {
+            method: 'POST',
+            body: JSON.stringify({
+              name,
+              username,
+              email,
+              password,
+              role: 'admin'
+            })
+          });
+        }
+      } catch (e) {
+        console.warn('Aviso backend admin:', e.message);
+      }
+
+      existingAdmins.unshift(newAdmin);
+      saveLocalAdminUsers(existingAdmins);
+
+      closeAdminModal();
+      renderAdminUsersTable();
+
+      MagumAlert.success(
+        '¡Administrador Creado!',
+        `El usuario "${username}" ha sido habilitado con privilegios de administración.`
+      );
+    });
+  }
+
   // 12. LOGOUT LIMPIO
   if (btnLogout) {
     btnLogout.addEventListener('click', () => {
@@ -813,5 +1074,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Carga inicial
   loadAdminSettings();
   render();
+  renderAdminUsersTable();
 
 });

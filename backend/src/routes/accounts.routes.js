@@ -216,4 +216,95 @@ router.post('/:id/impersonate', async (req, res) => {
   }
 });
 
+// ============================================================================
+// GESTIÓN DE OTROS ADMINISTRADORES (SUPER ADMIN)
+// ============================================================================
+
+// GET /api/accounts/admins - Listar administradores registrados
+router.get('/admins/list', async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT id, name, username, email, role, created_at as "createdAt"
+      FROM admin_users
+      ORDER BY created_at DESC
+    `);
+    res.json({
+      success: true,
+      data: result.rows
+    });
+  } catch (error) {
+    console.error('Error en GET /api/accounts/admins/list:', error);
+    res.status(500).json({ success: false, message: 'Error al obtener administradores.' });
+  }
+});
+
+// POST /api/accounts/admins - Crear un nuevo administrador
+router.post('/admins', async (req, res) => {
+  try {
+    const { name, username, email, password, role } = req.body;
+
+    if (!name || !username || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Todos los campos (nombre, usuario, correo y contraseña) son obligatorios.'
+      });
+    }
+
+    const cleanUsername = username.trim().toLowerCase();
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Comprobar si ya existe el usuario o correo
+    const existing = await db.query(
+      'SELECT id FROM admin_users WHERE LOWER(username) = $1 OR LOWER(email) = $2',
+      [cleanUsername, cleanEmail]
+    );
+
+    if (existing.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Ya existe un administrador con ese nombre de usuario o correo.'
+      });
+    }
+
+    const adminId = 'ADM-' + generate7CharId();
+    const passwordHash = await bcrypt.hash(password.trim(), 10);
+    const adminRole = role || 'admin';
+
+    await db.query(`
+      INSERT INTO admin_users (id, name, username, email, password_hash, role)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `, [adminId, name.trim(), cleanUsername, cleanEmail, passwordHash, adminRole]);
+
+    res.status(201).json({
+      success: true,
+      message: 'Administrador creado con éxito.',
+      data: {
+        id: adminId,
+        name: name.trim(),
+        username: cleanUsername,
+        email: cleanEmail,
+        role: adminRole
+      }
+    });
+  } catch (error) {
+    console.error('Error en POST /api/accounts/admins:', error);
+    res.status(500).json({ success: false, message: 'Error al crear administrador.' });
+  }
+});
+
+// DELETE /api/accounts/admins/:id - Eliminar un administrador
+router.delete('/admins/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.query('DELETE FROM admin_users WHERE id = $1', [id]);
+    res.json({
+      success: true,
+      message: 'Administrador eliminado correctamente.'
+    });
+  } catch (error) {
+    console.error('Error en DELETE /api/accounts/admins/:id:', error);
+    res.status(500).json({ success: false, message: 'Error al eliminar administrador.' });
+  }
+});
+
 module.exports = router;

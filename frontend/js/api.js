@@ -8,11 +8,16 @@ const API_BASE_URL = (function determineApiBase() {
   if (customUrl) return customUrl.replace(/\/+$/, '');
 
   // 2. Si el frontend es servido por el mismo servidor de Express (mismo origen)
-  if (window.location.port === '5000' || window.location.pathname.startsWith('/api')) {
+  if (window.location.port === '5000' || window.location.port === '8080' || window.location.pathname.startsWith('/api')) {
     return '/api';
   }
 
-  // 3. Si se ejecuta en Live Server (5500, 3000, etc.) o file://, apuntar al backend local
+  // 3. Si se ejecuta en producción (ej. Vercel u otro dominio web)
+  if (window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return 'https://magumcreatorstudiopro-production.up.railway.app/api';
+  }
+
+  // 4. Si se ejecuta en Live Server local o file://, apuntar al backend local
   return 'http://localhost:5000/api';
 })();
 

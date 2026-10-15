@@ -356,10 +356,43 @@
               <input type="email" class="form-input" value="soporte@magumcreator.com" id="admin-support-email">
             </div>
 
-            <button type="button" class="btn-submit-account" style="margin-top:8px;" onclick="alert('Configuración guardada correctamente.')">
+            <button type="button" class="btn-submit-account" style="margin-top:8px;" id="btn-save-platform-settings">
               <i class="fa-solid fa-floppy-disk"></i>
               <span>Guardar Configuración</span>
             </button>
+          </div>
+        </section>
+
+        <!-- Sección: Administradores de la Plataforma (Super Admin puede crear otros admin) -->
+        <section class="table-card" style="max-width: 780px; margin-top: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+            <div class="settings-section-title" style="margin: 0;">
+              <i class="fa-solid fa-user-shield"></i> Administradores de la Plataforma
+            </div>
+            <button type="button" class="btn-submit-account" id="btn-open-admin-modal" style="padding: 8px 16px; font-size: 0.82rem;">
+              <i class="fa-solid fa-user-plus"></i>
+              <span>Crear Nuevo Admin</span>
+            </button>
+          </div>
+          <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 16px;">
+            Gestiona los usuarios con acceso al panel de Super Administrador. Todos los administradores creados aquí pueden acceder con sus credenciales.
+          </p>
+
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Usuario</th>
+                  <th>Correo</th>
+                  <th>Rol</th>
+                  <th class="th-actions">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="admin-users-table-body">
+                <!-- Se llena dinámicamente con JavaScript -->
+              </tbody>
+            </table>
           </div>
         </section>
 
@@ -565,6 +598,69 @@
     </div>
   </div>
 
+  <!-- Modal: Crear Nuevo Administrador (Super Admin) -->
+  <div class="modal-backdrop" id="modal-create-admin" style="display: none;">
+    <div class="modal-card">
+      <header class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-badge-icon">
+            <i class="fa-solid fa-user-shield"></i>
+          </div>
+          <div>
+            <h2 class="modal-title">Crear Nuevo Administrador</h2>
+            <p class="modal-subtitle">Tendrá acceso con privilegios de gestión al panel de Super Admin</p>
+          </div>
+        </div>
+        <button id="btn-close-admin-modal" class="btn-close-modal" type="button" aria-label="Cerrar modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </header>
+
+      <form id="form-create-admin" class="modal-form">
+        <div class="form-group">
+          <label for="admin-input-name" class="form-label">Nombre y Apellido *</label>
+          <input type="text" id="admin-input-name" class="form-input" placeholder="Ej. Carlos Rodríguez" required>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="admin-input-username" class="form-label">Usuario de acceso *</label>
+            <div class="input-with-icon">
+              <i class="fa-solid fa-user"></i>
+              <input type="text" id="admin-input-username" class="form-input" placeholder="Ej. crodriguez" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="admin-input-email" class="form-label">Correo electrónico *</label>
+            <div class="input-with-icon">
+              <i class="fa-regular fa-envelope"></i>
+              <input type="email" id="admin-input-email" class="form-input" placeholder="carlos@magum.com" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="admin-input-password" class="form-label">Contraseña de acceso *</label>
+          <div class="input-with-icon">
+            <i class="fa-solid fa-lock"></i>
+            <input type="text" id="admin-input-password" class="form-input" placeholder="Asigna una contraseña segura" required>
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" id="btn-cancel-admin-modal" class="btn-cancel">Cancelar</button>
+          <button type="submit" class="btn-submit-account">
+            <i class="fa-solid fa-check"></i>
+            <span>Guardar Administrador</span>
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="js/notify.js"></script>
   <script src="js/api.js"></script>
   <script src="js/admin.js"></script>
 </body>

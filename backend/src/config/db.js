@@ -91,6 +91,17 @@ async function initDatabase() {
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
 
+      -- 6. Tabla de Administradores de la Plataforma (Super Admin puede crear otros administradores)
+      CREATE TABLE IF NOT EXISTS admin_users (
+        id VARCHAR(20) PRIMARY KEY,
+        name VARCHAR(120) NOT NULL,
+        username VARCHAR(100) UNIQUE NOT NULL,
+        email VARCHAR(150) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        role VARCHAR(30) DEFAULT 'admin',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
       -- Migraciones automáticas: Asegurar que la columna deleted_at existe en tablas existentes
       ALTER TABLE crm_contacts ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
       ALTER TABLE accounts ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;

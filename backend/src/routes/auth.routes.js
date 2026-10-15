@@ -56,6 +56,48 @@ router.post('/login', async (req, res) => {
       }
     }
 
+    // 1.5. Verificación de Administradores adicionales en PostgreSQL
+    try {
+      const adminResult = await db.query(
+        'SELECT * FROM admin_users WHERE LOWER(username) = $1 OR LOWER(email) = $1 LIMIT 1',
+        [identifier]
+      );
+      if (adminResult.rows.length > 0) {
+        const adminUser = adminResult.rows[0];
+        const isMatch = await bcrypt.compare(cleanPassword, adminUser.password_hash);
+        if (isMatch || adminUser.password_hash === cleanPassword) {
+          const token = jwt.sign(
+            {
+              role: 'admin',
+              adminId: adminUser.id,
+              username: adminUser.username,
+              name: adminUser.name,
+              email: adminUser.email,
+              business: 'MAGUM Platform Hub'
+            },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+          );
+
+          return res.json({
+            success: true,
+            message: `Bienvenido, ${adminUser.name}.`,
+            token,
+            user: {
+              role: 'admin',
+              adminId: adminUser.id,
+              username: adminUser.username,
+              name: adminUser.name,
+              email: adminUser.email,
+              business: 'MAGUM Platform Hub'
+            }
+          });
+        }
+      }
+    } catch (adminErr) {
+      console.warn('Advertencia al consultar admin_users:', adminErr.message);
+    }
+
     // 2. Verificación de Cuenta de Cliente en PostgreSQL
     const accountResult = await db.query(
       'SELECT * FROM accounts WHERE LOWER(email) = $1 LIMIT 1',
