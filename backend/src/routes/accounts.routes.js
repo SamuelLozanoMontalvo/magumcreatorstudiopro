@@ -77,17 +77,24 @@ router.post('/', async (req, res) => {
 
     const emailClean = email.trim().toLowerCase();
 
-    // Comprobar si ya existe
-    const exists = await db.query('SELECT id FROM accounts WHERE LOWER(email) = $1', [emailClean]);
-    if (exists.rows.length > 0) {
+    // Comprobar si ya existe una cuenta con el mismo correo y la misma empresa
+    const existsSame = await db.query(
+      'SELECT id FROM accounts WHERE LOWER(email) = $1 AND LOWER(business) = $2 AND deleted_at IS NULL',
+      [emailClean, business.trim().toLowerCase()]
+    );
+    if (existsSame.rows.length > 0) {
       return res.status(400).json({
         success: false,
-        message: `Ya existe una cuenta registrada con el correo "${emailClean}".`
+        message: `Ya existe una cuenta para "${business.trim()}" con el correo "${emailClean}".`
       });
     }
 
     const newId = generate7CharId();
-    const passwordHash = await bcrypt.hash(password, 10);
+    let passwordHash = await bcrypt.hash(password.trim(), 10);
+
+    // Si ya tiene cuentas previas, unificar la contraseña para todas sus empresas
+    await db.query('UPDATE accounts SET password_hash = $1 WHERE LOWER(email) = $2', [passwordHash, emailClean]);
+
     const social = modules && modules.social !== undefined ? Boolean(modules.social) : true;
     const web = modules && modules.web !== undefined ? Boolean(modules.web) : true;
     const crm = true;

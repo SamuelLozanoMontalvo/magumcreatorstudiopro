@@ -71,10 +71,10 @@ class MagumApiClient {
   }
 
   // Autenticación
-  async login(username, password) {
+  async login(username, password, accountId = null) {
     return this.request('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify({ username, password, ...(accountId ? { accountId } : {}) })
     });
   }
 

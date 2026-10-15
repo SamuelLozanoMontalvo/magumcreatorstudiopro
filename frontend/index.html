@@ -44,7 +44,7 @@
               id="email" 
               name="email" 
               class="form-input" 
-              placeholder="McSAdmin o tu-correo@empresa.com" 
+              placeholder="Usuario o correo" 
               required
               autocomplete="username"
             >
@@ -60,7 +60,7 @@
               id="password" 
               name="password" 
               class="form-input" 
-              placeholder="••••••••••••" 
+              placeholder="Contraseña" 
               required
               autocomplete="current-password"
             >
@@ -94,6 +94,23 @@
 
     </div>
   </main>
+
+  <!-- Modal Selector de Empresas (Multi-Cuenta) -->
+  <div id="modal-select-account" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(6px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+    <div class="modal-box" style="background: #ffffff; width: 100%; max-width: 440px; border-radius: 16px; padding: 28px; box-shadow: 0 20px 45px rgba(0,0,0,0.3); text-align: center; border: 1px solid rgba(0,0,0,0.08);">
+      <div style="width: 54px; height: 54px; border-radius: 14px; background: rgba(33,0,135,0.08); color: #210087; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 1.5rem;">
+        <i class="fa-solid fa-building"></i>
+      </div>
+      <h3 style="margin: 0 0 8px; font-size: 1.3rem; font-weight: 700; color: #1e293b;">Selecciona tu Empresa</h3>
+      <p style="margin: 0 0 20px; font-size: 0.88rem; color: #64748b;">Tu correo tiene acceso a varias empresas. Elige a cuál deseas ingresar:</p>
+      <div id="account-selector-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; margin-bottom: 18px;">
+        <!-- Opciones inyectadas dinámicamente -->
+      </div>
+      <button type="button" id="btn-cancel-account-select" style="background: transparent; border: 1px solid #cbd5e1; color: #64748b; padding: 10px 18px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; transition: all 0.2s;">
+        Cancelar
+      </button>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="js/notify.js"></script>

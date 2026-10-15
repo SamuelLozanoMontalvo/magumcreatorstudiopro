@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
               lastName: acc.lastName,
               business: acc.business,
               email: acc.email,
-              password: 'Auto' + generate7CharId() + '*',
+              password: acc.password || 'Auto2026*',
               modules: acc.modules || { social: true, web: true, crm: true }
             });
             if (apiRes && apiRes.data) {
@@ -467,11 +467,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const accounts = getAccounts();
 
-      // Validar si el correo ya existe
-      const exists = accounts.find(a => a.email.toLowerCase() === email);
-      if (exists) {
-        MagumAlert.error('Correo ya Registrado', `Ya existe una cuenta creada con el correo electrónico "${email}".`);
-        return;
+      // Validar si el correo ya existe para permitir asignarle múltiples empresas
+      const existingWithEmail = accounts.filter(a => a.email.toLowerCase() === email);
+      if (existingWithEmail.length > 0) {
+        // Comprobar si ya existe con exactamente el mismo nombre de empresa
+        if (existingWithEmail.some(a => a.business.toLowerCase() === business.toLowerCase())) {
+          MagumAlert.error('Empresa Duplicada', `Ya existe una cuenta para "${business}" con el correo "${email}".`);
+          return;
+        }
+
+        const companiesList = existingWithEmail.map(a => `"${a.business}"`).join(', ');
+        const ok = await MagumAlert.confirm(
+          'Correo ya Registrado',
+          `El correo "${email}" ya tiene acceso a: ${companiesList}.\n\n¿Te gustaría asignarle también esta nueva cuenta ("${business}") a "${email}"?`,
+          'Sí, asignarle esta cuenta'
+        );
+        if (!ok) return;
       }
 
       const newId = generate7CharId();
@@ -483,6 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
         lastName,
         business,
         email,
+        password, // Preservar para sincronización consistente
         passwordHash, // Contraseña protegida con SHA-256
         modules: {
           social: socialCheck,

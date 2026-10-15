@@ -863,7 +863,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Guardar contacto CRM (Solo Nombre, Correo y Celular son obligatorios)
   if (formCrm) {
-    formCrm.addEventListener('submit', (e) => {
+    formCrm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = crmInputName.value.trim();
       const email = crmInputEmail.value.trim();

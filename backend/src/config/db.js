@@ -32,7 +32,7 @@ async function initDatabase() {
         first_name VARCHAR(100) NOT NULL,
         last_name VARCHAR(100) NOT NULL,
         business VARCHAR(150) NOT NULL,
-        email VARCHAR(150) UNIQUE NOT NULL,
+        email VARCHAR(150) NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         module_social BOOLEAN DEFAULT TRUE,
         module_web BOOLEAN DEFAULT TRUE,
@@ -102,7 +102,8 @@ async function initDatabase() {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
 
-      -- Migraciones automáticas: Asegurar que la columna deleted_at existe en tablas existentes
+      -- Migraciones automáticas: Multi-cuenta por email y borrado suave
+      ALTER TABLE accounts DROP CONSTRAINT IF EXISTS accounts_email_key;
       ALTER TABLE crm_contacts ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
       ALTER TABLE accounts ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
       ALTER TABLE professionals ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
