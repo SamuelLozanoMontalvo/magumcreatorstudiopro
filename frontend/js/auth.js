@@ -56,8 +56,33 @@ document.addEventListener('DOMContentLoaded', () => {
       const pwdClean = rawPassword.trim();
       const inputHash = await sha256(rawPassword);
 
+      // Intentar autenticación con el Backend API primero si está activo
+      if (window.MagumApi) {
+        try {
+          const apiResult = await window.MagumApi.login(rawUser, rawPassword);
+          if (apiResult && apiResult.success && apiResult.token) {
+            localStorage.setItem('magum_session', JSON.stringify({
+              ...apiResult.user,
+              token: apiResult.token,
+              loggedAt: new Date().toISOString()
+            }));
+
+            showAlert(apiResult.message || 'Acceso verificado. Ingresando...', 'success');
+            setTimeout(() => {
+              window.location.href = (apiResult.user.role === 'admin') ? 'admin.html' : 'dashboard.html';
+            }, 350);
+            return;
+          }
+        } catch (apiErr) {
+          if (apiErr.message && !apiErr.message.includes('Failed to fetch') && !apiErr.message.includes('NetworkError') && !apiErr.message.includes('Load failed')) {
+            showAlert(apiErr.message, 'error');
+            return;
+          }
+        }
+      }
+
       // ======================================================================
-      // 1. VERIFICACIÓN DE CREDENCIALES DE SUPER ADMINISTRADOR
+      // 1. VERIFICACIÓN DE CREDENCIALES DE SUPER ADMINISTRADOR (LOCAL FALLBACK)
       // ======================================================================
       const isAdminUser = (userClean === 'mcsadmin' || userClean === 'admin' || userClean === 'mcsadmin@magum.com');
 
