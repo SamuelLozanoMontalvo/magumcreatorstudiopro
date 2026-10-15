@@ -518,30 +518,36 @@ body.dark-mode .admin-table tr:hover td {
   font-size: 0.82rem;
 }
 
-/* Badges de Módulos */
-.modules-badges-cell {
+/* Badges de Módulos (Solo Iconos Limpios) */
+.modules-icons-cell {
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }
 
-.badge-module {
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 6px;
+.mod-icon-pill {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  font-size: 0.92rem;
+  transition: var(--transition);
+  cursor: default;
 }
 
-.badge-mod-social { background: #fdf2f8; color: var(--brand-magenta); border: 1px solid rgba(255, 0, 219, 0.2); }
-.badge-mod-web { background: #eff6ff; color: #1d4ed8; border: 1px solid rgba(29, 78, 216, 0.2); }
-.badge-mod-crm { background: #fefce8; color: #a16207; border: 1px solid rgba(161, 98, 7, 0.2); }
+.mod-icon-pill:hover {
+  transform: scale(1.15);
+}
 
-body.dark-mode .badge-mod-social { background: rgba(255, 0, 219, 0.15); color: #f472b6; }
-body.dark-mode .badge-mod-web { background: rgba(29, 78, 216, 0.2); color: #93c5fd; }
-body.dark-mode .badge-mod-crm { background: rgba(253, 211, 68, 0.15); color: var(--brand-gold); }
+.icon-social { background: #fdf2f8; color: var(--brand-magenta); border: 1px solid rgba(255, 0, 219, 0.2); }
+.icon-web { background: #eff6ff; color: #1d4ed8; border: 1px solid rgba(29, 78, 216, 0.2); }
+.icon-crm { background: #fefce8; color: #a16207; border: 1px solid rgba(161, 98, 7, 0.2); }
+
+body.dark-mode .icon-social { background: rgba(255, 0, 219, 0.15); color: #f472b6; }
+body.dark-mode .icon-web { background: rgba(29, 78, 216, 0.2); color: #93c5fd; }
+body.dark-mode .icon-crm { background: rgba(253, 211, 68, 0.15); color: var(--brand-gold); }
 
 /* Badges de Estado */
 .badge-status {
@@ -564,8 +570,14 @@ body.dark-mode .badge-mod-crm { background: rgba(253, 211, 68, 0.15); color: var
   color: #64748b;
 }
 
+.badge-status-archived {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
 body.dark-mode .badge-status-active { background: rgba(5, 150, 105, 0.2); color: #6ee7b7; }
 body.dark-mode .badge-status-inactive { background: rgba(255, 255, 255, 0.08); color: #94a3b8; }
+body.dark-mode .badge-status-archived { background: rgba(194, 65, 12, 0.2); color: #fdba74; }
 
 .status-indicator-dot {
   width: 7px;
@@ -578,7 +590,7 @@ body.dark-mode .badge-status-inactive { background: rgba(255, 255, 255, 0.08); c
 .actions-cell {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .btn-row-action {
@@ -614,6 +626,26 @@ body.dark-mode .badge-status-inactive { background: rgba(255, 255, 255, 0.08); c
 
 body.dark-mode .btn-impersonate {
   background: rgba(255, 0, 219, 0.12);
+}
+
+.btn-archive-acc:hover {
+  border-color: #ea580c;
+  color: #ea580c;
+  background: #fff7ed;
+}
+
+body.dark-mode .btn-archive-acc:hover {
+  background: rgba(234, 88, 12, 0.15);
+}
+
+.btn-delete-acc:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: #fee2e2;
+}
+
+body.dark-mode .btn-delete-acc:hover {
+  background: rgba(239, 68, 68, 0.15);
 }
 
 /* Estado vacío */

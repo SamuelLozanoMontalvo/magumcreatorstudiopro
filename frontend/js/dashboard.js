@@ -107,7 +107,9 @@ document.addEventListener('DOMContentLoaded', () => {
     'view-dashboard': document.getElementById('view-dashboard'),
     'view-crm': document.getElementById('view-crm'),
     'view-marketing-social': document.getElementById('view-marketing-social'),
-    'view-marketing-web': document.getElementById('view-marketing-web')
+    'view-marketing-web': document.getElementById('view-marketing-web'),
+    'view-profesionales': document.getElementById('view-profesionales'),
+    'view-ajustes': document.getElementById('view-ajustes')
   };
 
   const navLinks = document.querySelectorAll('.sidebar-nav .nav-link[data-view], .submenu-link[data-view]');
@@ -133,6 +135,13 @@ document.addEventListener('DOMContentLoaded', () => {
         views[id].style.display = (id === viewId) ? 'block' : 'none';
       }
     });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Activar vista por hash si viene en la URL (ej. #ajustes)
+  if (window.location.hash) {
+    const hashLink = document.querySelector(`.sidebar-nav [href="${window.location.hash}"]`);
+    if (hashLink) hashLink.click();
   }
 
   // 4. ACCIONES DE SUGERENCIAS INTELIGENTES (CRM & MARKETING)

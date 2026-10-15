@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="icon" id="dynamic-favicon" href="https://lirp.cdn-website.com/e4e4cefa/dms3rep/multi/opt/Magum_logo+magenta-1920w.png">
 </head>
 <body class="dashboard-body">
 
@@ -465,6 +466,136 @@
 
       </div>
 
+      <!-- Vista CRM Clientes -->
+      <div id="view-crm" class="tab-view" style="display: none;">
+        
+        <section class="banner-card">
+          <div class="banner-info">
+            <div class="banner-tag">
+              <i class="fa-solid fa-users"></i>
+              <span>Gestión de Clientes & CRM</span>
+            </div>
+            <h2 class="banner-title">Directorio de Contactos y Oportunidades</h2>
+            <p class="banner-desc">Monitorea tus prospectos, fideliza clientes existentes y coordina comunicaciones masivas efectivas.</p>
+          </div>
+          <button class="btn-quick-action" type="button" onclick="alert('Formulario para registrar nuevo contacto en el CRM')">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Nuevo Contacto</span>
+          </button>
+        </section>
+
+        <section class="section-block">
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-icon-wrap" style="color: #10b981; background: rgba(16, 185, 129, 0.1);">
+                <i class="fa-solid fa-users"></i>
+              </div>
+              <div class="metric-content">
+                <span class="metric-label">Total Clientes</span>
+                <span class="metric-value">348</span>
+                <span class="metric-subtext"><i class="fa-solid fa-arrow-trend-up"></i> +12 este mes</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon-wrap" style="color: #FF00DB; background: rgba(255, 0, 219, 0.1);">
+                <i class="fa-solid fa-user-check"></i>
+              </div>
+              <div class="metric-content">
+                <span class="metric-label">Clientes VIP</span>
+                <span class="metric-value">85</span>
+                <span class="metric-subtext">Alta frecuencia</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon-wrap" style="color: #3b82f6; background: rgba(59, 130, 246, 0.1);">
+                <i class="fa-solid fa-envelope-circle-check"></i>
+              </div>
+              <div class="metric-content">
+                <span class="metric-label">En Campañas Activas</span>
+                <span class="metric-value">227</span>
+                <span class="metric-subtext">65% de apertura</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon-wrap" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);">
+                <i class="fa-solid fa-user-clock"></i>
+              </div>
+              <div class="metric-content">
+                <span class="metric-label">Por Reactivar</span>
+                <span class="metric-value">142</span>
+                <span class="metric-subtext">+60 días inactivos</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tabla de Clientes en CRM -->
+        <section class="section-block">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Clientes Registrados</h2>
+              <p class="section-subtitle">Listado de prospectos y clientes en tu base de datos centralizada</p>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Cliente</th>
+                    <th>Teléfono / WhatsApp</th>
+                    <th>Correo Electrónico</th>
+                    <th>Segmento</th>
+                    <th>Última Interacción</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="client-name-cell">Carlos Morales</td>
+                    <td>+57 310 458 9201</td>
+                    <td>carlos.morales@gmail.com</td>
+                    <td><span class="badge-status badge-status-active"><span class="status-indicator-dot"></span> Cliente VIP</span></td>
+                    <td>Ayer, 4:30 PM</td>
+                    <td>
+                      <button class="btn-row-action" title="Enviar WhatsApp" onclick="alert('Abriendo WhatsApp directo con Carlos Morales')"><i class="fa-brands fa-whatsapp"></i></button>
+                      <button class="btn-row-action" title="Enviar Correo" onclick="alert('Abriendo redactor de correo para Carlos Morales')"><i class="fa-regular fa-envelope"></i></button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="client-name-cell">Diana María Rincón</td>
+                    <td>+57 315 889 1234</td>
+                    <td>diana.rincon@hotmail.com</td>
+                    <td><span class="badge-status badge-status-active"><span class="status-indicator-dot"></span> En Seguimiento</span></td>
+                    <td>Hace 3 días</td>
+                    <td>
+                      <button class="btn-row-action" title="Enviar WhatsApp" onclick="alert('Abriendo WhatsApp directo con Diana María')"><i class="fa-brands fa-whatsapp"></i></button>
+                      <button class="btn-row-action" title="Enviar Correo" onclick="alert('Abriendo redactor de correo para Diana María')"><i class="fa-regular fa-envelope"></i></button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="client-name-cell">Jorge Alberto Vega</td>
+                    <td>+57 301 223 9988</td>
+                    <td>jvega.transportes@yahoo.com</td>
+                    <td><span class="badge-status badge-status-inactive"><span class="status-indicator-dot"></span> Inactivo (+60d)</span></td>
+                    <td>Hace 64 días</td>
+                    <td>
+                      <button class="btn-row-action" title="Enviar WhatsApp" onclick="alert('Abriendo WhatsApp para reactivar a Jorge Alberto')"><i class="fa-brands fa-whatsapp"></i></button>
+                      <button class="btn-row-action" title="Enviar Campaña de Reactivación" onclick="alert('Enviando campaña de reactivación')"><i class="fa-regular fa-envelope"></i></button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
       <!-- Vista Web Editor -->
       <div id="view-marketing-web" class="tab-view" style="display: none;">
         
@@ -506,6 +637,298 @@
             </div>
           </div>
         </section>
+
+      </div>
+
+      <!-- Vista Social Media -->
+      <div id="view-marketing-social" class="tab-view" style="display: none;">
+        
+        <section class="banner-card">
+          <div class="banner-info">
+            <div class="banner-tag">
+              <i class="fa-solid fa-share-nodes"></i>
+              <span>Social Media & Difusión Multicanal</span>
+            </div>
+            <h2 class="banner-title">Emisión Simultánea y Redes Sociales</h2>
+            <p class="banner-desc">Programa y sincroniza tu contenido en Instagram, Facebook y TikTok con emisión simultánea.</p>
+          </div>
+          <button class="btn-quick-action" type="button" onclick="alert('Abriendo creador de publicaciones para redes sociales')">
+            <i class="fa-solid fa-plus"></i>
+            <span>Nueva Publicación</span>
+          </button>
+        </section>
+
+        <!-- Canales Vinculados -->
+        <section class="section-block">
+          <div class="channels-grid">
+            
+            <div class="channel-summary-card">
+              <div class="channel-header">
+                <div class="channel-title-wrap">
+                  <div class="channel-icon" style="color: #E1306C; background: rgba(225, 48, 108, 0.1);">
+                    <i class="fa-brands fa-instagram"></i>
+                  </div>
+                  <div>
+                    <span class="badge-web-online">Sincronizado</span>
+                    <h3 class="channel-name">Instagram Business</h3>
+                    <span class="channel-meta">@automotorcartagena • 18,400 Seguidores</span>
+                  </div>
+                </div>
+              </div>
+              <div class="channel-stats-row">
+                <div class="stat-mini">
+                  <span class="stat-mini-num">24,100</span>
+                  <span class="stat-mini-label">Alcance mensual</span>
+                </div>
+                <div class="stat-mini">
+                  <span class="stat-mini-num">8</span>
+                  <span class="stat-mini-label">Posts en cola</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="channel-summary-card">
+              <div class="channel-header">
+                <div class="channel-title-wrap">
+                  <div class="channel-icon" style="color: #1877F2; background: rgba(24, 119, 242, 0.1);">
+                    <i class="fa-brands fa-facebook"></i>
+                  </div>
+                  <div>
+                    <span class="badge-web-online">Sincronizado</span>
+                    <h3 class="channel-name">Facebook Fan Page</h3>
+                    <span class="channel-meta">AutoMotor Cartagena • 12,300 Seguidores</span>
+                  </div>
+                </div>
+              </div>
+              <div class="channel-stats-row">
+                <div class="stat-mini">
+                  <span class="stat-mini-num">16,400</span>
+                  <span class="stat-mini-label">Alcance mensual</span>
+                </div>
+                <div class="stat-mini">
+                  <span class="stat-mini-num">4</span>
+                  <span class="stat-mini-label">Posts en cola</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="channel-summary-card">
+              <div class="channel-header">
+                <div class="channel-title-wrap">
+                  <div class="channel-icon" style="color: #000000; background: rgba(0, 0, 0, 0.1);">
+                    <i class="fa-brands fa-tiktok"></i>
+                  </div>
+                  <div>
+                    <span class="badge-web-online">Sincronizado</span>
+                    <h3 class="channel-name">TikTok Pro</h3>
+                    <span class="channel-meta">@automotorco • 8,420 Seguidores</span>
+                  </div>
+                </div>
+              </div>
+              <div class="channel-stats-row">
+                <div class="stat-mini">
+                  <span class="stat-mini-num">8,420</span>
+                  <span class="stat-mini-label">Alcance mensual</span>
+                </div>
+                <div class="stat-mini">
+                  <span class="stat-mini-num">2</span>
+                  <span class="stat-mini-label">Posts en cola</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Vista Profesionales -->
+      <div id="view-profesionales" class="tab-view" style="display: none;">
+        
+        <section class="banner-card">
+          <div class="banner-info">
+            <div class="banner-tag">
+              <i class="fa-solid fa-id-card-clip"></i>
+              <span>Equipo de Trabajo</span>
+            </div>
+            <h2 class="banner-title">Profesionales & Especialistas</h2>
+            <p class="banner-desc">Administra el personal del negocio encargado de atender a los clientes y servicios.</p>
+          </div>
+          <button class="btn-quick-action" type="button" onclick="alert('Formulario para registrar nuevo especialista')">
+            <i class="fa-solid fa-plus"></i>
+            <span>Nuevo Profesional</span>
+          </button>
+        </section>
+
+        <section class="section-block">
+          <div class="ideas-grid">
+            
+            <article class="idea-card">
+              <div class="idea-header">
+                <span class="idea-type"><i class="fa-solid fa-user-gear"></i> JEFE DE TALLER</span>
+                <span class="badge-web-online">Disponible</span>
+              </div>
+              <h3 class="idea-title">Ing. Mateo Saldarriaga</h3>
+              <p class="idea-desc">Especialista en diagnóstico computarizado y sistemas de inyección electrónica.</p>
+              <div class="idea-meta">
+                <div class="meta-item"><i class="fa-solid fa-phone"></i> +57 311 000 1122</div>
+                <div class="meta-item"><i class="fa-regular fa-calendar-check"></i> Turno: Lun - Sáb (8am - 5pm)</div>
+              </div>
+            </article>
+
+            <article class="idea-card">
+              <div class="idea-header">
+                <span class="idea-type"><i class="fa-solid fa-wrench"></i> MECÁNICA GENERAL</span>
+                <span class="badge-web-online">Disponible</span>
+              </div>
+              <h3 class="idea-title">Andrés Camilo Rojas</h3>
+              <p class="idea-desc">Técnico experto en suspensión, frenos ABS y transmisiones automáticas.</p>
+              <div class="idea-meta">
+                <div class="meta-item"><i class="fa-solid fa-phone"></i> +57 314 222 3344</div>
+                <div class="meta-item"><i class="fa-regular fa-calendar-check"></i> Turno: Lun - Vie (8am - 6pm)</div>
+              </div>
+            </article>
+
+            <article class="idea-card">
+              <div class="idea-header">
+                <span class="idea-type"><i class="fa-solid fa-headset"></i> ASESOR COMERCIAL</span>
+                <span class="badge-web-online">En Atención</span>
+              </div>
+              <h3 class="idea-title">Laura Sofía Morales</h3>
+              <p class="idea-desc">Gestión y cierre de cotizaciones CRM y seguimiento personalizado a clientes VIP.</p>
+              <div class="idea-meta">
+                <div class="meta-item"><i class="fa-solid fa-phone"></i> +57 318 444 5566</div>
+                <div class="meta-item"><i class="fa-regular fa-calendar-check"></i> Turno: Lun - Sáb (9am - 6pm)</div>
+              </div>
+            </article>
+
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Vista Ajustes / Configuración de Marca (White Label como la imagen de referencia) -->
+      <div id="view-ajustes" class="tab-view" style="display: none;">
+        
+        <div class="settings-card">
+          
+          <header class="settings-header-banner">
+            <h2 class="settings-main-title">Configuración Global</h2>
+            <p class="settings-main-subtitle">Esta es la configuración Global de tu cuenta máster que también adoptarán tus cuentas hijas.</p>
+          </header>
+
+          <form id="form-brand-settings">
+            
+            <!-- 1. Nombre de tu negocio -->
+            <div class="settings-group-block">
+              <h3 class="settings-group-title">Nombre de tu negocio</h3>
+              <p class="settings-group-desc">Personaliza el nombre de tu agencia</p>
+              <input 
+                type="text" 
+                id="setting-business-name" 
+                class="settings-text-input" 
+                value="MAGUM" 
+                placeholder="Nombre de tu negocio o agencia"
+              >
+            </div>
+
+            <!-- 2. Logo -->
+            <div class="settings-group-block">
+              <h3 class="settings-group-title">Logo</h3>
+              <p class="settings-group-desc">
+                Sube tu logo para que aparezca en el loading de todas tus cuentas y en el encabezado del software.<br>
+                <strong>medidas de logo 1080x360 pixeles</strong>
+              </p>
+              
+              <div class="brand-media-upload-wrap">
+                <div class="brand-logo-preview-box">
+                  <img 
+                    id="setting-logo-preview" 
+                    src="https://lirp.cdn-website.com/e4e4cefa/dms3rep/multi/opt/Magum_logo+magenta-1920w.png" 
+                    alt="Logo actual" 
+                    class="brand-logo-preview-img"
+                  >
+                </div>
+                
+                <input type="file" id="setting-logo-file" accept="image/*" style="display: none;">
+                <button type="button" id="btn-trigger-logo" class="btn-brand-upload">
+                  <i class="fa-solid fa-cloud-arrow-up"></i>
+                  <span>Cargar logo</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 3. Favicon -->
+            <div class="settings-group-block">
+              <h3 class="settings-group-title">Favicon</h3>
+              <p class="settings-group-desc">
+                Este pequeño icono ayuda a identificar la página web en la pestaña del navegador y en los resultados de búsqueda móvil de Google (visible también para las cuentas hijas).<br>
+                <strong>medidas de favicon 46x46 pixeles</strong>
+              </p>
+
+              <div class="brand-media-upload-wrap">
+                <div class="brand-favicon-preview-box">
+                  <img 
+                    id="setting-favicon-preview" 
+                    src="https://lirp.cdn-website.com/e4e4cefa/dms3rep/multi/opt/Magum_logo+magenta-1920w.png" 
+                    alt="Favicon actual" 
+                    class="brand-favicon-preview-img"
+                  >
+                </div>
+
+                <input type="file" id="setting-favicon-file" accept="image/*" style="display: none;">
+                <button type="button" id="btn-trigger-favicon" class="btn-brand-upload">
+                  <i class="fa-solid fa-cloud-arrow-up"></i>
+                  <span>Cargar Favicon</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 4. Colores de tu cuenta -->
+            <div class="settings-group-block">
+              <h3 class="settings-group-title">Colores de tu cuenta</h3>
+              <p class="settings-group-desc">
+                Elige los colores que quieras para personalizar el programa al máximo y que se adapte a tu imagen corporativa.
+              </p>
+
+              <div class="color-swatches-grid">
+                
+                <div class="color-swatch-row">
+                  <input type="color" id="setting-color-primary" class="color-picker-input" value="#210087">
+                  <div class="color-swatch-info">
+                    <span class="color-swatch-name">Color Primario</span>
+                    <span class="color-swatch-desc">Color que identifica la cuenta administradora y las cuentas que agregas.</span>
+                  </div>
+                </div>
+
+                <div class="color-swatch-row">
+                  <input type="color" id="setting-color-secondary" class="color-picker-input" value="#F8F3EB">
+                  <div class="color-swatch-info">
+                    <span class="color-swatch-name">Color Secundario</span>
+                    <span class="color-swatch-desc">Color que se muestra al iniciar sesión en el estado de progreso.</span>
+                  </div>
+                </div>
+
+                <div class="color-swatch-row">
+                  <input type="color" id="setting-color-bg" class="color-picker-input" value="#FF00DB">
+                  <div class="color-swatch-info">
+                    <span class="color-swatch-name">Color de fondo</span>
+                    <span class="color-swatch-desc">Color de fondo al iniciar sesión.</span>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+            <button type="submit" id="btn-save-branding" class="btn-save-branding">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>Guardar Cambios de Configuración</span>
+            </button>
+
+          </form>
+
+        </div>
 
       </div>
 
