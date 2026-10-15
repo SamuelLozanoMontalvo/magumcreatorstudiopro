@@ -109,78 +109,31 @@ async function initDatabase() {
       ALTER TABLE professionals ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
     `);
 
-    // Comprobar si ya existe la cuenta seed "AutoMotor Cartagena"
-    const existingAccounts = await client.query('SELECT COUNT(*) FROM accounts');
-    if (parseInt(existingAccounts.rows[0].count, 10) === 0) {
-      console.log('🌱 Base de datos vacía. Insertando datos iniciales de prueba (Seed)...');
-
-      const clientHash = await bcrypt.hash('Auto2026*', 10);
-      const seedAccountId = 'MC8K29L';
-
+    // Limpieza de registros automáticos de prueba / demostración solicitada por el usuario
+    try {
       await client.query(`
-        INSERT INTO accounts (id, first_name, last_name, business, email, password_hash, module_social, module_web, module_crm, status)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-      `, [
-        seedAccountId,
-        'Carlos',
-        'Mendoza',
-        'AutoMotor Cartagena',
-        'cliente@automotor.com',
-        clientHash,
-        true,
-        true,
-        true,
-        'active'
-      ]);
-
-      // Seed de Profesionales
-      const profHash = await bcrypt.hash('Mateo2026*', 10);
-      await client.query(`
-        INSERT INTO professionals (id, account_id, name, role, email, password_hash, phone, schedule)
-        VALUES 
-          ('P-101', $1, 'Ing. Mateo Saldarriaga', 'Jefe de Taller & Diagnóstico', 'mateo@automotor.com', $2, '+57 311 000 1122', 'Lun - Sáb (8:00 AM - 5:00 PM)'),
-          ('P-102', $1, 'Andrés Camilo Rojas', 'Mecánico General Senior', 'andres.rojas@automotor.com', $2, '+57 314 222 3344', 'Lun - Vie (8:00 AM - 6:00 PM)')
-      `, [seedAccountId, profHash]);
-
-      // Seed de Contactos en CRM
-      await client.query(`
-        INSERT INTO crm_contacts (id, account_id, name, email, phone, age, company, segment, notes)
-        VALUES
-          ('C-101', $1, 'Carlos Morales', 'carlos.morales@gmail.com', '+57 310 458 9201', 38, 'Transportes Cartagena', 'vip', 'Mantenimiento de flota vehicular VIP'),
-          ('C-102', $1, 'Diana María Rincón', 'diana.rincon@hotmail.com', '+57 315 889 1234', 29, 'Inversiones Luna', 'prospect', 'Solicitó cotización de pastillas de freno'),
-          ('C-103', $1, 'Jorge Alberto Vega', 'jvega.transportes@yahoo.com', '+57 301 223 9988', 45, 'Logística Vega SAS', 'inactive', 'Inactivo hace más de 60 días para reactivar'),
-          ('C-104', $1, 'Mariana Gómez', 'mariana.gomez@outlook.com', '+57 320 678 4433', 32, 'Independiente', 'client', 'Revisión técnica anual al día')
-      `, [seedAccountId]);
-
-      // Seed de Facturación
-      await client.query(`
-        INSERT INTO billing (id, account_id, client_name, business, plan, amount, start_date, modules, notes, payment_status)
-        VALUES
-          ('B-101', $1, 'Carlos Mendoza', 'AutoMotor Cartagena', 'monthly', 150000, CURRENT_DATE - INTERVAL '15 days', 'Social Media, Web, CRM', 'Cliente fundador. Pagos siempre puntuales.', 'paid')
-      `, [seedAccountId]);
-
-      console.log('✅ Datos iniciales (Seed) insertados con éxito.');
+        DELETE FROM crm_contacts WHERE id IN ('C-101', 'C-102', 'C-103', 'C-104') OR notes LIKE '%flota vehicular VIP%';
+        DELETE FROM professionals WHERE id IN ('P-101', 'P-102', 'P-103') OR email LIKE '%@automotor.com';
+        DELETE FROM billing WHERE id IN ('B-101', 'B-102', 'B-103', 'B-104') OR business IN ('AutoMotor Cartagena', 'Spa Bella Luna', 'Dental Group Cartagena', 'Fitness Club Pro', 'Constructora Los Andes');
+        DELETE FROM accounts WHERE id IN ('MC8K29L', 'SL7K92X', 'LR4M21B', 'CM8N45T', 'VG3P78F', 'CA9P12K') OR business IN ('AutoMotor Cartagena', 'Spa Bella Luna', 'Dental Group Cartagena', 'Fitness Club Pro', 'Constructora Los Andes') OR email IN ('cliente@automotor.com', 'contacto@bellalunaspa.co', 'admin@dentalgroup.com', 'valeria@fitclubpro.co');
+      `);
+      console.log('🧹 Limpieza de registros de prueba completada.');
+    } catch (cleanErr) {
+      console.warn('Aviso en limpieza de registros demo:', cleanErr.message);
     }
 
-    // Garantizar que la cuenta de Samy Lozano y administradores estén siempre listos en PostgreSQL
+    // Garantizar que los administradores del sistema estén siempre listos en PostgreSQL
     try {
-      const samyHash = await bcrypt.hash('Auto2026*', 10);
-      await client.query(`
-        INSERT INTO accounts (id, first_name, last_name, business, email, password_hash, module_social, module_web, module_crm, status)
-        VALUES 
-          ('SL7K92X', 'Samuel', 'Lozano', 'AutoMotor Cartagena', 'samylozano00@gmail.com', $1, true, true, true, 'active'),
-          ('MC8K29L', 'Carlos', 'Mendoza', 'AutoMotor Cartagena', 'cliente@automotor.com', $1, true, true, true, 'active')
-        ON CONFLICT (email) DO NOTHING;
-      `, [samyHash]);
-
       const adminHash = await bcrypt.hash('MagumAdmin#2030', 10);
       await client.query(`
         INSERT INTO admin_users (id, name, username, email, password_hash, role)
-        VALUES ('ADM-SAMY01', 'Samy Lozano', 'samylozano', 'samylozano00@gmail.com', $1, 'admin')
+        VALUES 
+          ('ADM-SAMY01', 'Samy Lozano', 'samylozano', 'samylozano00@gmail.com', $1, 'admin'),
+          ('ADM-MCS01', 'Super Administrador', 'mcsadmin', 'mcsadmin@magum.com', $1, 'admin')
         ON CONFLICT (email) DO NOTHING;
       `, [adminHash]);
     } catch (e) {
-      console.warn('Aviso al sembrar cuenta de admin:', e.message);
+      console.warn('Aviso al asegurar administradores:', e.message);
     }
 
     console.log('✅ Esquema de base de datos verificado y listo.');

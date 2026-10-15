@@ -320,60 +320,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // 7. CRM: MULTISELECCIÓN, ACCIONES MASIVAS, CRUD Y EXCEL/CSV
   // ==========================================================================
 
-  const DEFAULT_CRM_CONTACTS = [
-    {
-      id: 'C-101',
-      name: 'Carlos Morales',
-      email: 'carlos.morales@gmail.com',
-      phone: '+57 310 458 9201',
-      age: 38,
-      company: 'Transportes Cartagena',
-      segment: 'vip',
-      notes: 'Mantenimiento de flota vehicular VIP'
-    },
-    {
-      id: 'C-102',
-      name: 'Diana María Rincón',
-      email: 'diana.rincon@hotmail.com',
-      phone: '+57 315 889 1234',
-      age: 29,
-      company: 'Inversiones Luna',
-      segment: 'prospect',
-      notes: 'Solicitó cotización de cambio de pastillas de freno'
-    },
-    {
-      id: 'C-103',
-      name: 'Jorge Alberto Vega',
-      email: 'jvega.transportes@yahoo.com',
-      phone: '+57 301 223 9988',
-      age: 45,
-      company: 'Logística Vega SAS',
-      segment: 'inactive',
-      notes: 'Inactivo hace más de 60 días. Candidato a reactivación.'
-    },
-    {
-      id: 'C-104',
-      name: 'Mariana Gómez',
-      email: 'mariana.gomez@outlook.com',
-      phone: '+57 320 678 4433',
-      age: 32,
-      company: 'Independiente',
-      segment: 'client',
-      notes: 'Revisión técnica anual al día'
-    }
-  ];
+  const DEFAULT_CRM_CONTACTS = [];
 
   // Multi-Tenancy: Aislamiento estricto de base de datos CRM por cliente
   const currentClientAccountId = (function () {
     try {
       const s = JSON.parse(localStorage.getItem('magum_session') || '{}');
-      return s.accountId || s.email || 'demo';
+      return s.accountId || s.email || 'client';
     } catch {
-      return 'demo';
+      return 'client';
     }
   })();
 
-  const isDemoAccount = (currentClientAccountId === 'MC8K29L' || currentClientAccountId === 'SL7K92X' || currentClientAccountId === 'demo');
+  const isDemoAccount = false;
 
   function getCrmStorageKey() {
     return `magum_crm_contacts_${currentClientAccountId}`;
@@ -383,14 +342,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const key = getCrmStorageKey();
     const raw = localStorage.getItem(key);
     if (!raw) {
-      // Solo las cuentas semilla de prueba tienen datos de demostración predefinidos
-      // Cada cliente nuevo arranca con su CRM totalmente independiente y limpio ([])
-      const initialContacts = isDemoAccount ? DEFAULT_CRM_CONTACTS : [];
-      localStorage.setItem(key, JSON.stringify(initialContacts));
-      return initialContacts;
+      return [];
     }
     try {
-      return JSON.parse(raw);
+      let list = JSON.parse(raw);
+      // Depurar cualquier contacto demo previo
+      const filtered = list.filter(c => !['C-101', 'C-102', 'C-103', 'C-104'].includes(c.id));
+      if (filtered.length !== list.length) {
+        list = filtered;
+        saveCrmContacts(list);
+      }
+      return list;
     } catch {
       return [];
     }
@@ -1074,35 +1036,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 8. PROFESIONALES: CRUD DE MIEMBROS CON ACCESO A LA CUENTA
   // ==========================================================================
 
-  const DEFAULT_PROFESSIONALS = [
-    {
-      id: 'P-101',
-      name: 'Ing. Mateo Saldarriaga',
-      role: 'Jefe de Taller & Diagnóstico',
-      email: 'mateo@automotor.com',
-      password: '••••••••',
-      phone: '+57 311 000 1122',
-      schedule: 'Lun - Sáb (8:00 AM - 5:00 PM)'
-    },
-    {
-      id: 'P-102',
-      name: 'Andrés Camilo Rojas',
-      role: 'Mecánico General Senior',
-      email: 'andres.rojas@automotor.com',
-      password: '••••••••',
-      phone: '+57 314 222 3344',
-      schedule: 'Lun - Vie (8:00 AM - 6:00 PM)'
-    },
-    {
-      id: 'P-103',
-      name: 'Laura Sofía Morales',
-      role: 'Asesora Comercial / CRM',
-      email: 'laura.morales@automotor.com',
-      password: '••••••••',
-      phone: '+57 318 444 5566',
-      schedule: 'Lun - Sáb (9:00 AM - 6:00 PM)'
-    }
-  ];
+  const DEFAULT_PROFESSIONALS = [];
 
   function getProfStorageKey() {
     return `magum_team_professionals_${currentClientAccountId}`;
@@ -1112,12 +1046,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const key = getProfStorageKey();
     const raw = localStorage.getItem(key);
     if (!raw) {
-      const initialProfs = isDemoAccount ? DEFAULT_PROFESSIONALS : [];
-      localStorage.setItem(key, JSON.stringify(initialProfs));
-      return initialProfs;
+      return [];
     }
     try {
-      return JSON.parse(raw);
+      let profs = JSON.parse(raw);
+      // Depurar profesionales de prueba previos
+      const filtered = profs.filter(p => !['P-101', 'P-102', 'P-103'].includes(p.id) && !(p.email || '').includes('@automotor.com'));
+      if (filtered.length !== profs.length) {
+        profs = filtered;
+        saveProfessionals(profs);
+      }
+      return profs;
     } catch {
       return [];
     }

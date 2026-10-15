@@ -92,66 +92,34 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // 4. BASE DE DATOS LOCAL DE CUENTAS (SEEDS INICIALES CON HASH)
-  // Contraseña inicial de prueba para todas las cuentas seed: "Magum2026*"
-  // SHA-256 de "Magum2026*": 7f1e679a93074ceaa611ff6e4b85da812dc56ba0236a28ee96f7c7586526ebcf
+  // 4. BASE DE DATOS LOCAL DE CUENTAS
   const DEFAULT_SEED_HASH = '7f1e679a93074ceaa611ff6e4b85da812dc56ba0236a28ee96f7c7586526ebcf';
-
-  const DEFAULT_ACCOUNTS = [
-    {
-      id: 'SL7K92X',
-      firstName: 'Samuel',
-      lastName: 'Lozano',
-      business: 'AutoMotor Cartagena',
-      email: 'samylozano00@gmail.com',
-      passwordHash: DEFAULT_SEED_HASH,
-      modules: { social: true, web: true, crm: true },
-      createdAt: '2026-10-10',
-      status: 'active'
-    },
-    {
-      id: 'LR4M21B',
-      firstName: 'Laura',
-      lastName: 'Restrepo',
-      business: 'Spa Bella Luna',
-      email: 'contacto@bellalunaspa.co',
-      passwordHash: DEFAULT_SEED_HASH,
-      modules: { social: true, web: false, crm: true },
-      createdAt: '2026-10-12',
-      status: 'active'
-    },
-    {
-      id: 'CM8N45T',
-      firstName: 'Carlos',
-      lastName: 'Mendoza',
-      business: 'Dental Group Cartagena',
-      email: 'admin@dentalgroup.com',
-      passwordHash: DEFAULT_SEED_HASH,
-      modules: { social: false, web: true, crm: true },
-      createdAt: '2026-10-13',
-      status: 'active'
-    },
-    {
-      id: 'VG3P78F',
-      firstName: 'Valeria',
-      lastName: 'Gómez',
-      business: 'Fitness Club Pro',
-      email: 'valeria@fitclubpro.co',
-      passwordHash: DEFAULT_SEED_HASH,
-      modules: { social: true, web: true, crm: true },
-      createdAt: '2026-10-14',
-      status: 'inactive'
-    }
-  ];
+  const DEMO_ACCOUNT_IDS = ['SL7K92X', 'LR4M21B', 'CM8N45T', 'VG3P78F', 'MC8K29L', 'CA9P12K'];
+  const DEFAULT_ACCOUNTS = [];
 
   function getAccounts() {
     const data = localStorage.getItem('magum_accounts');
     if (!data) {
-      localStorage.setItem('magum_accounts', JSON.stringify(DEFAULT_ACCOUNTS));
-      return DEFAULT_ACCOUNTS;
+      return [];
     }
     try {
       let accounts = JSON.parse(data);
       let updated = false;
+
+      // Depurar cualquier cuenta demo o de prueba previa
+      const filtered = accounts.filter(acc => {
+        if (!acc) return false;
+        if (DEMO_ACCOUNT_IDS.includes(acc.id)) return false;
+        if (['cliente@automotor.com', 'contacto@bellalunaspa.co', 'admin@dentalgroup.com', 'valeria@fitclubpro.co'].includes(acc.email)) return false;
+        if (['AutoMotor Cartagena', 'Spa Bella Luna', 'Dental Group Cartagena', 'Fitness Club Pro'].includes(acc.business)) return false;
+        return true;
+      });
+
+      if (filtered.length !== accounts.length) {
+        accounts = filtered;
+        updated = true;
+      }
+
       accounts = accounts.map(acc => {
         // Asegurar ID de 7 caracteres
         if (!acc.id || acc.id.includes('-') || acc.id.startsWith('#') || acc.id.length !== 7) {
@@ -169,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (updated) saveAccounts(accounts);
       return accounts;
     } catch {
-      return DEFAULT_ACCOUNTS;
+      return [];
     }
   }
 
@@ -561,52 +529,29 @@ document.addEventListener('DOMContentLoaded', () => {
   // 10. CRM DE FACTURACIÓN (SUPER ADMIN)
   // ==========================================================================
 
-  const DEFAULT_BILLING = [
-    {
-      id: 'B' + generate7CharId(),
-      clientName: 'Samuel Lozano',
-      business: 'AutoMotor Cartagena',
-      plan: 'monthly',
-      amount: 150000,
-      startDate: '2026-10-01',
-      modules: 'Social Media + Web Editor',
-      notes: 'Cliente ancla. Facturación mensual.',
-      paymentStatus: 'paid'
-    },
-    {
-      id: 'B' + generate7CharId(),
-      clientName: 'Laura Restrepo',
-      business: 'Spa Bella Luna',
-      plan: 'annual',
-      amount: 1500000,
-      startDate: '2026-06-15',
-      modules: 'Social Media',
-      notes: 'Pagó anualidad completa.',
-      paymentStatus: 'paid'
-    },
-    {
-      id: 'B' + generate7CharId(),
-      clientName: 'Carlos Mendoza',
-      business: 'Dental Group Cartagena',
-      plan: 'lifetime',
-      amount: 3500000,
-      startDate: '2026-09-01',
-      modules: 'Web Editor',
-      notes: 'Licencia vitalicia. No cobrar.',
-      paymentStatus: 'paid'
-    }
-  ];
+  const DEFAULT_BILLING = [];
 
   function getBilling() {
     const data = localStorage.getItem('magum_billing');
     if (!data) {
-      localStorage.setItem('magum_billing', JSON.stringify(DEFAULT_BILLING));
-      return DEFAULT_BILLING;
+      return [];
     }
     try {
-      return JSON.parse(data);
+      let items = JSON.parse(data);
+      // Depurar cualquier registro de facturación demo previo
+      const filtered = items.filter(b => {
+        if (!b) return false;
+        if (['AutoMotor Cartagena', 'Spa Bella Luna', 'Dental Group Cartagena', 'Fitness Club Pro'].includes(b.business)) return false;
+        if (b.id && (b.id.startsWith('B-101') || b.id === 'B-101')) return false;
+        return true;
+      });
+      if (filtered.length !== items.length) {
+        items = filtered;
+        saveBilling(items);
+      }
+      return items;
     } catch {
-      return DEFAULT_BILLING;
+      return [];
     }
   }
 

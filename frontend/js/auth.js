@@ -10,6 +10,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const passwordInput = document.getElementById('password');
   const eyeIcon = document.getElementById('eye-icon');
 
+  // Limpiar URL si el navegador realizó un submit GET previamente y rellenar campos
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramEmail = urlParams.get('email');
+    const paramPwd = urlParams.get('password');
+    if (paramEmail && document.getElementById('email')) {
+      document.getElementById('email').value = paramEmail;
+    }
+    if (paramPwd && passwordInput) {
+      passwordInput.value = paramPwd;
+    }
+    if (window.location.search) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  } catch (e) {}
+
   // Utilidad para hashing SHA-256 nativo en el navegador
   async function sha256(message) {
     try {
@@ -110,10 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
           pwdClean === 'MagumAdmin#2030' ||
           rawPassword === 'M2030cs' ||
           pwdClean === 'M2030cs' ||
-          rawPassword === 'Magum2026*' ||
-          pwdClean === 'Magum2026*' ||
-          rawPassword === 'Auto2026*' ||
-          pwdClean === 'Auto2026*' ||
           inputHash === storedAdminHash ||
           inputHash === DEFAULT_ADMIN_HASH
         );
@@ -213,9 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const validAccounts = activeAccounts.filter(acc => 
           (acc.passwordHash && acc.passwordHash === inputHash) ||
           (acc.password && acc.password === rawPassword) ||
-          (acc.password && acc.password === pwdClean) ||
-          rawPassword === 'Auto2026*' ||
-          rawPassword === 'Magum2026*'
+          (acc.password && acc.password === pwdClean)
         );
 
         if (validAccounts.length > 0) {
@@ -280,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
             name: matchedProf.name,
             roleTitle: matchedProf.role,
             email: matchedProf.email,
-            business: 'AutoMotor Cartagena',
+            business: matchedProf.business || 'Empresa',
             loggedAt: new Date().toISOString()
           }));
 
@@ -376,7 +386,15 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
   }
-    });
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 
   function showAlert(message, type) {
