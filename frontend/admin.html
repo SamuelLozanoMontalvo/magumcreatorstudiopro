@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Super Admin | Magum Creator Studio</title>
 
-  <!-- Tipografía Montserrat y FontAwesome -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -29,14 +28,28 @@
         <span class="badge-superadmin">SUPER ADMIN PANEL</span>
       </div>
 
+      <!-- Navegación de vistas del panel admin -->
+      <nav class="admin-nav-tabs">
+        <button class="admin-nav-tab active" data-view="view-accounts">
+          <i class="fa-solid fa-users"></i>
+          <span>Cuentas</span>
+        </button>
+        <button class="admin-nav-tab" data-view="view-admin-crm">
+          <i class="fa-solid fa-file-invoice-dollar"></i>
+          <span>CRM Facturación</span>
+        </button>
+        <button class="admin-nav-tab" data-view="view-admin-settings">
+          <i class="fa-solid fa-gear"></i>
+          <span>Ajustes</span>
+        </button>
+      </nav>
+
       <div class="topbar-right">
-        <!-- Selector Modo Claro / Oscuro -->
         <button id="btn-theme-toggle" class="btn-theme-toggle" type="button" title="Cambiar modo de color">
           <i class="fa-solid fa-moon" id="theme-icon"></i>
           <span id="theme-text">Modo Oscuro</span>
         </button>
 
-        <!-- Perfil del Admin -->
         <div class="admin-profile-pill">
           <div class="admin-avatar">
             <i class="fa-solid fa-shield-halved"></i>
@@ -47,7 +60,6 @@
           </div>
         </div>
 
-        <!-- Botón Salir -->
         <button id="btn-logout" class="btn-admin-logout" title="Cerrar sesión">
           <i class="fa-solid fa-right-from-bracket"></i>
           <span>Salir</span>
@@ -58,152 +70,300 @@
 
     <!-- Contenido del Panel Maestro -->
     <main class="admin-main">
-      
-      <!-- Banner de Bienvenida -->
-      <section class="admin-hero-banner">
-        <div>
-          <h1 class="hero-title">Gestión Maestra de Cuentas</h1>
-          <p class="hero-subtitle">Crea, filtra y administra las cuentas y módulos habilitados de todos los clientes de la plataforma.</p>
-        </div>
 
-        <button id="btn-open-create-modal" class="btn-create-account" type="button">
-          <i class="fa-solid fa-user-plus"></i>
-          <span>Crear Nueva Cuenta</span>
-        </button>
-      </section>
+      <!-- ===================== VISTA: CUENTAS ===================== -->
+      <div id="view-accounts" class="admin-view active-view">
 
-      <!-- Tarjetas de Estadísticas Globales -->
-      <section class="admin-stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon-wrap icon-purple">
-            <i class="fa-solid fa-briefcase"></i>
-          </div>
+        <section class="admin-hero-banner">
           <div>
-            <span class="stat-label">Cuentas Registradas</span>
-            <span class="stat-number" id="stat-total-accounts">0</span>
+            <h1 class="hero-title">Gestión Maestra de Cuentas</h1>
+            <p class="hero-subtitle">Crea, filtra y administra las cuentas y módulos habilitados de todos los clientes.</p>
           </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon-wrap icon-green">
-            <i class="fa-solid fa-circle-check"></i>
-          </div>
-          <div>
-            <span class="stat-label">Cuentas Activas</span>
-            <span class="stat-number" id="stat-active-accounts">0</span>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon-wrap icon-magenta">
-            <i class="fa-solid fa-share-nodes"></i>
-          </div>
-          <div>
-            <span class="stat-label">Con Social Media</span>
-            <span class="stat-number" id="stat-social-accounts">0</span>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon-wrap icon-blue">
-            <i class="fa-solid fa-globe"></i>
-          </div>
-          <div>
-            <span class="stat-label">Con Web Editor</span>
-            <span class="stat-number" id="stat-web-accounts">0</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Barra de Filtros y Búsqueda -->
-      <section class="filter-card">
-        
-        <div class="search-input-wrap">
-          <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input 
-            type="text" 
-            id="input-search" 
-            class="input-search" 
-            placeholder="Buscar por ID (#MAG-101), nombre, negocio o correo..."
-          >
-          <button id="btn-clear-search" class="btn-clear-search" type="button" title="Limpiar búsqueda" style="display: none;">
-            <i class="fa-solid fa-xmark"></i>
+          <button id="btn-open-create-modal" class="btn-create-account" type="button">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Crear Nueva Cuenta</span>
           </button>
-        </div>
+        </section>
 
-        <div class="filter-controls">
+        <!-- Tarjetas de Estadísticas Globales -->
+        <section class="admin-stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon-wrap icon-purple">
+              <i class="fa-solid fa-briefcase"></i>
+            </div>
+            <div>
+              <span class="stat-label">Cuentas Registradas</span>
+              <span class="stat-number" id="stat-total-accounts">0</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon-wrap icon-green">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div>
+              <span class="stat-label">Cuentas Activas</span>
+              <span class="stat-number" id="stat-active-accounts">0</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon-wrap icon-magenta">
+              <i class="fa-solid fa-share-nodes"></i>
+            </div>
+            <div>
+              <span class="stat-label">Con Social Media</span>
+              <span class="stat-number" id="stat-social-accounts">0</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon-wrap icon-blue">
+              <i class="fa-solid fa-globe"></i>
+            </div>
+            <div>
+              <span class="stat-label">Con Web Editor</span>
+              <span class="stat-number" id="stat-web-accounts">0</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Barra de Filtros y Búsqueda -->
+        <section class="filter-card">
           
-          <!-- Filtro por Estado -->
-          <div class="select-group">
-            <label for="filter-status" class="select-label">Estado:</label>
-            <select id="filter-status" class="filter-select">
-              <option value="all">Todos</option>
-              <option value="active">Activos</option>
-              <option value="inactive">Suspendidos</option>
-            </select>
+          <div class="search-input-wrap">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input 
+              type="text" 
+              id="input-search" 
+              class="input-search" 
+              placeholder="Buscar por ID, nombre, negocio o correo..."
+            >
+            <button id="btn-clear-search" class="btn-clear-search" type="button" title="Limpiar búsqueda" style="display: none;">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
           </div>
 
-          <!-- Filtro por Módulos -->
-          <div class="select-group">
-            <label for="filter-module" class="select-label">Módulos:</label>
-            <select id="filter-module" class="filter-select">
-              <option value="all">Todos los módulos</option>
-              <option value="social-only">Solo Social Media</option>
-              <option value="web-only">Solo Web Editor</option>
-              <option value="both">Ambos Módulos</option>
-            </select>
+          <div class="filter-controls">
+            
+            <div class="select-group">
+              <label for="filter-status" class="select-label">Estado:</label>
+              <select id="filter-status" class="filter-select">
+                <option value="all">Todos</option>
+                <option value="active">Activos</option>
+                <option value="inactive">Suspendidos</option>
+              </select>
+            </div>
+
+            <div class="select-group">
+              <label for="filter-module" class="select-label">Módulos:</label>
+              <select id="filter-module" class="filter-select">
+                <option value="all">Todos los módulos</option>
+                <option value="social-only">Solo Social Media</option>
+                <option value="web-only">Solo Web Editor</option>
+                <option value="both">Ambos Módulos</option>
+              </select>
+            </div>
+
+            <div class="select-group">
+              <label for="filter-sort" class="select-label">Ordenar:</label>
+              <select id="filter-sort" class="filter-select">
+                <option value="date-desc">Más recientes primero</option>
+                <option value="date-asc">Más antiguos primero</option>
+                <option value="name-asc">Nombre (A - Z)</option>
+              </select>
+            </div>
+
           </div>
 
-          <!-- Ordenamiento -->
-          <div class="select-group">
-            <label for="filter-sort" class="select-label">Ordenar:</label>
-            <select id="filter-sort" class="filter-select">
-              <option value="date-desc">Más recientes primero</option>
-              <option value="date-asc">Más antiguos primero</option>
-              <option value="name-asc">Nombre (A - Z)</option>
-            </select>
+        </section>
+
+        <!-- Tabla de Clientes y Cuentas -->
+        <section class="table-card">
+          
+          <div class="table-header-info">
+            <span class="table-title">Lista de Negocios y Cuentas</span>
+            <span class="table-count" id="table-results-count">Mostrando cuentas</span>
           </div>
 
-        </div>
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>ID Cuenta</th>
+                  <th>Cliente</th>
+                  <th>Nombre del Negocio</th>
+                  <th>Correo Electrónico</th>
+                  <th>Módulos</th>
+                  <th>Fecha Creación</th>
+                  <th>Estado</th>
+                  <th class="th-actions">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="accounts-table-body">
+                <!-- Se llena dinámicamente con JavaScript -->
+              </tbody>
+            </table>
+          </div>
 
-      </section>
+          <div id="empty-state" class="empty-state" style="display: none;">
+            <i class="fa-solid fa-folder-open empty-icon"></i>
+            <h3>No se encontraron cuentas</h3>
+            <p>Intenta con otros términos de búsqueda o limpia los filtros aplicados.</p>
+          </div>
 
-      <!-- Tabla de Clientes y Cuentas -->
-      <section class="table-card">
-        
-        <div class="table-header-info">
-          <span class="table-title">Lista de Negocios y Cuentas</span>
-          <span class="table-count" id="table-results-count">Mostrando cuentas</span>
-        </div>
+        </section>
 
-        <div class="table-responsive">
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>ID Cuenta</th>
-                <th>Cliente</th>
-                <th>Nombre del Negocio</th>
-                <th>Correo Electrónico</th>
-                <th>Módulos Habilitados</th>
-                <th>Fecha Creación</th>
-                <th>Estado</th>
-                <th class="th-actions">Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="accounts-table-body">
-              <!-- Se llena dinámicamente con JavaScript -->
-            </tbody>
-          </table>
-        </div>
+      </div>
 
-        <!-- Estado vacío cuando no hay resultados de búsqueda -->
-        <div id="empty-state" class="empty-state" style="display: none;">
-          <i class="fa-solid fa-folder-open empty-icon"></i>
-          <h3>No se encontraron cuentas</h3>
-          <p>Intenta con otros términos de búsqueda o limpia los filtros aplicados.</p>
-        </div>
+      <!-- ===================== VISTA: CRM FACTURACIÓN ===================== -->
+      <div id="view-admin-crm" class="admin-view" style="display:none;">
 
-      </section>
+        <section class="admin-hero-banner">
+          <div>
+            <h1 class="hero-title">CRM de Clientes MAGUM</h1>
+            <p class="hero-subtitle">Control de facturación, renovaciones y observaciones de cada cuenta activa en la plataforma.</p>
+          </div>
+          <button id="btn-open-billing-modal" class="btn-create-account" type="button">
+            <i class="fa-solid fa-file-circle-plus"></i>
+            <span>Registrar Cliente</span>
+          </button>
+        </section>
+
+        <!-- Stats de facturación -->
+        <section class="admin-stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon-wrap icon-green">
+              <i class="fa-solid fa-dollar-sign"></i>
+            </div>
+            <div>
+              <span class="stat-label">Ingresos este mes</span>
+              <span class="stat-number" id="billing-stat-income">$0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrap icon-purple">
+              <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div>
+              <span class="stat-label">Cobros próximos (7 días)</span>
+              <span class="stat-number" id="billing-stat-upcoming">0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrap icon-magenta">
+              <i class="fa-solid fa-infinity"></i>
+            </div>
+            <div>
+              <span class="stat-label">Licencias Vitalicias</span>
+              <span class="stat-number" id="billing-stat-lifetime">0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrap icon-blue">
+              <i class="fa-solid fa-rotate"></i>
+            </div>
+            <div>
+              <span class="stat-label">Suscripciones Activas</span>
+              <span class="stat-number" id="billing-stat-recurring">0</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tabla CRM de facturación -->
+        <section class="table-card">
+          <div class="table-header-info">
+            <span class="table-title">Clientes y Estado de Cobro</span>
+            <span class="table-count" id="billing-results-count"></span>
+          </div>
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Negocio</th>
+                  <th>Plan</th>
+                  <th>Monto</th>
+                  <th>Próximo Cobro</th>
+                  <th>Estado Pago</th>
+                  <th>Observaciones</th>
+                  <th class="th-actions">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="billing-table-body">
+              </tbody>
+            </table>
+          </div>
+          <div id="billing-empty-state" class="empty-state" style="display:none;">
+            <i class="fa-solid fa-file-invoice empty-icon"></i>
+            <h3>No hay clientes registrados en facturación</h3>
+            <p>Registra el primer cliente con el botón "Registrar Cliente".</p>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- ===================== VISTA: AJUSTES ADMIN ===================== -->
+      <div id="view-admin-settings" class="admin-view" style="display:none;">
+
+        <section class="admin-hero-banner">
+          <div>
+            <h1 class="hero-title">Ajustes del Panel</h1>
+            <p class="hero-subtitle">Configura la identidad visual de la plataforma y los datos de contacto maestros.</p>
+          </div>
+        </section>
+
+        <section class="table-card" style="max-width: 780px;">
+          <div class="settings-section-title"><i class="fa-solid fa-palette"></i> Identidad Visual de la Plataforma</div>
+
+          <div class="admin-settings-form">
+            <div class="form-group">
+              <label class="form-label">Nombre de la Plataforma</label>
+              <input type="text" class="form-input" value="MAGUM Creator Studio" id="admin-setting-name">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Logo Principal (1080×360 px)</label>
+              <div class="brand-upload-row">
+                <div class="brand-logo-preview admin-logo-preview">
+                  <img id="admin-logo-preview-img" src="https://lirp.cdn-website.com/e4e4cefa/dms3rep/multi/opt/Magum_logo+magenta-1920w.png" alt="Logo">
+                </div>
+                <input type="file" id="admin-logo-file" accept="image/*" style="display:none;">
+                <button type="button" class="btn-brand-upload-admin" onclick="document.getElementById('admin-logo-file').click()">
+                  <i class="fa-solid fa-cloud-arrow-up"></i> Cargar Logo
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Color Primario</label>
+              <div class="admin-color-row">
+                <input type="color" value="#210087" id="admin-color-primary" class="color-picker-input">
+                <span class="color-swatch-desc">Color principal de la plataforma (encabezados, botones)</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Color de Acento</label>
+              <div class="admin-color-row">
+                <input type="color" value="#FF00DB" id="admin-color-accent" class="color-picker-input">
+                <span class="color-swatch-desc">Color secundario usado en gradientes y badges</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Correo de soporte</label>
+              <input type="email" class="form-input" value="soporte@magumcreator.com" id="admin-support-email">
+            </div>
+
+            <button type="button" class="btn-submit-account" style="margin-top:8px;" onclick="alert('Configuración guardada correctamente.')">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>Guardar Configuración</span>
+            </button>
+          </div>
+        </section>
+
+      </div>
 
     </main>
 
@@ -231,74 +391,37 @@
       <form id="form-create-account" class="modal-form">
         
         <div class="form-grid-2">
-          <!-- Nombre -->
           <div class="form-group">
             <label for="account-firstname" class="form-label">Nombre del titular *</label>
-            <input 
-              type="text" 
-              id="account-firstname" 
-              class="form-input" 
-              placeholder="Ej. Samuel" 
-              required
-            >
+            <input type="text" id="account-firstname" class="form-input" placeholder="Ej. Samuel" required>
           </div>
-
-          <!-- Apellido -->
           <div class="form-group">
             <label for="account-lastname" class="form-label">Apellido *</label>
-            <input 
-              type="text" 
-              id="account-lastname" 
-              class="form-input" 
-              placeholder="Ej. Lozano" 
-              required
-            >
+            <input type="text" id="account-lastname" class="form-input" placeholder="Ej. Lozano" required>
           </div>
         </div>
 
-        <!-- Nombre del Negocio -->
         <div class="form-group">
           <label for="account-business" class="form-label">Nombre del Negocio / Empresa *</label>
           <div class="input-with-icon">
             <i class="fa-solid fa-briefcase"></i>
-            <input 
-              type="text" 
-              id="account-business" 
-              class="form-input" 
-              placeholder="Ej. AutoMotor Cartagena" 
-              required
-            >
+            <input type="text" id="account-business" class="form-input" placeholder="Ej. AutoMotor Cartagena" required>
           </div>
         </div>
 
         <div class="form-grid-2">
-          <!-- Correo -->
           <div class="form-group">
             <label for="account-email" class="form-label">Correo electrónico *</label>
             <div class="input-with-icon">
               <i class="fa-regular fa-envelope"></i>
-              <input 
-                type="email" 
-                id="account-email" 
-                class="form-input" 
-                placeholder="contacto@automotor.com" 
-                required
-              >
+              <input type="email" id="account-email" class="form-input" placeholder="contacto@automotor.com" required>
             </div>
           </div>
-
-          <!-- Contraseña -->
           <div class="form-group">
             <label for="account-password" class="form-label">Contraseña de acceso *</label>
             <div class="input-with-icon">
               <i class="fa-solid fa-lock"></i>
-              <input 
-                type="text" 
-                id="account-password" 
-                class="form-input" 
-                placeholder="Crea una contraseña segura" 
-                required
-              >
+              <input type="text" id="account-password" class="form-input" placeholder="Crea una contraseña segura" required>
             </div>
           </div>
         </div>
@@ -344,7 +467,7 @@
 
           <div class="module-permanent-note">
             <i class="fa-solid fa-circle-check"></i>
-            <span><strong>Incluidos por defecto en todas las cuentas:</strong> CRM de Clientes, Profesionales y Ajustes de Cuenta siempre estarán activos.</span>
+            <span><strong>Incluidos por defecto:</strong> CRM de Clientes, Profesionales y Ajustes siempre activos.</span>
           </div>
         </div>
 
@@ -353,6 +476,87 @@
           <button type="submit" class="btn-submit-account">
             <i class="fa-solid fa-check"></i>
             <span>Crear y Activar Cuenta</span>
+          </button>
+        </footer>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Modal: Registrar Cliente en CRM Facturación -->
+  <div class="modal-backdrop" id="modal-billing" style="display: none;">
+    <div class="modal-card">
+      
+      <header class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-badge-icon">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+          </div>
+          <div>
+            <h2 class="modal-title">Registrar Cliente en Facturación</h2>
+            <p class="modal-subtitle">Define el plan, monto y ciclo de cobro del cliente</p>
+          </div>
+        </div>
+        <button id="btn-close-billing-modal" class="btn-close-modal" type="button">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </header>
+
+      <form id="form-billing" class="modal-form">
+        
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Nombre del Cliente *</label>
+            <input type="text" id="billing-client-name" class="form-input" placeholder="Ej. Samuel Lozano" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nombre del Negocio *</label>
+            <input type="text" id="billing-business" class="form-input" placeholder="Ej. AutoMotor Cartagena" required>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Tipo de Plan *</label>
+            <select id="billing-plan-type" class="form-input" required>
+              <option value="">Seleccionar...</option>
+              <option value="lifetime">Vitalicio (de por vida)</option>
+              <option value="monthly">Mensual</option>
+              <option value="quarterly">Trimestral (3 meses)</option>
+              <option value="biannual">Semestral (6 meses)</option>
+              <option value="annual">Anual (12 meses)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Monto a Cobrar *</label>
+            <div class="input-with-icon">
+              <i class="fa-solid fa-dollar-sign"></i>
+              <input type="number" id="billing-amount" class="form-input" placeholder="0.00" step="0.01" min="0" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group" id="billing-start-date-wrap">
+          <label class="form-label">Fecha de Inicio del Plan *</label>
+          <input type="date" id="billing-start-date" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Cuentas Activas (módulos contratados)</label>
+          <input type="text" id="billing-modules" class="form-input" placeholder="Ej. Social Media + Web Editor">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Observaciones</label>
+          <textarea id="billing-notes" class="form-input" rows="3" placeholder="Notas internas, acuerdos especiales, descuentos, etc." style="resize: vertical;"></textarea>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" id="btn-cancel-billing-modal" class="btn-cancel">Cancelar</button>
+          <button type="submit" class="btn-submit-account">
+            <i class="fa-solid fa-check"></i>
+            <span>Guardar Cliente</span>
           </button>
         </footer>
 

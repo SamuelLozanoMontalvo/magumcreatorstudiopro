@@ -78,10 +78,11 @@ body.admin-body {
 .admin-topbar {
   background: var(--bg-card);
   border-bottom: 1px solid var(--border-color);
-  padding: 16px 36px;
+  padding: 12px 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -115,6 +116,181 @@ body.admin-body {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+/* Tabs de navegación en el topbar del admin */
+.admin-nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-app);
+  padding: 5px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.admin-nav-tab {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
+  border: none;
+  background: transparent;
+  border-radius: 9px;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.admin-nav-tab:hover {
+  color: var(--text-main);
+  background: rgba(0,0,0,0.04);
+}
+
+body.dark-mode .admin-nav-tab:hover {
+  background: rgba(255,255,255,0.06);
+}
+
+.admin-nav-tab.active {
+  background: linear-gradient(135deg, var(--brand-indigo) 0%, var(--brand-magenta) 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(255, 0, 219, 0.25);
+}
+
+/* Vistas del admin */
+.admin-view {
+  display: block;
+}
+
+/* Estilos de facturación */
+.badge-billing-warn {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+body.dark-mode .badge-billing-warn {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.badge-billing-warn .status-indicator-dot {
+  background: #f59e0b;
+}
+
+/* Ajustes admin */
+.settings-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 22px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.admin-settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.brand-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.brand-logo-preview.admin-logo-preview {
+  width: 220px;
+  height: 70px;
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+
+.brand-logo-preview.admin-logo-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.btn-brand-upload-admin {
+  background: var(--brand-indigo);
+  color: #fff;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 9px;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: var(--transition);
+}
+
+.btn-brand-upload-admin:hover {
+  background: var(--brand-magenta);
+  box-shadow: 0 4px 14px rgba(255, 0, 219, 0.3);
+}
+
+.admin-color-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+}
+
+body.dark-mode .admin-color-row {
+  background: rgba(255,255,255,0.03);
+}
+
+.color-picker-input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+  background: transparent;
+  flex-shrink: 0;
+}
+
+.color-picker-input::-webkit-color-swatch {
+  border: 2px solid #fff;
+  border-radius: 7px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.color-swatch-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
 }
 
 /* Conmutador Modo Claro / Oscuro */
