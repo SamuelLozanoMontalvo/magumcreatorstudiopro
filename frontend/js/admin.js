@@ -37,10 +37,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Generador de ID: 7 caracteres alfanuméricos sin símbolos
+  function generate7CharId() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let id = '';
+    for (let i = 0; i < 7; i++) {
+      id += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return id;
+  }
+
   // 2. BASE DE DATOS LOCAL DE CUENTAS (INICIALIZACIÓN EN LOCALSTORAGE)
   const DEFAULT_ACCOUNTS = [
     {
-      id: 'MAG-101',
+      id: 'MG7K92X',
       firstName: 'Samuel',
       lastName: 'Lozano',
       business: 'AutoMotor Cartagena',
@@ -50,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
       status: 'active'
     },
     {
-      id: 'MAG-102',
+      id: 'BL48D91',
       firstName: 'Laura',
       lastName: 'Restrepo',
       business: 'Spa Bella Luna',
@@ -60,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
       status: 'active'
     },
     {
-      id: 'MAG-103',
+      id: 'DG31P82',
       firstName: 'Carlos',
       lastName: 'Mendoza',
       business: 'Dental Group Cartagena',
@@ -70,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
       status: 'active'
     },
     {
-      id: 'MAG-104',
+      id: 'FC89W14',
       firstName: 'Valeria',
       lastName: 'Gómez',
       business: 'Fitness Club Pro',
@@ -88,7 +98,18 @@ document.addEventListener('DOMContentLoaded', () => {
       return DEFAULT_ACCOUNTS;
     }
     try {
-      return JSON.parse(data);
+      let accounts = JSON.parse(data);
+      let updated = false;
+      // Asegurar formato de 7 caracteres sin # ni guiones
+      accounts = accounts.map(acc => {
+        if (!acc.id || acc.id.includes('-') || acc.id.startsWith('#') || acc.id.length !== 7) {
+          acc.id = generate7CharId();
+          updated = true;
+        }
+        return acc;
+      });
+      if (updated) saveAccounts(accounts);
+      return accounts;
     } catch {
       return DEFAULT_ACCOUNTS;
     }
@@ -136,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Filtros
     let filtered = allAccounts.filter(acc => {
-      // Búsqueda por texto (ID, nombre, negocio, correo)
+      // Búsqueda por texto (ID exacto, nombre, negocio, correo)
       const fullName = `${acc.firstName} ${acc.lastName}`.toLowerCase();
       const matchSearch = !query || 
         acc.id.toLowerCase().includes(query) ||
@@ -174,25 +195,30 @@ document.addEventListener('DOMContentLoaded', () => {
       emptyState.style.display = 'none';
       filtered.forEach(acc => {
         const tr = document.createElement('tr');
+        
+        let statusBadge = '';
+        if (acc.status === 'active') {
+          statusBadge = '<span class="badge-status badge-status-active"><span class="status-indicator-dot"></span> Activo</span>';
+        } else if (acc.status === 'archived') {
+          statusBadge = '<span class="badge-status badge-status-archived"><span class="status-indicator-dot"></span> Archivado</span>';
+        } else {
+          statusBadge = '<span class="badge-status badge-status-inactive"><span class="status-indicator-dot"></span> Suspendido</span>';
+        }
+
         tr.innerHTML = `
-          <td><span class="account-id">#${acc.id}</span></td>
+          <td><span class="account-id">${acc.id}</span></td>
           <td class="client-name-cell">${escapeHtml(acc.firstName)} ${escapeHtml(acc.lastName)}</td>
           <td class="business-name-cell">${escapeHtml(acc.business)}</td>
           <td class="email-cell">${escapeHtml(acc.email)}</td>
           <td>
-            <div class="modules-badges-cell">
-              ${acc.modules.social ? '<span class="badge-module badge-mod-social"><i class="fa-solid fa-share-nodes"></i> Social</span>' : ''}
-              ${acc.modules.web ? '<span class="badge-module badge-mod-web"><i class="fa-solid fa-globe"></i> Web</span>' : ''}
-              <span class="badge-module badge-mod-crm" title="CRM y Profesionales siempre activos"><i class="fa-solid fa-users"></i> CRM Core</span>
+            <div class="modules-icons-cell">
+              ${acc.modules.social ? '<span class="mod-icon-pill icon-social" title="Social Media habilitado"><i class="fa-solid fa-share-nodes"></i></span>' : ''}
+              ${acc.modules.web ? '<span class="mod-icon-pill icon-web" title="Web Editor habilitado"><i class="fa-solid fa-globe"></i></span>' : ''}
+              <span class="mod-icon-pill icon-crm" title="CRM y Profesionales siempre activo"><i class="fa-solid fa-users"></i></span>
             </div>
           </td>
           <td>${formatDate(acc.createdAt)}</td>
-          <td>
-            <span class="badge-status ${acc.status === 'active' ? 'badge-status-active' : 'badge-status-inactive'}">
-              <span class="status-indicator-dot"></span>
-              ${acc.status === 'active' ? 'Activo' : 'Suspendido'}
-            </span>
-          </td>
+          <td>${statusBadge}</td>
           <td>
             <div class="actions-cell">
               <button class="btn-row-action btn-impersonate" title="Ver panel como este cliente" data-id="${acc.id}">
@@ -201,6 +227,12 @@ document.addEventListener('DOMContentLoaded', () => {
               </button>
               <button class="btn-row-action btn-toggle-status" title="${acc.status === 'active' ? 'Suspender cuenta' : 'Activar cuenta'}" data-id="${acc.id}">
                 <i class="fa-solid ${acc.status === 'active' ? 'fa-pause' : 'fa-play'}"></i>
+              </button>
+              <button class="btn-row-action btn-archive-acc" title="${acc.status === 'archived' ? 'Desarchivar cuenta' : 'Archivar cuenta'}" data-id="${acc.id}">
+                <i class="fa-solid ${acc.status === 'archived' ? 'fa-box-open' : 'fa-box-archive'}"></i>
+              </button>
+              <button class="btn-row-action btn-delete-acc" title="Eliminar cuenta permanentemente" data-id="${acc.id}">
+                <i class="fa-solid fa-trash-can"></i>
               </button>
             </div>
           </td>
@@ -224,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
     statWeb.textContent = web;
   }
 
-  // 5. ACCIONES EN TABLA (VER PANEL Y CAMBIAR ESTADO)
+  // 5. ACCIONES EN TABLA (VER PANEL, SUSPENDER, ARCHIVAR Y ELIMINAR)
   function attachActionListeners() {
     // Entrar al panel como cliente
     document.querySelectorAll('.btn-impersonate').forEach(btn => {
@@ -257,6 +289,38 @@ document.addEventListener('DOMContentLoaded', () => {
           acc.status = (acc.status === 'active') ? 'inactive' : 'active';
           saveAccounts(accounts);
           render();
+        }
+      });
+    });
+
+    // Archivar o desarchivar cuenta
+    document.querySelectorAll('.btn-archive-acc').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const accId = btn.getAttribute('data-id');
+        const accounts = getAccounts();
+        const acc = accounts.find(a => a.id === accId);
+        if (acc) {
+          const isArchived = acc.status === 'archived';
+          acc.status = isArchived ? 'active' : 'archived';
+          saveAccounts(accounts);
+          render();
+        }
+      });
+    });
+
+    // Eliminar cuenta
+    document.querySelectorAll('.btn-delete-acc').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const accId = btn.getAttribute('data-id');
+        const accounts = getAccounts();
+        const acc = accounts.find(a => a.id === accId);
+        if (acc) {
+          const confirmDelete = confirm(`¿Estás seguro de que deseas eliminar permanentemente la cuenta de "${acc.business}" (ID: ${acc.id})?\n\nEsta acción no se puede deshacer.`);
+          if (confirmDelete) {
+            const updated = accounts.filter(a => a.id !== accId);
+            saveAccounts(updated);
+            render();
+          }
         }
       });
     });
@@ -301,7 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target === modalCreate) closeModal();
   });
 
-  // Guardar nueva cuenta
+  // Guardar nueva cuenta con ID de 7 caracteres
   formCreate.addEventListener('submit', (e) => {
     e.preventDefault();
 
@@ -319,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const accounts = getAccounts();
-    const newId = `MAG-${100 + accounts.length + 1}`;
+    const newId = generate7CharId();
 
     const newAccount = {
       id: newId,
@@ -327,7 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
       lastName,
       business,
       email,
-      password, // En el backend se hasheará con bcrypt
+      password,
       modules: {
         social: socialCheck,
         web: webCheck,
@@ -342,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
     closeModal();
     render();
 
-    alert(`¡Cuenta creada con éxito!\n\nID: #${newId}\nNegocio: ${business}\nTitular: ${firstName} ${lastName}\nMódulos: ${socialCheck ? 'Social Media ' : ''}${webCheck ? 'Web Editor ' : ''}(CRM siempre activo)\n\nEl cliente ya puede iniciar sesión con:\nUsuario/Correo: ${email}\nContraseña: ${password}`);
+    alert(`¡Cuenta creada con éxito!\n\nID: ${newId}\nNegocio: ${business}\nTitular: ${firstName} ${lastName}\nMódulos: ${socialCheck ? 'Social Media ' : ''}${webCheck ? 'Web Editor ' : ''}(CRM siempre activo)\n\nEl cliente ya puede iniciar sesión con:\nUsuario/Correo: ${email}\nContraseña: ${password}`);
   });
 
   // 8. LOGOUT LIMPIO

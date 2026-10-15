@@ -961,6 +961,237 @@ body.dark-mode .badge-web-online {
   color: var(--text-muted);
 }
 
+/* ==========================================================================
+   VISTA DE AJUSTES Y CONFIGURACIÓN DE MARCA (WHITE LABEL)
+   ========================================================================== */
+
+.settings-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: var(--card-shadow);
+  max-width: 900px;
+}
+
+.settings-header-banner {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 20px;
+  margin-bottom: 28px;
+}
+
+.settings-main-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.settings-main-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.settings-group-block {
+  margin-bottom: 30px;
+  padding-bottom: 26px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.settings-group-block:last-of-type {
+  border-bottom: none;
+  margin-bottom: 20px;
+}
+
+.settings-group-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.settings-group-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  line-height: 1.45;
+}
+
+.settings-text-input {
+  width: 100%;
+  max-width: 600px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-main);
+  transition: var(--transition);
+}
+
+body.dark-mode .settings-text-input {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.settings-text-input:focus {
+  outline: none;
+  border-color: var(--brand-magenta);
+  box-shadow: 0 0 0 3px rgba(255, 0, 219, 0.12);
+}
+
+/* Upload de Logo y Favicon */
+.brand-media-upload-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 600px;
+}
+
+.brand-logo-preview-box {
+  width: 100%;
+  max-width: 380px;
+  height: 95px;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.brand-logo-preview-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.brand-favicon-preview-box {
+  width: 58px;
+  height: 58px;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.brand-favicon-preview-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.btn-brand-upload {
+  background: #210087;
+  color: #ffffff;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  transition: var(--transition);
+}
+
+.btn-brand-upload:hover {
+  background: var(--brand-magenta);
+  box-shadow: 0 4px 15px rgba(255, 0, 219, 0.3);
+}
+
+/* Selector de Colores Corporativos */
+.color-swatches-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 600px;
+}
+
+.color-swatch-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  transition: var(--transition);
+}
+
+body.dark-mode .color-swatch-row {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.color-picker-input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  background: transparent;
+  flex-shrink: 0;
+}
+
+.color-picker-input::-webkit-color-swatch {
+  border: 2px solid #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.color-swatch-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.color-swatch-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.color-swatch-desc {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.btn-save-branding {
+  background: linear-gradient(135deg, var(--brand-indigo) 0%, var(--brand-magenta) 100%);
+  color: #ffffff;
+  border: none;
+  padding: 13px 28px;
+  border-radius: 12px;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 18px rgba(255, 0, 219, 0.3);
+  transition: var(--transition);
+  margin-top: 10px;
+}
+
+.btn-save-branding:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(255, 0, 219, 0.45);
 }
 
 /* ==========================================================================
