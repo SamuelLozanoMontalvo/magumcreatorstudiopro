@@ -556,6 +556,12 @@ document.addEventListener('DOMContentLoaded', () => {
         : `¿Deseas eliminar los ${count} contactos seleccionados de tu base de datos? Esta acción es permanente.`;
 
       if (confirm(confirmMsg)) {
+        const idsToDelete = Array.from(selectedContactIds);
+        if (window.MagumApi) {
+          window.MagumApi.bulkDeleteCrmContacts(idsToDelete).catch(err => {
+            console.warn('Backend sync delete:', err.message);
+          });
+        }
         let contacts = getCrmContacts();
         contacts = contacts.filter(c => !selectedContactIds.has(c.id));
         saveCrmContacts(contacts);

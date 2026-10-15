@@ -17,7 +17,8 @@ router.get('/contacts', async (req, res) => {
     const accountId = resolveAccountId(req);
     const { search, segment } = req.query;
 
-    let queryText = 'SELECT * FROM crm_contacts WHERE account_id = $1';
+    // Solo devolver contactos activos (Borrado Suave: deleted_at IS NULL)
+    let queryText = 'SELECT * FROM crm_contacts WHERE account_id = $1 AND deleted_at IS NULL';
     const params = [accountId];
 
     if (segment && segment !== 'all') {
@@ -34,7 +35,7 @@ router.get('/contacts', async (req, res) => {
 
     const result = await db.query(queryText, params);
 
-    // Métricas en tiempo real
+    // Métricas en tiempo real sobre contactos activos
     const statsResult = await db.query(`
       SELECT 
         COUNT(*) as total,
@@ -42,7 +43,7 @@ router.get('/contacts', async (req, res) => {
         COUNT(*) FILTER (WHERE segment = 'prospect') as prospects,
         COUNT(*) FILTER (WHERE segment = 'inactive') as inactive
       FROM crm_contacts
-      WHERE account_id = $1
+      WHERE account_id = $1 AND deleted_at IS NULL
     `, [accountId]);
 
     const stats = statsResult.rows[0];
@@ -117,12 +118,12 @@ router.put('/contacts/:id', async (req, res) => {
     const result = await db.query(`
       UPDATE crm_contacts 
       SET name = $1, email = $2, phone = $3, age = $4, company = $5, segment = $6, notes = $7
-      WHERE id = $8 AND account_id = $9
+      WHERE id = $8 AND account_id = $9 AND deleted_at IS NULL
       RETURNING *
     `, [name.trim(), email.trim(), phone.trim(), parsedAge, company ? company.trim() : null, finalSegment, notes ? notes.trim() : null, id, accountId]);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'Contacto no encontrado.' });
+      return res.status(404).json({ success: false, message: 'Contacto no encontrado o ha sido eliminado.' });
     }
 
     res.json({
@@ -136,21 +137,34 @@ router.put('/contacts/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/crm/contacts/:id - Eliminar un solo contacto
+// DELETE /api/crm/contacts/:id - Borrado Suave (Soft Delete)
+// El contacto desaparece del panel del cliente pero permanece 100% preservado en PostgreSQL en Railway
 router.delete('/contacts/:id', async (req, res) => {
   try {
     const accountId = resolveAccountId(req);
     const { id } = req.params;
 
-    await db.query('DELETE FROM crm_contacts WHERE id = $1 AND account_id = $2', [id, accountId]);
-    res.json({ success: true, message: 'Contacto eliminado de la base de datos.' });
+    const result = await db.query(
+      'UPDATE crm_contacts SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1 AND account_id = $2 AND deleted_at IS NULL RETURNING id, name',
+      [id, accountId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Contacto no encontrado.' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Contacto archivado/eliminado de tu lista.',
+      id
+    });
   } catch (error) {
     console.error('Error en DELETE /api/crm/contacts/:id:', error);
     res.status(500).json({ success: false, message: 'Error al eliminar contacto.' });
   }
 });
 
-// POST /api/crm/bulk-delete - Eliminar múltiples contactos a la vez
+// POST /api/crm/bulk-delete - Borrado Suave Masivo (Soft Delete)
 router.post('/bulk-delete', async (req, res) => {
   try {
     const accountId = resolveAccountId(req);
@@ -161,18 +175,44 @@ router.post('/bulk-delete', async (req, res) => {
     }
 
     const result = await db.query(
-      'DELETE FROM crm_contacts WHERE id = ANY($1::text[]) AND account_id = $2',
+      'UPDATE crm_contacts SET deleted_at = CURRENT_TIMESTAMP WHERE id = ANY($1::text[]) AND account_id = $2 AND deleted_at IS NULL',
       [ids, accountId]
     );
 
     res.json({
       success: true,
-      message: `Se eliminaron ${result.rowCount} contactos exitosamente.`,
+      message: `Se eliminaron ${result.rowCount} contactos exitosamente de tu vista activa.`,
       deletedCount: result.rowCount
     });
   } catch (error) {
     console.error('Error en bulk-delete:', error);
     res.status(500).json({ success: false, message: 'Error al procesar eliminación masiva.' });
+  }
+});
+
+// POST /api/crm/contacts/:id/restore - Restaurar contacto eliminado (Recuperación)
+router.post('/contacts/:id/restore', async (req, res) => {
+  try {
+    const accountId = resolveAccountId(req);
+    const { id } = req.params;
+
+    const result = await db.query(
+      'UPDATE crm_contacts SET deleted_at = NULL WHERE id = $1 AND account_id = $2 RETURNING *',
+      [id, accountId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Contacto no encontrado para restaurar.' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Contacto restaurado exitosamente en tu base de datos activa.',
+      data: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error al restaurar contacto:', error);
+    res.status(500).json({ success: false, message: 'Error al restaurar contacto.' });
   }
 });
 

@@ -139,6 +139,12 @@ class MagumApiClient {
     });
   }
 
+  async restoreCrmContact(id) {
+    return this.request(`/crm/contacts/${id}/restore`, {
+      method: 'POST'
+    });
+  }
+
   async importCrmContacts(contacts) {
     return this.request('/crm/import', {
       method: 'POST',
