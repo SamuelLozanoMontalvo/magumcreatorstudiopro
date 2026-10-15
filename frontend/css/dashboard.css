@@ -719,55 +719,215 @@ body.dark-mode .badge-web-online {
   color: var(--text-muted);
 }
 
-/* Responsive */
+}
+
+/* ==========================================================================
+   ESTILOS DE PESTAÑAS MÓDULOS Y MENÚ MÓVIL
+   ========================================================================== */
+
+/* Pestañas de cambio directo (Social Media / Web Editor) */
+.marketing-tabs-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-card);
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  margin-bottom: 24px;
+  width: fit-content;
+  max-width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.marketing-tabs-nav .tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.marketing-tabs-nav .tab-btn:hover {
+  color: var(--text-main);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+body.dark-mode .marketing-tabs-nav .tab-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.marketing-tabs-nav .tab-btn.active {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--brand-indigo) 0%, var(--brand-magenta) 100%);
+  box-shadow: 0 4px 15px rgba(255, 0, 219, 0.25);
+}
+
+/* Grupo izquierdo del topbar con botón hamburguesa */
+.topbar-left-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.btn-sidebar-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  color: var(--text-main);
+  font-size: 1.2rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+
+.btn-sidebar-toggle:hover {
+  border-color: var(--brand-magenta);
+  color: var(--brand-magenta);
+}
+
+/* Telón / backdrop para el menú móvil */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 0, 23, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 998;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-backdrop.active {
+  display: block;
+  opacity: 1;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (TABLETS Y MÓVILES)
+   ========================================================================== */
+
 @media (max-width: 992px) {
-  :root {
-    --sidebar-width: 80px;
+  /* Mostrar botón hamburguesa en móviles y tablets */
+  .btn-sidebar-toggle {
+    display: inline-flex;
   }
 
+  /* La barra lateral se convierte en panel deslizable flotante */
+  .sidebar {
+    width: 290px;
+    transform: translateX(-100%);
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
+    z-index: 999;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* Restauramos todas las etiquetas y submenús cuando se abre el sidebar */
   .nav-label,
   .submenu-arrow,
-  .submenu-list,
   .user-profile-simple {
-    display: none !important;
+    display: block !important;
+  }
+
+  .submenu-list {
+    display: flex !important;
   }
 
   .sidebar-brand {
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   .nav-link {
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   .sidebar-footer {
-    justify-content: center;
+    justify-content: space-between;
   }
 
+  /* El contenido principal ocupa el 100% de la pantalla sin márgenes apretados */
   .main-content {
-    padding: 20px;
+    margin-left: 0;
+    padding: 20px 18px 60px 18px;
+  }
+
+  .marketing-tabs-nav {
+    width: 100%;
+  }
+
+  .marketing-tabs-nav .tab-btn {
+    flex: 1;
+    justify-content: center;
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 680px) {
   .topbar {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .topbar-left-group {
+    width: 100%;
+  }
+
+  .welcome-title {
+    font-size: 1.55rem;
   }
 
   .topbar-actions {
     width: 100%;
-    flex-wrap: wrap;
+    display: flex;
+    gap: 10px;
   }
 
   .btn-theme-toggle,
   .btn-quick-action {
     flex: 1;
     justify-content: center;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+
+  .banner-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+    padding: 22px;
+  }
+
+  .network-cards-grid,
+  .metrics-grid,
+  .ideas-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
 
   .web-status-card {
     flex-direction: column;
     align-items: flex-start;
+    gap: 16px;
+  }
+
+  .web-quick-stats {
+    flex-wrap: wrap;
+    gap: 16px;
   }
 }

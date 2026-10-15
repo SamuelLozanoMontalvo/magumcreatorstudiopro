@@ -38,43 +38,80 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 2. NAVEGACIÓN ENTRE VISTAS (MARKETING SOCIAL Y WEB EDITOR)
+  // 2. MENÚ MÓVIL (HAMBURGUESA Y TELÓN DE FONDO)
+  const sidebar = document.getElementById('sidebar');
+  const sidebarToggleBtn = document.getElementById('btn-sidebar-toggle');
+  const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+
+  if (sidebarToggleBtn && sidebar) {
+    sidebarToggleBtn.addEventListener('click', () => {
+      const isOpen = sidebar.classList.toggle('open');
+      if (sidebarBackdrop) {
+        sidebarBackdrop.classList.toggle('active', isOpen);
+      }
+    });
+  }
+
+  if (sidebarBackdrop && sidebar) {
+    sidebarBackdrop.addEventListener('click', closeMobileSidebar);
+  }
+
+  function closeMobileSidebar() {
+    if (sidebar) sidebar.classList.remove('open');
+    if (sidebarBackdrop) sidebarBackdrop.classList.remove('active');
+  }
+
+  // 3. NAVEGACIÓN ENTRE VISTAS (MARKETING SOCIAL Y WEB EDITOR)
   const views = {
     'view-marketing-social': document.getElementById('view-marketing-social'),
     'view-marketing-web': document.getElementById('view-marketing-web')
   };
 
   const submenuLinks = document.querySelectorAll('.submenu-link');
+  const tabButtons = document.querySelectorAll('.marketing-tabs-nav .tab-btn');
 
+  // Evento para pestañas directas (móvil y desktop)
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetViewId = btn.getAttribute('data-view');
+      switchView(targetViewId);
+    });
+  });
+
+  // Evento para enlaces del submenú en el sidebar
   submenuLinks.forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
       const targetViewId = link.getAttribute('data-view');
-      showView(targetViewId);
-
-      submenuLinks.forEach(l => l.classList.remove('active'));
-      link.classList.add('active');
+      switchView(targetViewId);
+      closeMobileSidebar();
     });
   });
 
-  function showView(viewId) {
+  function switchView(viewId) {
+    // 1. Mostrar vista activa
     Object.keys(views).forEach(id => {
       if (views[id]) {
         views[id].style.display = (id === viewId) ? 'block' : 'none';
       }
     });
+
+    // 2. Sincronizar botones de pestañas superiores
+    tabButtons.forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-view') === viewId);
+    });
+
+    // 3. Sincronizar enlaces del menú lateral
+    submenuLinks.forEach(l => {
+      l.classList.toggle('active', l.getAttribute('data-view') === viewId);
+    });
   }
 
-  // 3. BOTÓN CREAR POST (LLEVA DIRECTO A SOCIAL MEDIA)
+  // 4. BOTÓN CREAR POST (LLEVA DIRECTO A SOCIAL MEDIA)
   const btnCreatePost = document.getElementById('btn-create-post');
-  const linkSocialMedia = document.getElementById('link-social-media');
-
   if (btnCreatePost) {
     btnCreatePost.addEventListener('click', () => {
-      showView('view-marketing-social');
-      submenuLinks.forEach(l => l.classList.remove('active'));
-      if (linkSocialMedia) linkSocialMedia.classList.add('active');
-
+      switchView('view-marketing-social');
       const socialSection = document.getElementById('view-marketing-social');
       if (socialSection) {
         socialSection.scrollIntoView({ behavior: 'smooth' });
@@ -82,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 4. DESPLEGABLE DEL SUBMENÚ MARKETING EN SIDEBAR
+  // 5. DESPLEGABLE DEL SUBMENÚ MARKETING EN SIDEBAR
   const submenuToggle = document.querySelector('.nav-submenu-toggle');
   if (submenuToggle) {
     submenuToggle.addEventListener('click', () => {
@@ -91,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 5. ACCIÓN EN BOTONES "PROGRAMAR PUBLICACIÓN"
+  // 6. ACCIÓN EN BOTONES "PROGRAMAR PUBLICACIÓN"
   const useIdeaButtons = document.querySelectorAll('.btn-use-idea');
   useIdeaButtons.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -100,5 +137,14 @@ document.addEventListener('DOMContentLoaded', () => {
       alert(`Preparando publicación:\n"${title}"\n\nAquí se abrirá el panel para redactar y enviar a tus redes.`);
     });
   });
+
+  // 7. CIERRE DE SESIÓN LIMPIO
+  const logoutBtn = document.getElementById('btn-logout');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.href = (window.location.protocol === 'file:') ? 'index.html' : '/';
+    });
+  }
 
 });
