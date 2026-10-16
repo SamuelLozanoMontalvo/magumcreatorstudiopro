@@ -107,6 +107,12 @@ class MagumApiClient {
     });
   }
 
+  async resendAccountInvite(id) {
+    return this.request(`/accounts/${id}/resend-invite`, {
+      method: 'POST'
+    });
+  }
+
   // CRM Contactos
   async getCrmContacts(params = {}) {
     const searchParams = new URLSearchParams();

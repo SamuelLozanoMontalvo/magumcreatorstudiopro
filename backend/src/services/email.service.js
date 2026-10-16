@@ -106,7 +106,12 @@ async function sendInviteEmail({ to, clientName, business, inviteToken, origin }
     </html>
   `;
 
-  return sendEmail({ to, subject, html, text });
+  const emailRes = await sendEmail({ to, subject, html, text });
+  return {
+    ...emailRes,
+    setupUrl,
+    inviteToken
+  };
 }
 
 /**
@@ -163,7 +168,11 @@ async function sendResetCodeEmail({ to, clientName, code }) {
     </html>
   `;
 
-  return sendEmail({ to, subject, html, text });
+  const emailRes = await sendEmail({ to, subject, html, text });
+  return {
+    ...emailRes,
+    code
+  };
 }
 
 module.exports = {

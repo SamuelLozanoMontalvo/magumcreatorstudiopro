@@ -184,8 +184,11 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Formato de correo no válido.' });
     }
 
-    // Comprobar unicidad global del correo en toda la plataforma
-    const conflict = await findGlobalEmailConflict(emailClean);
+    // Comprobar unicidad global del correo: el cliente sí puede tener múltiples empresas, pero no el mismo negocio
+    const conflict = await findGlobalEmailConflict(emailClean, {
+      allowMultipleAccounts: true,
+      business: business.trim()
+    });
     if (conflict.conflict) {
       return res.status(400).json({
         success: false,
@@ -197,13 +200,24 @@ router.post('/', async (req, res) => {
     const inviteToken = crypto.randomBytes(32).toString('hex');
     const inviteExpires = new Date(Date.now() + 48 * 3600 * 1000); // 48 horas
 
-    // Si el admin escribió una clave manual la usamos; si no, dejamos una provisional hasta que active su enlace
-    const rawPassword = password && password.trim() ? password.trim() : crypto.randomBytes(16).toString('hex');
-    let passwordHash = await bcrypt.hash(rawPassword, 10);
+    // Si ya existe otra cuenta para este cliente, reutilizamos su clave existente
+    const existingClientRes = await db.query(
+      'SELECT password_hash FROM accounts WHERE LOWER(email) = $1 AND deleted_at IS NULL ORDER BY created_at ASC LIMIT 1',
+      [emailClean]
+    );
 
-    // Si ya tiene cuentas previas con ese correo y se definió clave manual, unificar
-    if (password && password.trim()) {
-      await db.query('UPDATE accounts SET password_hash = $1 WHERE LOWER(email) = $2 AND deleted_at IS NULL', [passwordHash, emailClean]);
+    let passwordHash = null;
+    let isExistingClient = false;
+
+    if (existingClientRes.rows.length > 0 && (!password || !password.trim())) {
+      passwordHash = existingClientRes.rows[0].password_hash;
+      isExistingClient = true;
+    } else {
+      const rawPassword = password && password.trim() ? password.trim() : crypto.randomBytes(16).toString('hex');
+      passwordHash = await bcrypt.hash(rawPassword, 10);
+      if (password && password.trim()) {
+        await db.query('UPDATE accounts SET password_hash = $1 WHERE LOWER(email) = $2 AND deleted_at IS NULL', [passwordHash, emailClean]);
+      }
     }
 
     const social = modules && modules.social !== undefined ? Boolean(modules.social) : true;
@@ -215,14 +229,24 @@ router.post('/', async (req, res) => {
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'active', $10, $11)
     `, [newId, firstName.trim(), lastName.trim(), business.trim(), emailClean, passwordHash, social, web, crm, inviteToken, inviteExpires]);
 
-    // Enviar correo de invitación con Resend
-    sendInviteEmail({
-      to: emailClean,
-      clientName: `${firstName.trim()} ${lastName.trim()}`,
-      business: business.trim(),
-      inviteToken,
-      origin: req.headers.origin || req.headers.referer
-    }).catch(err => console.error('Aviso: Error enviando correo de invitación:', err.message));
+    // Enviar correo de invitación con Resend de forma controlada
+    let emailResult = { success: false, setupUrl: '' };
+    try {
+      emailResult = await sendInviteEmail({
+        to: emailClean,
+        clientName: `${firstName.trim()} ${lastName.trim()}`,
+        business: business.trim(),
+        inviteToken,
+        origin: req.headers.origin || req.headers.referer
+      });
+    } catch (emailErr) {
+      console.error('[Accounts] Error enviando correo de bienvenida:', emailErr.message);
+      emailResult = {
+        success: false,
+        error: emailErr.message,
+        setupUrl: `https://magumcreatorstudiopro.vercel.app/setup-password.html?token=${encodeURIComponent(inviteToken)}`
+      };
+    }
 
     // Registrar facturación SOLO si el admin configuró monto y plan
     if (billingAmount !== undefined && billingAmount !== null && !isNaN(Number(billingAmount))) {
@@ -245,12 +269,18 @@ router.post('/', async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Cuenta creada exitosamente.',
+      message: emailResult.success
+        ? `Cuenta para "${business.trim()}" creada con éxito. Se envió la invitación al correo.`
+        : `Cuenta para "${business.trim()}" creada con éxito.`,
+      emailSent: Boolean(emailResult.success),
+      emailError: emailResult.error || null,
+      inviteUrl: emailResult.setupUrl,
+      isExistingClient,
       data: {
         id: newId,
         firstName,
         lastName,
-        business,
+        business: business.trim(),
         email: emailClean,
         modules: { social, web, crm },
         status: 'active'
@@ -481,6 +511,57 @@ router.post('/:id/impersonate', async (req, res) => {
   } catch (error) {
     console.error('Error en impersonate:', error);
     res.status(500).json({ success: false, message: 'Error al iniciar simulación.' });
+  }
+});
+
+// POST /api/accounts/:id/resend-invite - Reenviar invitación o generar nuevo enlace para activar cuenta
+router.post('/:id/resend-invite', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const accRes = await db.query('SELECT * FROM accounts WHERE id = $1 AND deleted_at IS NULL', [id]);
+    if (accRes.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Cuenta no encontrada.' });
+    }
+
+    const acc = accRes.rows[0];
+    const inviteToken = crypto.randomBytes(32).toString('hex');
+    const inviteExpires = new Date(Date.now() + 48 * 3600 * 1000);
+
+    await db.query(
+      'UPDATE accounts SET invite_token = $1, invite_expires_at = $2 WHERE id = $3',
+      [inviteToken, inviteExpires, id]
+    );
+
+    let emailResult = { success: false, setupUrl: '' };
+    try {
+      emailResult = await sendInviteEmail({
+        to: acc.email,
+        clientName: `${acc.first_name} ${acc.last_name}`,
+        business: acc.business,
+        inviteToken,
+        origin: req.headers.origin || req.headers.referer
+      });
+    } catch (err) {
+      console.error('[Accounts] Error reenviando correo de bienvenida:', err.message);
+      emailResult = {
+        success: false,
+        error: err.message,
+        setupUrl: `https://magumcreatorstudiopro.vercel.app/setup-password.html?token=${encodeURIComponent(inviteToken)}`
+      };
+    }
+
+    res.json({
+      success: true,
+      message: emailResult.success
+        ? `Correo de invitación enviado con éxito a ${acc.email}.`
+        : `Enlace de activación generado correctamente.`,
+      emailSent: Boolean(emailResult.success),
+      emailError: emailResult.error || null,
+      inviteUrl: emailResult.setupUrl
+    });
+  } catch (error) {
+    console.error('Error en POST /api/accounts/:id/resend-invite:', error);
+    res.status(500).json({ success: false, message: 'Error al generar enlace de invitación.' });
   }
 });
 

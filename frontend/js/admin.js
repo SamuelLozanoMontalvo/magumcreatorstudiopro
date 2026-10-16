@@ -262,6 +262,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <i class="fa-solid fa-arrow-up-right-from-square"></i>
                 <span>Ver Panel</span>
               </button>
+              <button class="btn-row-action btn-resend-invite" title="Copiar enlace de activación / Reenviar" data-id="${escapeHtml(acc.id)}" data-biz="${escapeHtml(acc.business)}" data-email="${escapeHtml(acc.email)}">
+                <i class="fa-solid fa-link"></i>
+              </button>
               <button class="btn-row-action btn-toggle-status" title="${acc.status === 'active' ? 'Suspender cuenta' : 'Activar cuenta'}" data-id="${escapeHtml(acc.id)}">
                 <i class="fa-solid ${acc.status === 'active' ? 'fa-pause' : 'fa-play'}"></i>
               </button>
@@ -285,8 +288,37 @@ document.addEventListener('DOMContentLoaded', () => {
     if (statWeb) statWeb.textContent = accounts.filter(a => a.modules.web).length;
   }
 
-  // 7. ACCIONES DE FILA (VER PANEL, SUSPENDER, ELIMINAR)
+  // 7. ACCIONES DE FILA (VER PANEL, SUSPENDER, ELIMINAR, COPIAR ENLACE)
   function attachActionListeners() {
+    document.querySelectorAll('.btn-resend-invite').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const accId = btn.getAttribute('data-id');
+        const biz = btn.getAttribute('data-biz');
+        const email = btn.getAttribute('data-email');
+        btn.disabled = true;
+        try {
+          if (window.MagumApi && window.MagumApi.resendAccountInvite) {
+            const res = await window.MagumApi.resendAccountInvite(accId);
+            if (res && res.success) {
+              MagumAlert.inviteDetails({
+                business: biz,
+                email: email,
+                inviteUrl: res.inviteUrl,
+                emailSent: res.emailSent,
+                emailError: res.emailError
+              });
+            } else {
+              MagumAlert.error('Error', res.message || 'No se pudo generar el enlace.');
+            }
+          }
+        } catch (err) {
+          MagumAlert.error('Error', err.message || 'Error al procesar la solicitud.');
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    });
+
     document.querySelectorAll('.btn-impersonate').forEach(btn => {
       btn.addEventListener('click', () => {
         const accId = btn.getAttribute('data-id');
@@ -452,6 +484,11 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       // 1. Guardar en backend PostgreSQL PRIMERO (Única fuente de la verdad)
+      let apiInviteUrl = '';
+      let apiEmailSent = false;
+      let apiEmailError = null;
+      let apiIsExistingClient = false;
+
       if (window.MagumApi) {
         try {
           const apiRes = await window.MagumApi.createAccount({
@@ -462,13 +499,19 @@ document.addEventListener('DOMContentLoaded', () => {
             password,
             modules: { social: socialCheck, web: webCheck, crm: true }
           });
-          if (apiRes && apiRes.data) {
-            newId = apiRes.data.id || newId;
-            createdAccount = {
-              ...createdAccount,
-              ...apiRes.data,
-              id: newId
-            };
+          if (apiRes) {
+            if (apiRes.data) {
+              newId = apiRes.data.id || newId;
+              createdAccount = {
+                ...createdAccount,
+                ...apiRes.data,
+                id: newId
+              };
+            }
+            apiInviteUrl = apiRes.inviteUrl || '';
+            apiEmailSent = Boolean(apiRes.emailSent);
+            apiEmailError = apiRes.emailError || null;
+            apiIsExistingClient = Boolean(apiRes.isExistingClient);
           }
         } catch (syncErr) {
           MagumAlert.error('Error al Crear Cuenta', syncErr.message || 'No se pudo registrar la cuenta en el servidor.');
@@ -483,13 +526,17 @@ document.addEventListener('DOMContentLoaded', () => {
       closeModal();
       render();
 
-      // Notificación estética de alta fidelidad (SweetAlert2 personalizada)
+      // Notificación estética de alta fidelidad con enlace de activación copiable
       MagumAlert.accountCreated({
         id: newId,
         business,
         firstName,
         lastName,
-        email
+        email,
+        inviteUrl: apiInviteUrl,
+        emailSent: apiEmailSent,
+        emailError: apiEmailError,
+        isExistingClient: apiIsExistingClient
       });
     });
   }

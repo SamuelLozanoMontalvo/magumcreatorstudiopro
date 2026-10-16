@@ -260,3 +260,21 @@ test('Firma de token para switch-account incluye identificador de empresa y perm
   assert.strictEqual(decoded.business, 'AutoMagum Center');
   assert.strictEqual(decoded.modules.web, false);
 });
+
+// 11. Multi-empresa permitida para cliente con allowMultipleAccounts
+test('findGlobalEmailConflict permite que el cliente tenga múltiples empresas con nombres diferentes', async () => {
+  const { findGlobalEmailConflict } = require('../src/utils/user.utils');
+  const originalQuery = db.query;
+  db.query = async (sql, params) => {
+    return { rows: [] };
+  };
+  try {
+    const res = await findGlobalEmailConflict('cliente.nuevo@magum.com', {
+      allowMultipleAccounts: true,
+      business: 'Segunda Empresa SAS'
+    });
+    assert.strictEqual(res.conflict, false);
+  } finally {
+    db.query = originalQuery;
+  }
+});
