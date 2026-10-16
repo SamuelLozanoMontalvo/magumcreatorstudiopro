@@ -52,35 +52,11 @@ function getGmailTransporter() {
 async function sendEmail({ to, subject, html, text }) {
   const errors = [];
 
-  // 1. Prioridad: Gmail SMTP
-  const gmailConfig = getGmailTransporter();
-  if (gmailConfig) {
-    try {
-      const gmailFrom = `"Magum Creator Studio" <${gmailConfig.user}>`;
-      const info = await withTimeout(
-        gmailConfig.transporter.sendMail({
-          from: gmailFrom,
-          to,
-          subject,
-          html,
-          text
-        }),
-        5000,
-        'Tiempo de espera agotado conectando con Gmail SMTP (posible bloqueo de puertos en el hosting)'
-      );
-      console.log(`[EmailService] ✅ Correo entregado vía Gmail SMTP a "${to}" (ID: ${info.messageId})`);
-      return { success: true, id: info.messageId, provider: 'gmail' };
-    } catch (gmailErr) {
-      console.warn('[EmailService] ⚠️ Gmail SMTP falló o fue bloqueado:', gmailErr.message);
-      errors.push(`Gmail SMTP: ${gmailErr.message}`);
-    }
-  }
-
-  // 2. Respaldo directo: Brevo REST API (HTTPS Puerto 443 - Nunca bloqueado por Railway y envía a cualquier correo)
+  // 1. Prioridad #1: Brevo REST API (HTTPS Puerto 443 - Diseñado para cloud/Railway, envía a cualquier correo sin bloqueos de puerto)
   const brevoKey = cleanEnv(process.env.BREVO_API_KEY || process.env.SENDINBLUE_API_KEY);
   if (brevoKey) {
     try {
-      const senderEmail = cleanEnv(process.env.BREVO_SENDER_EMAIL || process.env.GMAIL_USER || process.env.SMTP_USER) || 'notificaciones@magum.com';
+      const senderEmail = cleanEnv(process.env.BREVO_SENDER_EMAIL || process.env.GMAIL_USER || process.env.SMTP_USER || 'samylozano00@gmail.com');
       const senderName = cleanEnv(process.env.BREVO_SENDER_NAME) || 'Magum Creator Studio';
 
       const response = await withTimeout(
@@ -99,7 +75,7 @@ async function sendEmail({ to, subject, html, text }) {
             textContent: text
           })
         }),
-        5000,
+        6000,
         'Tiempo de espera agotado conectando con Brevo API'
       );
 
@@ -108,12 +84,37 @@ async function sendEmail({ to, subject, html, text }) {
         console.log(`[EmailService] ✅ Correo entregado vía Brevo API a "${to}" (ID: ${data.messageId || 'ok'})`);
         return { success: true, id: data.messageId, provider: 'brevo' };
       } else {
-        console.warn('[EmailService] ⚠️ Brevo API rechazó la solicitud:', data);
-        errors.push(`Brevo: ${data.message || response.statusText}`);
+        const errorDetail = data.message || data.error || response.statusText;
+        console.warn('[EmailService] ⚠️ Brevo API rechazó el envío:', errorDetail);
+        errors.push(`Brevo: ${errorDetail}`);
       }
     } catch (brevoErr) {
       console.warn('[EmailService] ⚠️ Error conectando a Brevo API:', brevoErr.message);
       errors.push(`Brevo: ${brevoErr.message}`);
+    }
+  }
+
+  // 2. Prioridad #2: Gmail SMTP (solo si no hay Brevo o si Brevo falló)
+  const gmailConfig = getGmailTransporter();
+  if (gmailConfig) {
+    try {
+      const gmailFrom = `"Magum Creator Studio" <${gmailConfig.user}>`;
+      const info = await withTimeout(
+        gmailConfig.transporter.sendMail({
+          from: gmailFrom,
+          to,
+          subject,
+          html,
+          text
+        }),
+        4000,
+        'Tiempo de espera agotado conectando con Gmail SMTP (puerto bloqueado por el hosting)'
+      );
+      console.log(`[EmailService] ✅ Correo entregado vía Gmail SMTP a "${to}" (ID: ${info.messageId})`);
+      return { success: true, id: info.messageId, provider: 'gmail' };
+    } catch (gmailErr) {
+      console.warn('[EmailService] ⚠️ Gmail SMTP falló o fue bloqueado:', gmailErr.message);
+      errors.push(`Gmail SMTP: ${gmailErr.message}`);
     }
   }
 
