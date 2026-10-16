@@ -1,48 +1,87 @@
-// Servicio de envío de correos electrónicos transaccionales usando Resend API
+// Servicio de envío de correos electrónicos transaccionales (Soporte dual: Gmail SMTP / Resend API)
+const nodemailer = require('nodemailer');
 require('dotenv').config();
 
+const GMAIL_USER = process.env.GMAIL_USER || process.env.SMTP_USER;
+const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS;
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const EMAIL_FROM = process.env.EMAIL_FROM || 'Magum Creator Studio <onboarding@resend.dev>';
+const EMAIL_FROM = process.env.EMAIL_FROM || (GMAIL_USER ? `Magum Creator Studio <${GMAIL_USER}>` : 'Magum Creator Studio <onboarding@resend.dev>');
+
+// Inicializar transportador de Nodemailer si hay credenciales de Gmail/SMTP
+let gmailTransporter = null;
+if (GMAIL_USER && GMAIL_APP_PASSWORD) {
+  gmailTransporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: GMAIL_USER.trim(),
+      pass: GMAIL_APP_PASSWORD.trim().replace(/\s+/g, '') // Elimina espacios si la contraseña de aplicación de Google viene con espacios
+    }
+  });
+  console.log(`📡 [EmailService] Configurado transporte Gmail SMTP para "${GMAIL_USER}".`);
+}
 
 /**
- * Función base para enviar correos mediante la API HTTP de Resend
+ * Función base para enviar correos: Prioriza Gmail SMTP y respalda en Resend API
  */
 async function sendEmail({ to, subject, html, text }) {
-  if (!RESEND_API_KEY) {
-    console.warn(`[EmailService] ⚠️ RESEND_API_KEY no configurada. Simulando envío a "${to}".`);
-    console.log(`[EmailService] Asunto: ${subject}`);
-    if (text) console.log(`[EmailService] Contenido texto: ${text}`);
-    return { success: true, simulated: true };
-  }
-
-  try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
+  // 1. Prioridad: Gmail SMTP (Sin restricciones de destinatarios de prueba ni necesidad de dominio verificado)
+  if (gmailTransporter) {
+    try {
+      const info = await gmailTransporter.sendMail({
         from: EMAIL_FROM,
-        to: [to],
+        to,
         subject,
         html,
         text
-      })
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-      console.error('[EmailService] Error devuelto por Resend API:', data);
-      return { success: false, error: data.message || 'Error al enviar correo con Resend' };
+      });
+      console.log(`[EmailService] ✅ Correo enviado vía Gmail SMTP a "${to}" (ID: ${info.messageId})`);
+      return { success: true, id: info.messageId, provider: 'gmail' };
+    } catch (gmailErr) {
+      console.error('[EmailService] Error enviando correo vía Gmail SMTP:', gmailErr.message);
+      // Si falla Gmail y hay Resend, intenta Resend como respaldo
+      if (!RESEND_API_KEY) {
+        return { success: false, error: gmailErr.message, provider: 'gmail' };
+      }
     }
-
-    console.log(`[EmailService] ✅ Correo enviado exitosamente a "${to}" (ID: ${data.id})`);
-    return { success: true, id: data.id };
-  } catch (error) {
-    console.error('[EmailService] Error de conexión con Resend:', error.message);
-    return { success: false, error: error.message };
   }
+
+  // 2. Respaldo o método alternativo: Resend API
+  if (RESEND_API_KEY) {
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: EMAIL_FROM,
+          to: [to],
+          subject,
+          html,
+          text
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        console.error('[EmailService] Error devuelto por Resend API:', data);
+        return { success: false, error: data.message || 'Error al enviar correo con Resend', provider: 'resend' };
+      }
+
+      console.log(`[EmailService] ✅ Correo enviado exitosamente vía Resend a "${to}" (ID: ${data.id})`);
+      return { success: true, id: data.id, provider: 'resend' };
+    } catch (error) {
+      console.error('[EmailService] Error de conexión con Resend:', error.message);
+      return { success: false, error: error.message, provider: 'resend' };
+    }
+  }
+
+  // 3. Simulación en consola si no hay ningún servicio configurado
+  console.warn(`[EmailService] ⚠️ Ni Gmail (GMAIL_USER / GMAIL_APP_PASSWORD) ni Resend configurados. Simulando envío a "${to}".`);
+  console.log(`[EmailService] Asunto: ${subject}`);
+  if (text) console.log(`[EmailService] Contenido: ${text}`);
+  return { success: true, simulated: true };
 }
 
 /**
