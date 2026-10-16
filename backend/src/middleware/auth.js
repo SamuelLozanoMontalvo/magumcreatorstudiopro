@@ -168,7 +168,7 @@ function resolveAccountId(req) {
     return req.user.accountId || null;
   }
   if (req.user && req.user.role === 'admin') {
-    const requestedId = req.query.accountId || (req.body && req.body.accountId) || req.headers['x-account-id'];
+    const requestedId = req.user.accountId || req.query.accountId || (req.body && req.body.accountId) || req.headers['x-account-id'];
     return requestedId || null;
   }
   return null;

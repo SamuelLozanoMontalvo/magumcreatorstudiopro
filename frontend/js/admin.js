@@ -320,21 +320,42 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.querySelectorAll('.btn-impersonate').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const accId = btn.getAttribute('data-id');
-        const acc = getAccounts().find(a => a.id === accId);
-        if (acc) {
-          localStorage.setItem('magum_session', JSON.stringify({
-            role: 'client',
-            accountId: acc.id,
-            business: acc.business,
-            clientName: `${acc.firstName} ${acc.lastName}`,
-            email: acc.email,
-            modules: acc.modules,
-            impersonatedByAdmin: true,
-            loggedAt: new Date().toISOString()
-          }));
-          window.location.href = 'dashboard.html';
+        btn.disabled = true;
+        try {
+          if (window.MagumApi && window.MagumApi.impersonate) {
+            const res = await window.MagumApi.impersonate(accId);
+            if (res && res.success && res.token && res.user) {
+              localStorage.setItem('magum_session', JSON.stringify({
+                ...res.user,
+                token: res.token,
+                loggedAt: new Date().toISOString()
+              }));
+              window.location.href = 'dashboard.html';
+              return;
+            }
+          }
+
+          // Respaldo local si no responde la API
+          const acc = getAccounts().find(a => a.id === accId);
+          if (acc) {
+            localStorage.setItem('magum_session', JSON.stringify({
+              role: 'client',
+              accountId: acc.id,
+              business: acc.business,
+              clientName: `${acc.firstName} ${acc.lastName}`,
+              email: acc.email,
+              modules: acc.modules,
+              impersonatedByAdmin: true,
+              loggedAt: new Date().toISOString()
+            }));
+            window.location.href = 'dashboard.html';
+          }
+        } catch (err) {
+          console.error('Error al entrar al panel del cliente:', err);
+          MagumAlert.error('Error', err.message || 'No fue posible iniciar la sesión de cliente.');
+          btn.disabled = false;
         }
       });
     });

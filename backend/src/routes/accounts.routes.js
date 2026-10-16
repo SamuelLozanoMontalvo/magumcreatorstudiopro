@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const { verifyToken, requireAdmin, requireClientOrTeam, requireAccountOwnerOrAdmin, resolveAccountId, JWT_SECRET } = require('../middleware/auth');
-const { sendInviteEmail } = require('../services/email.service');
+const { sendInviteEmail, sendEmail } = require('../services/email.service');
 const { findGlobalEmailConflict } = require('../utils/user.utils');
 
 function generateAccountId() {
@@ -464,7 +464,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // POST /api/accounts/:id/impersonate - Vista previa de cliente para el Super Admin
-router.post('/:id/impersonate', async (req, res) => {
+router.post('/:id/impersonate', verifyToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const result = await db.query('SELECT * FROM accounts WHERE id = $1 AND deleted_at IS NULL', [id]);
@@ -473,6 +473,29 @@ router.post('/:id/impersonate', async (req, res) => {
     }
 
     const acc = result.rows[0];
+
+    // Consultar empresas vinculadas a este mismo correo para soportar cambio de cuenta durante simulación
+    let availableAccounts = [];
+    try {
+      const allRes = await db.query(
+        `SELECT id, business, first_name, last_name, email, module_social, module_web, module_crm, logo_url, favicon_url 
+         FROM accounts 
+         WHERE LOWER(email) = LOWER($1) AND deleted_at IS NULL AND status = 'active' 
+         ORDER BY created_at DESC`,
+        [acc.email]
+      );
+      availableAccounts = allRes.rows.map(a => ({
+        id: a.id,
+        business: a.business,
+        clientName: `${a.first_name} ${a.last_name}`,
+        logoUrl: a.logo_url || '',
+        faviconUrl: a.favicon_url || '',
+        modules: { social: a.module_social, web: a.module_web, crm: a.module_crm }
+      }));
+    } catch (e) {
+      console.warn('Error obteniendo availableAccounts en impersonate:', e.message);
+    }
+
     const impersonationToken = jwt.sign(
       {
         role: 'client',
@@ -505,12 +528,51 @@ router.post('/:id/impersonate', async (req, res) => {
           web: acc.module_web,
           crm: acc.module_crm
         },
+        availableAccounts,
         impersonatedByAdmin: true
       }
     });
   } catch (error) {
     console.error('Error en impersonate:', error);
     res.status(500).json({ success: false, message: 'Error al iniciar simulación.' });
+  }
+});
+
+// POST /api/accounts/test-email - Prueba de envío de correo SMTP / Resend para el Super Admin
+router.post('/test-email', verifyToken, requireAdmin, async (req, res) => {
+  try {
+    const { to } = req.body;
+    const targetEmail = to || req.user.email || 'test@example.com';
+    const emailResult = await sendEmail({
+      to: targetEmail,
+      subject: 'Prueba de configuración de correo - Magum Creator Studio',
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; color: #333;">
+          <h2 style="color: #210087;">Prueba de Envío Exitosa 🎉</h2>
+          <p>Tu servidor de correo en Magum Creator Studio está enviando mensajes correctamente.</p>
+          <p><strong>Destinatario:</strong> ${targetEmail}</p>
+          <p><strong>Fecha:</strong> ${new Date().toLocaleString()}</p>
+        </div>
+      `,
+      text: `Prueba de configuración de correo exitosa enviada a ${targetEmail} el ${new Date().toLocaleString()}`
+    });
+
+    if (emailResult.success) {
+      return res.json({
+        success: true,
+        message: `Correo de prueba enviado con éxito a ${targetEmail} usando ${emailResult.provider || 'servicio configurado'}.`,
+        details: emailResult
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: `Fallo al enviar correo: ${emailResult.error || 'Error desconocido'}`,
+        details: emailResult
+      });
+    }
+  } catch (error) {
+    console.error('Error en test-email:', error);
+    res.status(500).json({ success: false, message: error.message || 'Error al ejecutar prueba de correo.' });
   }
 });
 

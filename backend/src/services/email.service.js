@@ -2,60 +2,77 @@
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-const GMAIL_USER = process.env.GMAIL_USER || process.env.SMTP_USER;
-const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS;
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const EMAIL_FROM = process.env.EMAIL_FROM || (GMAIL_USER ? `Magum Creator Studio <${GMAIL_USER}>` : 'Magum Creator Studio <onboarding@resend.dev>');
+function cleanEnv(val) {
+  if (!val) return '';
+  return String(val).trim().replace(/^['"]+|['"]+$/g, '');
+}
 
-// Inicializar transportador de Nodemailer si hay credenciales de Gmail/SMTP
-let gmailTransporter = null;
-if (GMAIL_USER && GMAIL_APP_PASSWORD) {
-  gmailTransporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: GMAIL_USER.trim(),
-      pass: GMAIL_APP_PASSWORD.trim().replace(/\s+/g, '') // Elimina espacios si la contraseña de aplicación de Google viene con espacios
-    }
-  });
-  console.log(`📡 [EmailService] Configurado transporte Gmail SMTP para "${GMAIL_USER}".`);
+function getGmailTransporter() {
+  const user = cleanEnv(process.env.GMAIL_USER || process.env.SMTP_USER);
+  const pass = cleanEnv(process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS).replace(/\s+/g, '');
+
+  if (!user || !pass) return null;
+
+  return {
+    user,
+    transporter: nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true, // Conexión SSL directa en puerto 465 (la más compatible con Railway y hosting en la nube)
+      auth: {
+        user,
+        pass
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
+    })
+  };
 }
 
 /**
  * Función base para enviar correos: Prioriza Gmail SMTP y respalda en Resend API
  */
 async function sendEmail({ to, subject, html, text }) {
-  // 1. Prioridad: Gmail SMTP (Sin restricciones de destinatarios de prueba ni necesidad de dominio verificado)
-  if (gmailTransporter) {
+  const gmailConfig = getGmailTransporter();
+
+  // 1. Prioridad: Gmail SMTP (Sin restricciones de destinatarios de prueba ni de dominios)
+  if (gmailConfig) {
     try {
-      const info = await gmailTransporter.sendMail({
-        from: EMAIL_FROM,
+      // Gmail exige estrictamente que el remitente coincida con el usuario autenticado
+      const gmailFrom = `"Magum Creator Studio" <${gmailConfig.user}>`;
+      const info = await gmailConfig.transporter.sendMail({
+        from: gmailFrom,
         to,
         subject,
         html,
         text
       });
-      console.log(`[EmailService] ✅ Correo enviado vía Gmail SMTP a "${to}" (ID: ${info.messageId})`);
+      console.log(`[EmailService] ✅ Correo entregado vía Gmail SMTP a "${to}" (ID: ${info.messageId})`);
       return { success: true, id: info.messageId, provider: 'gmail' };
     } catch (gmailErr) {
-      console.error('[EmailService] Error enviando correo vía Gmail SMTP:', gmailErr.message);
-      // Si falla Gmail y hay Resend, intenta Resend como respaldo
-      if (!RESEND_API_KEY) {
+      console.error('[EmailService] ❌ Error enviando correo vía Gmail SMTP:', gmailErr.message);
+      const resendKey = cleanEnv(process.env.RESEND_API_KEY);
+      if (!resendKey) {
         return { success: false, error: gmailErr.message, provider: 'gmail' };
       }
+      console.warn('[EmailService] Intentando respaldo con Resend API...');
     }
   }
 
   // 2. Respaldo o método alternativo: Resend API
-  if (RESEND_API_KEY) {
+  const resendKey = cleanEnv(process.env.RESEND_API_KEY);
+  if (resendKey) {
     try {
+      const emailFrom = cleanEnv(process.env.EMAIL_FROM) || 'Magum Creator Studio <onboarding@resend.dev>';
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${RESEND_API_KEY}`,
+          'Authorization': `Bearer ${resendKey}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          from: EMAIL_FROM,
+          from: emailFrom,
           to: [to],
           subject,
           html,
