@@ -133,6 +133,16 @@ async function initDatabase() {
       ALTER TABLE billing ADD COLUMN IF NOT EXISTS billing_type VARCHAR(30) DEFAULT 'recurring';
       ALTER TABLE billing ADD COLUMN IF NOT EXISTS account_ids TEXT[] DEFAULT '{}';
       ALTER TABLE billing ADD COLUMN IF NOT EXISTS payment_history JSONB DEFAULT '[]';
+
+      -- Migración de prefijos de cuentas a MGM-
+      ALTER TABLE professionals DROP CONSTRAINT IF EXISTS professionals_account_id_fkey;
+      ALTER TABLE professionals ADD CONSTRAINT professionals_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+      ALTER TABLE crm_contacts DROP CONSTRAINT IF EXISTS crm_contacts_account_id_fkey;
+      ALTER TABLE crm_contacts ADD CONSTRAINT crm_contacts_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+      UPDATE accounts SET id = REPLACE(id, 'ACC-', 'MGM-') WHERE id LIKE 'ACC-%';
+      UPDATE billing SET account_id = REPLACE(account_id, 'ACC-', 'MGM-') WHERE account_id LIKE 'ACC-%';
     `);
 
     // Actualizar inmediatamente las credenciales de los administradores en PostgreSQL con la nueva clave segura

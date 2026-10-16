@@ -7,7 +7,7 @@ const db = require('../config/db');
 const { verifyToken, requireAdmin, JWT_SECRET } = require('../middleware/auth');
 
 function generateAccountId() {
-  return 'ACC-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+  return 'MGM-' + crypto.randomBytes(4).toString('hex').toUpperCase();
 }
 
 function generateAdminId() {
