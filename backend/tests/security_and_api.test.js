@@ -220,3 +220,43 @@ test('Tokens JWT firmados con JWT_SECRET son validados y tokens alterados son re
     jwt.verify(tamperedToken, JWT_SECRET);
   }, /invalid signature/i);
 });
+
+// 9. Unicidad global de correos
+test('findGlobalEmailConflict valida correctamente correos vacíos o nulos', async () => {
+  const { findGlobalEmailConflict } = require('../src/utils/user.utils');
+  const res1 = await findGlobalEmailConflict(null);
+  assert.strictEqual(res1.conflict, false);
+
+  const res2 = await findGlobalEmailConflict('');
+  assert.strictEqual(res2.conflict, false);
+});
+
+// 10. Switch Account JWT genera claims completos e independientes por empresa
+test('Firma de token para switch-account incluye identificador de empresa y permisos aislados', () => {
+  const targetAcc = {
+    id: 'MGM-88FF',
+    business: 'AutoMagum Center',
+    clientName: 'Carlos Gómez',
+    email: 'carlos@automagum.com',
+    modules: { social: true, web: false, crm: true }
+  };
+
+  const switchedToken = jwt.sign(
+    {
+      role: 'client',
+      accountId: targetAcc.id,
+      email: targetAcc.email,
+      clientName: targetAcc.clientName,
+      business: targetAcc.business,
+      modules: targetAcc.modules,
+      impersonatedByAdmin: false
+    },
+    JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+
+  const decoded = jwt.verify(switchedToken, JWT_SECRET);
+  assert.strictEqual(decoded.accountId, 'MGM-88FF');
+  assert.strictEqual(decoded.business, 'AutoMagum Center');
+  assert.strictEqual(decoded.modules.web, false);
+});

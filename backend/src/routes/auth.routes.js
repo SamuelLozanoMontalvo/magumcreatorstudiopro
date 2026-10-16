@@ -548,4 +548,100 @@ router.post('/verify-reset-code', async (req, res) => {
   }
 });
 
+// POST /api/auth/switch-account - Permite alternar la empresa activa de forma segura
+router.post('/switch-account', verifyToken, async (req, res) => {
+  try {
+    const { targetAccountId } = req.body;
+    if (!targetAccountId) {
+      return res.status(400).json({ success: false, message: 'targetAccountId es requerido.' });
+    }
+
+    const user = req.user;
+    let targetAccount = null;
+
+    if (user.role === 'admin') {
+      const accRes = await db.query(
+        'SELECT * FROM accounts WHERE id = $1 AND deleted_at IS NULL',
+        [targetAccountId]
+      );
+      if (accRes.rows.length === 0) {
+        return res.status(404).json({ success: false, message: 'Cuenta destino no encontrada.' });
+      }
+      targetAccount = accRes.rows[0];
+    } else {
+      const accRes = await db.query(
+        'SELECT * FROM accounts WHERE id = $1 AND LOWER(email) = LOWER($2) AND deleted_at IS NULL',
+        [targetAccountId, user.email]
+      );
+      if (accRes.rows.length === 0) {
+        return res.status(403).json({ success: false, message: 'No tienes acceso a esta empresa.' });
+      }
+      targetAccount = accRes.rows[0];
+    }
+
+    if (targetAccount.status === 'inactive') {
+      return res.status(403).json({ success: false, message: 'La empresa seleccionada se encuentra suspendida.' });
+    }
+
+    // Consultar empresas activas vinculadas
+    const allUserAccountsRes = await db.query(
+      `SELECT id, business, first_name, last_name, email, module_social, module_web, module_crm, logo_url, favicon_url 
+       FROM accounts 
+       WHERE LOWER(email) = LOWER($1) AND deleted_at IS NULL AND status = 'active' 
+       ORDER BY created_at DESC`,
+      [targetAccount.email]
+    );
+
+    const availableAccounts = allUserAccountsRes.rows.map(a => ({
+      id: a.id,
+      business: a.business,
+      clientName: `${a.first_name} ${a.last_name}`,
+      logoUrl: a.logo_url || '',
+      faviconUrl: a.favicon_url || '',
+      modules: { social: a.module_social, web: a.module_web, crm: a.module_crm }
+    }));
+
+    const newToken = jwt.sign(
+      {
+        role: user.role === 'admin' ? 'client' : user.role,
+        accountId: targetAccount.id,
+        email: targetAccount.email,
+        clientName: `${targetAccount.first_name} ${targetAccount.last_name}`,
+        business: targetAccount.business,
+        modules: {
+          social: targetAccount.module_social,
+          web: targetAccount.module_web,
+          crm: targetAccount.module_crm
+        },
+        impersonatedByAdmin: user.role === 'admin' || Boolean(user.impersonatedByAdmin)
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      success: true,
+      message: `Cambiando a "${targetAccount.business}".`,
+      token: newToken,
+      user: {
+        role: user.role === 'admin' ? 'client' : user.role,
+        accountId: targetAccount.id,
+        business: targetAccount.business,
+        clientName: `${targetAccount.first_name} ${targetAccount.last_name}`,
+        email: targetAccount.email,
+        modules: {
+          social: targetAccount.module_social,
+          web: targetAccount.module_web,
+          crm: targetAccount.module_crm
+        },
+        availableAccounts,
+        impersonatedByAdmin: user.role === 'admin' || Boolean(user.impersonatedByAdmin)
+      }
+    });
+  } catch (error) {
+    console.error('Error en POST /api/auth/switch-account:', error);
+    res.status(500).json({ success: false, message: 'Error al cambiar de empresa.' });
+  }
+});
+
 module.exports = router;

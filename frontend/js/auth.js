@@ -243,6 +243,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modalForgot) modalForgot.style.display = 'none';
   }
 
+  window.openForgotModal = openForgotModal;
+  window.closeForgotModal = closeForgotModal;
+
   if (forgotLink) {
     forgotLink.addEventListener('click', (e) => {
       e.preventDefault();

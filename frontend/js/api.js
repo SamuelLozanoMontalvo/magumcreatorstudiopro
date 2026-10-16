@@ -256,6 +256,26 @@ class MagumApiClient {
       body: JSON.stringify({ email, code, newPassword })
     });
   }
+
+  // Cambio de cuenta activa (Multi-empresa)
+  async switchAccount(targetAccountId) {
+    return this.request('/auth/switch-account', {
+      method: 'POST',
+      body: JSON.stringify({ targetAccountId })
+    });
+  }
+
+  // Identidad y Marca propia de la cuenta activa
+  async getMyBranding() {
+    return this.request('/accounts/my-branding');
+  }
+
+  async saveMyBranding(data) {
+    return this.request('/accounts/my-branding', {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  }
 }
 
 // Clases e instancias globales disponibles en todos los scripts del frontend

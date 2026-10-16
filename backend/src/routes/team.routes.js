@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const db = require('../config/db');
 const { verifyToken, requireClientOrTeam, requireAccountOwnerOrAdmin, resolveAccountId } = require('../middleware/auth');
+const { findGlobalEmailConflict } = require('../utils/user.utils');
 
 router.use(verifyToken);
 
@@ -55,12 +56,12 @@ router.post('/', requireAccountOwnerOrAdmin, async (req, res) => {
       return res.status(400).json({ success: false, message: 'El formato de correo no es válido.' });
     }
 
-    // Comprobar correo único
-    const exists = await db.query('SELECT id FROM professionals WHERE LOWER(email) = $1 AND deleted_at IS NULL', [emailClean]);
-    if (exists.rows.length > 0) {
+    // Comprobar unicidad global del correo en toda la plataforma
+    const conflict = await findGlobalEmailConflict(emailClean);
+    if (conflict.conflict) {
       return res.status(400).json({
         success: false,
-        message: `Ya existe un miembro registrado con el correo "${emailClean}".`
+        message: conflict.message
       });
     }
 
@@ -100,6 +101,19 @@ router.put('/:id', requireAccountOwnerOrAdmin, async (req, res) => {
     }
 
     const emailClean = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailClean)) {
+      return res.status(400).json({ success: false, message: 'El formato de correo no es válido.' });
+    }
+
+    // Comprobar unicidad global del correo excluyendo este mismo profesional
+    const conflict = await findGlobalEmailConflict(emailClean, { table: 'professionals', id });
+    if (conflict.conflict) {
+      return res.status(400).json({
+        success: false,
+        message: conflict.message
+      });
+    }
 
     let queryText = `
       UPDATE professionals 

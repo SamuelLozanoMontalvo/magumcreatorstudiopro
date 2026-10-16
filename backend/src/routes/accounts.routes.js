@@ -4,8 +4,9 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
-const { verifyToken, requireAdmin, JWT_SECRET } = require('../middleware/auth');
+const { verifyToken, requireAdmin, requireClientOrTeam, requireAccountOwnerOrAdmin, resolveAccountId, JWT_SECRET } = require('../middleware/auth');
 const { sendInviteEmail } = require('../services/email.service');
+const { findGlobalEmailConflict } = require('../utils/user.utils');
 
 function generateAccountId() {
   return 'MGM-' + crypto.randomBytes(4).toString('hex').toUpperCase();
@@ -15,7 +16,109 @@ function generateAdminId() {
   return 'ADM-' + crypto.randomBytes(4).toString('hex').toUpperCase();
 }
 
-// Todas las rutas requieren Super Admin
+// ============================================================================
+// IDENTIDAD VISUAL POR CUENTA (LOGO, FAVICON, COLORES INDEPENDIENTES)
+// ============================================================================
+
+// GET /api/accounts/my-branding - Obtener la identidad visual de la empresa activa
+router.get('/my-branding', verifyToken, requireClientOrTeam, async (req, res) => {
+  try {
+    const accountId = resolveAccountId(req);
+    if (!accountId) {
+      return res.status(400).json({ success: false, message: 'Se requiere una cuenta asociada.' });
+    }
+
+    const result = await db.query(
+      'SELECT id, business, logo_url as "logoUrl", favicon_url as "faviconUrl", brand_settings as "brandSettings" FROM accounts WHERE id = $1 AND deleted_at IS NULL',
+      [accountId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Cuenta no encontrada.' });
+    }
+
+    const row = result.rows[0];
+    const settings = row.brandSettings || {};
+    res.json({
+      success: true,
+      data: {
+        accountId: row.id,
+        businessName: row.business,
+        logoUrl: row.logoUrl || settings.logoUrl || '',
+        faviconUrl: row.faviconUrl || settings.faviconUrl || '',
+        colorPrimary: settings.colorPrimary || '#210087',
+        colorSecondary: settings.colorSecondary || '#F8F3EB',
+        colorBg: settings.colorBg || '#FF00DB'
+      }
+    });
+  } catch (error) {
+    console.error('Error en GET /api/accounts/my-branding:', error);
+    res.status(500).json({ success: false, message: 'Error al consultar la marca de la cuenta.' });
+  }
+});
+
+// PUT /api/accounts/my-branding - Guardar marca exclusiva de la empresa activa
+router.put('/my-branding', verifyToken, requireAccountOwnerOrAdmin, async (req, res) => {
+  try {
+    const accountId = resolveAccountId(req);
+    if (!accountId) {
+      return res.status(400).json({ success: false, message: 'Se requiere una cuenta asociada.' });
+    }
+
+    const { logoUrl, faviconUrl, businessName, colorPrimary, colorSecondary, colorBg } = req.body;
+
+    const brandSettings = {
+      businessName: businessName ? businessName.trim() : undefined,
+      colorPrimary: colorPrimary || '#210087',
+      colorSecondary: colorSecondary || '#F8F3EB',
+      colorBg: colorBg || '#FF00DB',
+      updatedAt: new Date().toISOString()
+    };
+
+    let query = `
+      UPDATE accounts 
+      SET logo_url = COALESCE($1, logo_url),
+          favicon_url = COALESCE($2, favicon_url),
+          brand_settings = $3
+    `;
+    const params = [
+      logoUrl !== undefined ? logoUrl : null,
+      faviconUrl !== undefined ? faviconUrl : null,
+      JSON.stringify(brandSettings)
+    ];
+
+    if (businessName && businessName.trim()) {
+      query += `, business = $4 WHERE id = $5 AND deleted_at IS NULL RETURNING id, business, logo_url, favicon_url, brand_settings`;
+      params.push(businessName.trim(), accountId);
+    } else {
+      query += ` WHERE id = $4 AND deleted_at IS NULL RETURNING id, business, logo_url, favicon_url, brand_settings`;
+      params.push(accountId);
+    }
+
+    const result = await db.query(query, params);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Cuenta no encontrada.' });
+    }
+
+    const updated = result.rows[0];
+    res.json({
+      success: true,
+      message: 'Identidad visual guardada exclusivamente para esta empresa.',
+      data: {
+        accountId: updated.id,
+        businessName: updated.business,
+        logoUrl: updated.logo_url || '',
+        faviconUrl: updated.favicon_url || '',
+        ...(updated.brand_settings || {})
+      }
+    });
+  } catch (error) {
+    console.error('Error en PUT /api/accounts/my-branding:', error);
+    res.status(500).json({ success: false, message: 'Error al actualizar la marca de la cuenta.' });
+  }
+});
+
+// Todas las demás rutas de administración requieren Super Admin
 router.use(verifyToken, requireAdmin);
 
 // GET /api/accounts - Listar todas las cuentas activas (no eliminadas)
@@ -81,15 +184,12 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Formato de correo no válido.' });
     }
 
-    // Comprobar si ya existe una cuenta con el mismo correo y la misma empresa
-    const existsSame = await db.query(
-      'SELECT id FROM accounts WHERE LOWER(email) = $1 AND LOWER(business) = $2 AND deleted_at IS NULL',
-      [emailClean, business.trim().toLowerCase()]
-    );
-    if (existsSame.rows.length > 0) {
+    // Comprobar unicidad global del correo en toda la plataforma
+    const conflict = await findGlobalEmailConflict(emailClean);
+    if (conflict.conflict) {
       return res.status(400).json({
         success: false,
-        message: `Ya existe una cuenta para "${business.trim()}" con el correo "${emailClean}".`
+        message: conflict.message
       });
     }
 
@@ -203,15 +303,24 @@ router.post('/admins', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Formato de correo no válido.' });
     }
 
-    const existing = await db.query(
-      'SELECT id FROM admin_users WHERE LOWER(username) = $1 OR LOWER(email) = $2',
-      [cleanUsername, cleanEmail]
-    );
-
-    if (existing.rows.length > 0) {
+    // Comprobar unicidad global del correo en toda la plataforma
+    const conflict = await findGlobalEmailConflict(cleanEmail);
+    if (conflict.conflict) {
       return res.status(400).json({
         success: false,
-        message: 'Ya existe un administrador con ese nombre de usuario o correo.'
+        message: conflict.message
+      });
+    }
+
+    const existingUsername = await db.query(
+      'SELECT id FROM admin_users WHERE LOWER(username) = $1',
+      [cleanUsername]
+    );
+
+    if (existingUsername.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Ya existe un administrador con ese nombre de usuario.'
       });
     }
 

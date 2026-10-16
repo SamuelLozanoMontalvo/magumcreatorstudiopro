@@ -121,18 +121,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const accountSwitcherBox = document.getElementById('account-switcher-box');
       const accountSwitcherSelect = document.getElementById('account-switcher-select');
 
-      let availableAccounts = session.availableAccounts || [];
-
-      // Si no vienen en la sesión pero hay cuentas en el almacenamiento con este mismo correo
-      if (availableAccounts.length <= 1 && session.email) {
-        try {
-          const allAccs = JSON.parse(localStorage.getItem('magum_accounts') || '[]');
-          const userAccs = allAccs.filter(a => (a.email || '').toLowerCase() === session.email.toLowerCase());
-          if (userAccs.length > 1) {
-            availableAccounts = userAccs;
-          }
-        } catch {}
-      }
+      // Deduplicar estrictamente por id único y excluir cuentas inválidas
+      const rawAccounts = session.availableAccounts || [];
+      const distinctMap = new Map();
+      rawAccounts.forEach(a => {
+        if (a && a.id && !distinctMap.has(a.id)) {
+          distinctMap.set(a.id, a);
+        }
+      });
+      const availableAccounts = Array.from(distinctMap.values());
 
       if (availableAccounts.length > 1 && accountSwitcherBox && accountSwitcherSelect) {
         accountSwitcherBox.style.display = 'block';
@@ -148,23 +145,52 @@ document.addEventListener('DOMContentLoaded', () => {
           accountSwitcherSelect.appendChild(opt);
         });
 
-        accountSwitcherSelect.addEventListener('change', () => {
+        accountSwitcherSelect.addEventListener('change', async () => {
           const targetId = accountSwitcherSelect.value;
           const targetAcc = availableAccounts.find(a => a.id === targetId);
           if (targetAcc && targetId !== session.accountId) {
-            const updatedSession = {
-              ...session,
-              accountId: targetAcc.id,
-              business: targetAcc.business,
-              clientName: targetAcc.clientName || session.clientName,
-              modules: targetAcc.modules || session.modules,
-              availableAccounts: availableAccounts
-            };
-            localStorage.setItem('magum_session', JSON.stringify(updatedSession));
-            MagumAlert.info('Cambiando de Empresa...', `Cargando la información de "${targetAcc.business}".`);
-            setTimeout(() => {
-              window.location.reload();
-            }, 500);
+            try {
+              accountSwitcherSelect.disabled = true;
+              if (window.MagumAlert) {
+                MagumAlert.info('Cambiando de Empresa...', `Cargando la información y marca de "${targetAcc.business}".`);
+              }
+
+              // Solicitar nuevo token seguro al backend firmado para esta cuenta
+              if (window.MagumApi) {
+                const res = await window.MagumApi.switchAccount(targetId);
+                if (res && res.success && res.token && res.user) {
+                  localStorage.setItem('magum_session', JSON.stringify({
+                    ...res.user,
+                    token: res.token,
+                    loggedAt: new Date().toISOString()
+                  }));
+                  setTimeout(() => {
+                    window.location.reload();
+                  }, 400);
+                  return;
+                }
+              }
+
+              // Fallback local
+              const updatedSession = {
+                ...session,
+                accountId: targetAcc.id,
+                business: targetAcc.business,
+                clientName: targetAcc.clientName || session.clientName,
+                modules: targetAcc.modules || session.modules,
+                availableAccounts: availableAccounts
+              };
+              localStorage.setItem('magum_session', JSON.stringify(updatedSession));
+              setTimeout(() => {
+                window.location.reload();
+              }, 400);
+            } catch (err) {
+              console.warn('Error cambiando de cuenta:', err);
+              accountSwitcherSelect.disabled = false;
+              if (window.MagumAlert) {
+                MagumAlert.error('Error', 'No fue posible cambiar de empresa.');
+              }
+            }
           }
         });
       }
@@ -1295,10 +1321,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================================================
-  // 9. AJUSTES DE MARCA (WHITE LABEL)
+  // 9. AJUSTES DE MARCA (WHITE LABEL AISLADO POR EMPRESA)
   // ==========================================================================
 
-  const BRAND_STORAGE_KEY = 'magum_brand_settings';
+  const DEFAULT_MAGUM_LOGO = 'https://lirp.cdn-website.com/e4e4cefa/dms3rep/multi/opt/Magum_logo+magenta-1920w.png';
+  const DEFAULT_MAGUM_FAVICON = 'https://lirp.cdn-website.com/e4e4cefa/dms3rep/multi/opt/Magum_logo+magenta-1920w.png';
+
+  const getAccountBrandStorageKey = () => {
+    try {
+      const sess = JSON.parse(localStorage.getItem('magum_session') || '{}');
+      return 'magum_brand_account_' + (sess.accountId || 'default');
+    } catch {
+      return 'magum_brand_account_default';
+    }
+  };
 
   const formBrand = document.getElementById('form-brand-settings');
   const inputBizName = document.getElementById('setting-business-name');
@@ -1314,64 +1350,74 @@ document.addEventListener('DOMContentLoaded', () => {
   const dynamicFavicon = document.getElementById('dynamic-favicon');
   const clientBrandLogo = document.getElementById('client-brand-logo');
 
-  function loadBrandSettings() {
-    try {
-      // 1. Revisar si hay un favicon global de la plataforma configurado por el Super Admin
-      const adminSaved = localStorage.getItem('magum_admin_settings');
-      let platformFavicon = '';
-      if (adminSaved) {
-        try {
-          const adm = JSON.parse(adminSaved);
-          if (adm.faviconUrl) platformFavicon = adm.faviconUrl;
-        } catch {}
-      }
-
-      const saved = localStorage.getItem(BRAND_STORAGE_KEY);
-      if (saved) {
-        const data = JSON.parse(saved);
-        if (inputBizName && data.businessName) inputBizName.value = data.businessName;
-        if (previewLogoImg && data.logoUrl) previewLogoImg.src = data.logoUrl;
-        if (previewFaviconImg && data.faviconUrl) previewFaviconImg.src = data.faviconUrl;
-        if (inputColorPrimary && data.colorPrimary) inputColorPrimary.value = data.colorPrimary;
-        if (inputColorSecondary && data.colorSecondary) inputColorSecondary.value = data.colorSecondary;
-        if (inputColorBg && data.colorBg) inputColorBg.value = data.colorBg;
-
-        if (!data.faviconUrl && platformFavicon) {
-          data.faviconUrl = platformFavicon;
-        }
-        applyBrandingLive(data);
-      } else if (platformFavicon) {
-        applyBrandingLive({ faviconUrl: platformFavicon });
-      }
-
-      // Sincronizar en segundo plano desde el backend si hay MagumApi
-      if (window.MagumApi) {
-        window.MagumApi.getSetting('platform_branding').then(res => {
-          if (res && res.data && res.data.faviconUrl) {
-            const curFav = dynamicFavicon ? dynamicFavicon.getAttribute('href') : '';
-            if (!curFav || curFav === 'favicon.ico') {
-              applyBrandingLive({ faviconUrl: res.data.faviconUrl });
-            }
-          }
-        }).catch(() => {});
-      }
-    } catch (e) {
-      console.warn('Error cargando ajustes de marca:', e);
-    }
-  }
-
   function applyBrandingLive(data) {
-    if (data.logoUrl && clientBrandLogo) {
-      clientBrandLogo.src = data.logoUrl;
+    if (!data) return;
+
+    if (clientBrandLogo) {
+      clientBrandLogo.src = data.logoUrl || DEFAULT_MAGUM_LOGO;
     }
-    if (data.faviconUrl && dynamicFavicon) {
-      dynamicFavicon.href = data.faviconUrl;
+    if (dynamicFavicon) {
+      dynamicFavicon.href = data.faviconUrl || DEFAULT_MAGUM_FAVICON;
     }
+
+    if (data.businessName) {
+      const topbarName = document.getElementById('topbar-account-name');
+      const sidebarName = document.getElementById('sidebar-account-name');
+      if (topbarName) topbarName.textContent = data.businessName;
+      if (sidebarName) sidebarName.textContent = data.businessName;
+      if (inputBizName) inputBizName.value = data.businessName;
+    }
+
     if (data.colorPrimary) {
       document.documentElement.style.setProperty('--brand-indigo', data.colorPrimary);
     }
     if (data.colorBg) {
       document.documentElement.style.setProperty('--brand-magenta', data.colorBg);
+    }
+  }
+
+  function loadBrandSettings() {
+    try {
+      // 1. Cargar caché local propio de esta cuenta para renderizado instantáneo
+      const saved = localStorage.getItem(getAccountBrandStorageKey());
+      if (saved) {
+        const localData = JSON.parse(saved);
+        if (inputBizName && localData.businessName) inputBizName.value = localData.businessName;
+        if (previewLogoImg && localData.logoUrl) previewLogoImg.src = localData.logoUrl;
+        if (previewFaviconImg && localData.faviconUrl) previewFaviconImg.src = localData.faviconUrl;
+        if (inputColorPrimary && localData.colorPrimary) inputColorPrimary.value = localData.colorPrimary;
+        if (inputColorSecondary && localData.colorSecondary) inputColorSecondary.value = localData.colorSecondary;
+        if (inputColorBg && localData.colorBg) inputColorBg.value = localData.colorBg;
+        applyBrandingLive(localData);
+      } else {
+        // Valores por defecto de Magum si esta cuenta aún no ha personalizado nada
+        applyBrandingLive({
+          logoUrl: DEFAULT_MAGUM_LOGO,
+          faviconUrl: DEFAULT_MAGUM_FAVICON
+        });
+      }
+
+      // 2. Sincronizar en tiempo real desde la base de datos (PostgreSQL) para esta cuenta
+      if (window.MagumApi && window.MagumApi.getMyBranding) {
+        window.MagumApi.getMyBranding().then(res => {
+          if (res && res.success && res.data) {
+            const serverData = res.data;
+            if (inputBizName && serverData.businessName) inputBizName.value = serverData.businessName;
+            if (previewLogoImg && serverData.logoUrl) previewLogoImg.src = serverData.logoUrl;
+            if (previewFaviconImg && serverData.faviconUrl) previewFaviconImg.src = serverData.faviconUrl;
+            if (inputColorPrimary && serverData.colorPrimary) inputColorPrimary.value = serverData.colorPrimary;
+            if (inputColorSecondary && serverData.colorSecondary) inputColorSecondary.value = serverData.colorSecondary;
+            if (inputColorBg && serverData.colorBg) inputColorBg.value = serverData.colorBg;
+
+            applyBrandingLive(serverData);
+            localStorage.setItem(getAccountBrandStorageKey(), JSON.stringify(serverData));
+          }
+        }).catch(err => {
+          console.warn('[Branding] Usando caché local de la cuenta:', err.message);
+        });
+      }
+    } catch (e) {
+      console.warn('Error cargando ajustes de marca:', e);
     }
   }
 
@@ -1404,30 +1450,64 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (formBrand) {
-    formBrand.addEventListener('submit', (e) => {
+    formBrand.addEventListener('submit', async (e) => {
       e.preventDefault();
+      const saveBtn = document.getElementById('btn-save-branding');
+      const originalHtml = saveBtn ? saveBtn.innerHTML : '';
+
       const settingsData = {
-        businessName: inputBizName ? inputBizName.value.trim() : 'MAGUM',
-        logoUrl: previewLogoImg ? previewLogoImg.src : '',
-        faviconUrl: previewFaviconImg ? previewFaviconImg.src : '',
+        businessName: inputBizName ? inputBizName.value.trim() : '',
+        logoUrl: (previewLogoImg && previewLogoImg.src && !previewLogoImg.src.includes('placeholder')) ? previewLogoImg.src : '',
+        faviconUrl: (previewFaviconImg && previewFaviconImg.src && !previewFaviconImg.src.includes('placeholder')) ? previewFaviconImg.src : '',
         colorPrimary: inputColorPrimary ? inputColorPrimary.value : '#210087',
         colorSecondary: inputColorSecondary ? inputColorSecondary.value : '#F8F3EB',
         colorBg: inputColorBg ? inputColorBg.value : '#FF00DB',
         savedAt: new Date().toISOString()
       };
 
-      localStorage.setItem(BRAND_STORAGE_KEY, JSON.stringify(settingsData));
-      applyBrandingLive(settingsData);
-
-      const saveBtn = document.getElementById('btn-save-branding');
       if (saveBtn) {
-        const originalHtml = saveBtn.innerHTML;
-        saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> <span>¡Cambios Guardados con Éxito!</span>';
-        saveBtn.style.background = '#10b981';
-        setTimeout(() => {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Guardando en tu cuenta...</span>';
+      }
+
+      try {
+        // Guardar exclusivamente para esta cuenta en PostgreSQL
+        if (window.MagumApi && window.MagumApi.saveMyBranding) {
+          await window.MagumApi.saveMyBranding(settingsData);
+        }
+
+        // Guardar en almacenamiento local con clave única de esta empresa
+        localStorage.setItem(getAccountBrandStorageKey(), JSON.stringify(settingsData));
+
+        // Actualizar sesión activa si cambió el nombre del negocio
+        if (settingsData.businessName) {
+          try {
+            const curSession = JSON.parse(localStorage.getItem('magum_session') || '{}');
+            curSession.business = settingsData.businessName;
+            localStorage.setItem('magum_session', JSON.stringify(curSession));
+          } catch {}
+        }
+
+        applyBrandingLive(settingsData);
+
+        if (saveBtn) {
+          saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> <span>¡Identidad Guardada con Éxito!</span>';
+          saveBtn.style.background = '#10b981';
+          setTimeout(() => {
+            saveBtn.innerHTML = originalHtml;
+            saveBtn.style.background = '';
+            saveBtn.disabled = false;
+          }, 2500);
+        }
+      } catch (err) {
+        console.error('Error guardando marca:', err);
+        if (saveBtn) {
           saveBtn.innerHTML = originalHtml;
-          saveBtn.style.background = '';
-        }, 2500);
+          saveBtn.disabled = false;
+        }
+        if (window.MagumAlert) {
+          MagumAlert.error('Error al Guardar', err.message || 'No se pudo guardar la marca de la cuenta.');
+        }
       }
     });
   }

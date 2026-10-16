@@ -149,6 +149,11 @@ async function initDatabase() {
       ALTER TABLE accounts ADD COLUMN IF NOT EXISTS invite_expires_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
       ALTER TABLE accounts ADD COLUMN IF NOT EXISTS password_reset_code VARCHAR(100) DEFAULT NULL;
       ALTER TABLE accounts ADD COLUMN IF NOT EXISTS password_reset_expires_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
+
+      -- Columnas para marca e identidad independiente por cuenta
+      ALTER TABLE accounts ADD COLUMN IF NOT EXISTS logo_url TEXT DEFAULT NULL;
+      ALTER TABLE accounts ADD COLUMN IF NOT EXISTS favicon_url TEXT DEFAULT NULL;
+      ALTER TABLE accounts ADD COLUMN IF NOT EXISTS brand_settings JSONB DEFAULT '{}';
     `);
 
     // Actualizar inmediatamente las credenciales de los administradores en PostgreSQL con la nueva clave segura
