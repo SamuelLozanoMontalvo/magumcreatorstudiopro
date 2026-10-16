@@ -1,6 +1,6 @@
 # 🚀 MAGUM Creator Studio - Backend API
 
-Backend profesional desarrollado en **Node.js**, **Express**, **PostgreSQL** y autenticación segura con **JWT** y **bcrypt**, optimizado para despliegue en **Railway**.
+Backend profesional desarrollado en **Node.js**, **Express**, **PostgreSQL** y autenticación robusta con **JWT** y **bcrypt**, optimizado para despliegue en **Railway**.
 
 ---
 
@@ -8,23 +8,23 @@ Backend profesional desarrollado en **Node.js**, **Express**, **PostgreSQL** y a
 
 ```text
 backend/
-├── server.js               # Entrada principal del servidor Express & CORS
+├── server.js               # Entrada principal, cabeceras de seguridad, CORS y rate limiting
 ├── package.json            # Dependencias y scripts de ejecución
 ├── .env.example            # Plantilla de variables de entorno
-├── .env                    # Configuración activa local
 ├── railway.json            # Configuración para despliegue en Railway
+├── tests/                  # Suite de pruebas automatizadas
 └── src/
     ├── config/
-    │   └── db.js           # Pool PostgreSQL & migración automática de tablas (Seed)
+    │   └── db.js           # Pool PostgreSQL, migraciones de esquema y soporte UUID
     ├── middleware/
-    │   └── auth.js         # Verificación JWT y control de roles (Admin / Cliente / Equipo)
+    │   └── auth.js         # Verificación estricta de JWT, control de roles y validación de suspensiones
     └── routes/
-        ├── auth.routes.js     # Login (Super Admin, Clientes y Profesionales) y /me
-        ├── accounts.routes.js # CRUD de Cuentas para el Super Admin
-        ├── crm.routes.js      # CRUD de Contactos, acciones masivas y difusiones
-        ├── team.routes.js     # Profesionales del equipo con acceso a la plataforma
-        ├── billing.routes.js  # CRM de Facturación y cálculo de cobros
-        └── settings.routes.js # Ajustes de marca y plataforma
+        ├── auth.routes.js     # Login unificado con Bcrypt y /me
+        ├── accounts.routes.js # CRUD de Cuentas, protección de administradores y soft delete
+        ├── crm.routes.js      # CRUD de Contactos, importación transaccional y deduplicación
+        ├── team.routes.js     # Profesionales del equipo con control de acceso por titular
+        ├── billing.routes.js  # Facturación, planes prepago y métricas MRR
+        └── settings.routes.js # Ajustes de marca y plataforma protegidos
 ```
 
 ---
@@ -37,50 +37,26 @@ backend/
    npm install
    ```
 
-2. Inicia el servidor en modo desarrollo:
+2. Configura tu archivo `.env` basado en `.env.example`.
+
+3. Inicia el servidor:
    ```bash
    npm start
    # o con recarga automática:
    npm run dev
    ```
 
-3. El servidor iniciará en:
-   ```text
-   http://localhost:5000
-   ```
-   - Healthcheck: `http://localhost:5000/api/health`
+4. Healthcheck: `http://localhost:5000/api/health`
 
 ---
 
-## 🚂 Despliegue en Railway (Paso a Paso)
+## 🚂 Despliegue en Railway
 
-1. Ingresa a [railway.app](https://railway.app) y crea un **New Project**.
-2. **Añade la Base de Datos:**
-   - Haz clic en `+ New` -> `Database` -> `Add PostgreSQL`.
-3. **Despliega el Backend:**
-   - Haz clic en `+ New` -> `GitHub Repo` -> Selecciona tu repositorio `Magum creator Studio`.
-   - En la pestaña **Settings** del servicio en Railway:
-     - **Root Directory:** `/backend`
-     - **Start Command:** `npm start`
-4. **Conecta las Variables de Entorno:**
-   - En la pestaña **Variables** del servicio de Node, agrega:
-     - `DATABASE_URL`: `${{Postgres.DATABASE_URL}}` *(Railway la auto-completa)*
-     - `JWT_SECRET`: `tu_clave_secreta_super_segura_2026`
-     - `ADMIN_USERNAME`: `McSAdmin`
-     - `ADMIN_PASSWORD`: `MagumAdmin#2030`
-     - `NODE_ENV`: `production`
-5. **Listo:** Al iniciar, el backend ejecutará `initDatabase()` de forma automática, creando todas las tablas en PostgreSQL e insertando los datos iniciales de prueba.
-
----
-
-## 🔐 Credenciales Iniciales
-
-- **Super Administrador:**
-  - Usuario: `McSAdmin`
-  - Contraseña: `MagumAdmin#2030`
-- **Cliente Demo:**
-  - Correo: `cliente@automotor.com`
-  - Contraseña: `Auto2026*`
-- **Profesional Demo:**
-  - Correo: `mateo@automotor.com`
-  - Contraseña: `Mateo2026*`
+1. Crea un proyecto en [railway.app](https://railway.app) con **PostgreSQL**.
+2. Conecta el repositorio de GitHub.
+3. Define las variables de entorno en Railway:
+   - `DATABASE_URL`: URL de conexión provista por PostgreSQL en Railway.
+   - `JWT_SECRET`: Clave secreta criptográfica de alta entropía.
+   - `INITIAL_ADMIN_PASSWORD`: Contraseña asignada al Super Administrador inicial.
+   - `NODE_ENV`: `production`
+   - `ALLOWED_ORIGINS`: Dominios autorizados para CORS separados por coma.

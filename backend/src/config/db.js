@@ -102,38 +102,41 @@ async function initDatabase() {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
 
-      -- Migraciones automáticas: Multi-cuenta por email y borrado suave
+      -- Migraciones automáticas: Multi-cuenta por email, borrado suave y soporte de UUIDs
       ALTER TABLE accounts DROP CONSTRAINT IF EXISTS accounts_email_key;
       ALTER TABLE crm_contacts ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
       ALTER TABLE accounts ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
       ALTER TABLE professionals ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
+
+      -- Ampliación de columnas de ID para UUIDs
+      ALTER TABLE accounts ALTER COLUMN id TYPE VARCHAR(60);
+      ALTER TABLE professionals ALTER COLUMN id TYPE VARCHAR(60);
+      ALTER TABLE professionals ALTER COLUMN account_id TYPE VARCHAR(60);
+      ALTER TABLE crm_contacts ALTER COLUMN id TYPE VARCHAR(60);
+      ALTER TABLE crm_contacts ALTER COLUMN account_id TYPE VARCHAR(60);
+      ALTER TABLE billing ALTER COLUMN id TYPE VARCHAR(60);
+      ALTER TABLE billing ALTER COLUMN account_id TYPE VARCHAR(60);
+      ALTER TABLE admin_users ALTER COLUMN id TYPE VARCHAR(60);
     `);
 
-    // Limpieza de registros automáticos de prueba / demostración solicitada por el usuario
+    // Garantizar que el Super Administrador inicial exista en PostgreSQL si la tabla está vacía
     try {
-      await client.query(`
-        DELETE FROM crm_contacts WHERE id IN ('C-101', 'C-102', 'C-103', 'C-104') OR notes LIKE '%flota vehicular VIP%';
-        DELETE FROM professionals WHERE id IN ('P-101', 'P-102', 'P-103') OR email LIKE '%@automotor.com';
-        DELETE FROM billing WHERE id IN ('B-101', 'B-102', 'B-103', 'B-104') OR business IN ('AutoMotor Cartagena', 'Spa Bella Luna', 'Dental Group Cartagena', 'Fitness Club Pro', 'Constructora Los Andes');
-        DELETE FROM accounts WHERE id IN ('MC8K29L', 'SL7K92X', 'LR4M21B', 'CM8N45T', 'VG3P78F', 'CA9P12K') OR business IN ('AutoMotor Cartagena', 'Spa Bella Luna', 'Dental Group Cartagena', 'Fitness Club Pro', 'Constructora Los Andes') OR email IN ('cliente@automotor.com', 'contacto@bellalunaspa.co', 'admin@dentalgroup.com', 'valeria@fitclubpro.co');
-      `);
-      console.log('🧹 Limpieza de registros de prueba completada.');
-    } catch (cleanErr) {
-      console.warn('Aviso en limpieza de registros demo:', cleanErr.message);
-    }
-
-    // Garantizar que los administradores del sistema estén siempre listos en PostgreSQL
-    try {
-      const adminHash = await bcrypt.hash('MagumAdmin#2030', 10);
-      await client.query(`
-        INSERT INTO admin_users (id, name, username, email, password_hash, role)
-        VALUES 
-          ('ADM-SAMY01', 'Samy Lozano', 'samylozano', 'samylozano00@gmail.com', $1, 'admin'),
-          ('ADM-MCS01', 'Super Administrador', 'mcsadmin', 'mcsadmin@magum.com', $1, 'admin')
-        ON CONFLICT (email) DO NOTHING;
-      `, [adminHash]);
+      const adminCountRes = await client.query('SELECT COUNT(*) FROM admin_users');
+      const adminCount = parseInt(adminCountRes.rows[0].count, 10);
+      if (adminCount === 0) {
+        const initialPass = process.env.INITIAL_ADMIN_PASSWORD || process.env.ADMIN_PASSWORD || 'MagumAdmin#2030';
+        const adminHash = await bcrypt.hash(initialPass, 10);
+        await client.query(`
+          INSERT INTO admin_users (id, name, username, email, password_hash, role)
+          VALUES 
+            ('ADM-SAMY01', 'Samy Lozano', 'samylozano', 'samylozano00@gmail.com', $1, 'admin'),
+            ('ADM-MCS01', 'Super Administrador', 'mcsadmin', 'mcsadmin@magum.com', $1, 'admin')
+          ON CONFLICT (email) DO NOTHING;
+        `, [adminHash]);
+        console.log('👑 Administradores iniciales registrados en PostgreSQL.');
+      }
     } catch (e) {
-      console.warn('Aviso al asegurar administradores:', e.message);
+      console.warn('Aviso al verificar administradores iniciales:', e.message);
     }
 
     console.log('✅ Esquema de base de datos verificado y listo.');

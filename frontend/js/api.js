@@ -3,21 +3,17 @@
    ========================================================================== */
 
 const API_BASE_URL = (function determineApiBase() {
-  // 1. Si el usuario configuró una URL personalizada de Railway
-  const customUrl = localStorage.getItem('magum_backend_url');
-  if (customUrl) return customUrl.replace(/\/+$/, '');
-
-  // 2. Si el frontend es servido por el mismo servidor de Express (mismo origen)
+  // 1. Si el frontend es servido por el mismo servidor de Express (mismo origen)
   if (window.location.port === '5000' || window.location.port === '8080' || window.location.pathname.startsWith('/api')) {
     return '/api';
   }
 
-  // 3. Si se ejecuta en producción (ej. Vercel u otro dominio web)
+  // 2. Si se ejecuta en producción (ej. Vercel u otro dominio web)
   if (window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
     return 'https://magumcreatorstudiopro-production.up.railway.app/api';
   }
 
-  // 4. Si se ejecuta en Live Server local o file://, apuntar al backend local
+  // 3. Entorno de desarrollo local
   return 'http://localhost:5000/api';
 })();
 
@@ -45,8 +41,7 @@ class MagumApiClient {
 
     const headers = {
       'Content-Type': 'application/json',
-      'x-account-id': session.accountId || 'MC8K29L',
-      'x-user-role': session.role || 'client',
+      ...(session.accountId ? { 'x-account-id': session.accountId } : {}),
       ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       ...(options.headers || {})
     };

@@ -155,36 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const backendEmails = new Set(backendAccounts.map(a => (a.email || '').toLowerCase().trim()));
         const backendIds = new Set(backendAccounts.map(a => String(a.id)));
 
-        // Buscar cuentas creadas localmente por el usuario que no estén aún en PostgreSQL
-        const unsynced = localAccounts.filter(acc => {
-          if (!acc || !acc.email) return false;
-          if (backendEmails.has(acc.email.toLowerCase().trim())) return false;
-          if (backendIds.has(String(acc.id))) return false;
-          return true;
-        });
-
-        // Subir a PostgreSQL cada cuenta no sincronizada
-        for (const acc of unsynced) {
-          try {
-            const apiRes = await window.MagumApi.createAccount({
-              firstName: acc.firstName,
-              lastName: acc.lastName,
-              business: acc.business,
-              email: acc.email,
-              password: acc.password || 'Auto2026*',
-              modules: acc.modules || { social: true, web: true, crm: true }
-            });
-            if (apiRes && apiRes.data) {
-              backendAccounts.unshift(apiRes.data);
-            }
-          } catch (err) {
-            console.warn('Auto-sync unsynced account error:', err);
-          }
-        }
-
-        if (backendAccounts.length > 0) {
-          saveAccounts(backendAccounts);
-        }
+        saveAccounts(backendAccounts);
         render();
       }
     } catch (e) {
@@ -462,8 +433,6 @@ document.addEventListener('DOMContentLoaded', () => {
         lastName,
         business,
         email,
-        password, // Preservar para sincronización consistente
-        passwordHash, // Contraseña protegida con SHA-256
         modules: {
           social: socialCheck,
           web: webCheck,
@@ -989,35 +958,6 @@ document.addEventListener('DOMContentLoaded', () => {
           const backendEmails = new Set(backendAdmins.map(a => (a.email || '').toLowerCase().trim()));
           const backendUsernames = new Set(backendAdmins.map(a => (a.username || '').toLowerCase().trim()));
 
-          // Encontrar administradores locales creados que aún no están en PostgreSQL
-          const unsynced = localAdmins.filter(adm => {
-            if (!adm || !adm.email) return false;
-            if (adm.username === 'mcsadmin' || adm.email === 'mcsadmin@magum.com') return false;
-            if (backendEmails.has(adm.email.toLowerCase().trim())) return false;
-            if (backendUsernames.has(adm.username.toLowerCase().trim())) return false;
-            return true;
-          });
-
-          for (const adm of unsynced) {
-            try {
-              const createRes = await client.request('/accounts/admins', {
-                method: 'POST',
-                body: JSON.stringify({
-                  name: adm.name,
-                  username: adm.username,
-                  email: adm.email,
-                  password: adm.password || 'MagumAdmin#2030',
-                  role: adm.role || 'admin'
-                })
-              });
-              if (createRes && createRes.data) {
-                backendAdmins.unshift(createRes.data);
-              }
-            } catch (err) {
-              console.warn('Auto-sync unsynced admin error:', err);
-            }
-          }
-
           saveLocalAdminUsers(backendAdmins);
           return backendAdmins;
         }
@@ -1173,7 +1113,6 @@ document.addEventListener('DOMContentLoaded', () => {
         name,
         username,
         email,
-        password, // Guardado localmente para validación offline
         role: 'admin',
         createdAt: new Date().toISOString()
       };

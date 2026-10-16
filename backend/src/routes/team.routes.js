@@ -1,42 +1,36 @@
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const db = require('../config/db');
-const { verifyToken, requireClientOrTeam } = require('../middleware/auth');
+const { verifyToken, requireClientOrTeam, requireAccountOwnerOrAdmin } = require('../middleware/auth');
 
-router.use(verifyToken, requireClientOrTeam);
+router.use(verifyToken);
 
-// Helper para obtener el account_id adecuado según el usuario garantizando existencia en accounts
-async function resolveAccountId(req) {
-  let targetId = (req.user && req.user.accountId) || (req.headers && req.headers['x-account-id']);
-  if (!targetId || targetId === 'demo') {
-    targetId = 'MC8K29L';
+// Helper estricto para resolver el account_id sin fugas entre cuentas
+function resolveAccountId(req) {
+  if (req.user && (req.user.role === 'client' || req.user.role === 'team_member')) {
+    return req.user.accountId;
   }
-  try {
-    const acc = await db.query('SELECT id FROM accounts WHERE id = $1 LIMIT 1', [targetId]);
-    if (acc.rows.length > 0) {
-      return targetId;
-    }
-    if (req.user && req.user.email) {
-      const accByEmail = await db.query('SELECT id FROM accounts WHERE LOWER(email) = LOWER($1) LIMIT 1', [req.user.email]);
-      if (accByEmail.rows.length > 0) return accByEmail.rows[0].id;
-    }
-    const anyAcc = await db.query('SELECT id FROM accounts ORDER BY created_at ASC LIMIT 1');
-    if (anyAcc.rows.length > 0) return anyAcc.rows[0].id;
-  } catch (err) {
-    console.warn('Error resolviendo accountId en team:', err.message);
+  if (req.user && req.user.role === 'admin') {
+    const requestedId = req.query.accountId || (req.body && req.body.accountId) || req.headers['x-account-id'];
+    return requestedId || null;
   }
-  return targetId;
+  return null;
 }
 
-// GET /api/team - Listar profesionales de la cuenta
-router.get('/', async (req, res) => {
+// GET /api/team - Listar profesionales de la cuenta (Accesible para titular, admin y miembros)
+router.get('/', requireClientOrTeam, async (req, res) => {
   try {
-    const accountId = await resolveAccountId(req);
+    const accountId = resolveAccountId(req);
+    if (!accountId) {
+      return res.status(400).json({ success: false, message: 'Se requiere cuenta asociada.' });
+    }
+
     const result = await db.query(`
       SELECT id, name, role, email, phone, schedule, created_at
       FROM professionals
-      WHERE account_id = $1
+      WHERE account_id = $1 AND deleted_at IS NULL
       ORDER BY created_at DESC
     `, [accountId]);
 
@@ -50,10 +44,14 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/team - Crear nuevo profesional
-router.post('/', async (req, res) => {
+// POST /api/team - Crear nuevo profesional (SOLO titular de la cuenta o Super Admin)
+router.post('/', requireAccountOwnerOrAdmin, async (req, res) => {
   try {
-    const accountId = await resolveAccountId(req);
+    const accountId = resolveAccountId(req);
+    if (!accountId) {
+      return res.status(400).json({ success: false, message: 'Se requiere cuenta asociada.' });
+    }
+
     const { name, role, email, password, phone, schedule } = req.body;
 
     if (!name || !role || !email || !password) {
@@ -64,9 +62,13 @@ router.post('/', async (req, res) => {
     }
 
     const emailClean = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailClean)) {
+      return res.status(400).json({ success: false, message: 'El formato de correo no es válido.' });
+    }
 
     // Comprobar correo único
-    const exists = await db.query('SELECT id FROM professionals WHERE LOWER(email) = $1', [emailClean]);
+    const exists = await db.query('SELECT id FROM professionals WHERE LOWER(email) = $1 AND deleted_at IS NULL', [emailClean]);
     if (exists.rows.length > 0) {
       return res.status(400).json({
         success: false,
@@ -74,7 +76,7 @@ router.post('/', async (req, res) => {
       });
     }
 
-    const newId = 'P-' + Math.floor(1000 + Math.random() * 9000);
+    const newId = 'P-' + crypto.randomUUID();
     const passwordHash = await bcrypt.hash(password.trim(), 10);
 
     const result = await db.query(`
@@ -94,10 +96,14 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT /api/team/:id - Actualizar profesional
-router.put('/:id', async (req, res) => {
+// PUT /api/team/:id - Actualizar profesional (SOLO titular de la cuenta o Super Admin)
+router.put('/:id', requireAccountOwnerOrAdmin, async (req, res) => {
   try {
-    const accountId = await resolveAccountId(req);
+    const accountId = resolveAccountId(req);
+    if (!accountId) {
+      return res.status(400).json({ success: false, message: 'Se requiere cuenta asociada.' });
+    }
+
     const { id } = req.params;
     const { name, role, email, password, phone, schedule } = req.body;
 
@@ -120,7 +126,7 @@ router.put('/:id', async (req, res) => {
     }
 
     params.push(id, accountId);
-    queryText += ` WHERE id = $${params.length - 1} AND account_id = $${params.length} RETURNING id, name, role, email, phone, schedule`;
+    queryText += ` WHERE id = $${params.length - 1} AND account_id = $${params.length} AND deleted_at IS NULL RETURNING id, name, role, email, phone, schedule`;
 
     const result = await db.query(queryText, params);
     if (result.rows.length === 0) {
@@ -138,14 +144,25 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/team/:id - Eliminar acceso del profesional
-router.delete('/:id', async (req, res) => {
+// DELETE /api/team/:id - Eliminar acceso del profesional (SOLO titular o Super Admin)
+router.delete('/:id', requireAccountOwnerOrAdmin, async (req, res) => {
   try {
-    const accountId = await resolveAccountId(req);
-    const { id } = req.params;
+    const accountId = resolveAccountId(req);
+    if (!accountId) {
+      return res.status(400).json({ success: false, message: 'Se requiere cuenta asociada.' });
+    }
 
-    await db.query('DELETE FROM professionals WHERE id = $1 AND account_id = $2', [id, accountId]);
-    res.json({ success: true, message: 'Acceso del profesional revocado y eliminado.' });
+    const { id } = req.params;
+    const result = await db.query(
+      'UPDATE professionals SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1 AND account_id = $2 AND deleted_at IS NULL RETURNING id',
+      [id, accountId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Profesional no encontrado.' });
+    }
+
+    res.json({ success: true, message: 'Acceso del profesional revocado y archivado.' });
   } catch (error) {
     console.error('Error en DELETE /api/team/:id:', error);
     res.status(500).json({ success: false, message: 'Error al eliminar profesional.' });

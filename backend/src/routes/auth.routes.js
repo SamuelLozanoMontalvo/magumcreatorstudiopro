@@ -6,10 +6,9 @@ const db = require('../config/db');
 const { verifyToken, JWT_SECRET } = require('../middleware/auth');
 require('dotenv').config();
 
-const ADMIN_USERNAME = (process.env.ADMIN_USERNAME || 'McSAdmin').toLowerCase();
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'MagumAdmin#2030';
+const GENERIC_AUTH_ERROR = 'Usuario, correo o contraseña incorrectos.';
 
-// POST /api/auth/login
+// POST /api/auth/login - Inicio de sesión unificado y seguro sin puertas traseras
 router.post('/login', async (req, res) => {
   try {
     const { username, email, password, accountId } = req.body;
@@ -23,46 +22,18 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    const GENERIC_AUTH_ERROR = 'Usuario, correo o contraseña incorrectos.';
-
-    // 1. Verificación de Super Administrador
-    if (identifier === ADMIN_USERNAME || identifier === 'admin' || identifier === 'mcsadmin@magum.com' || identifier === 'samylozano00@gmail.com') {
-      if (cleanPassword === ADMIN_PASSWORD || cleanPassword === 'MagumAdmin#2030' || cleanPassword === 'M2030cs' || cleanPassword === 'Magum2026*' || cleanPassword === 'Auto2026*') {
-        const token = jwt.sign(
-          {
-            role: 'admin',
-            username: 'McSAdmin',
-            name: 'Super Administrador',
-            business: 'MAGUM Platform Hub'
-          },
-          JWT_SECRET,
-          { expiresIn: '7d' }
-        );
-
-        return res.json({
-          success: true,
-          message: 'Bienvenido, Super Administrador.',
-          token,
-          user: {
-            role: 'admin',
-            username: 'McSAdmin',
-            name: 'Super Administrador',
-            business: 'MAGUM Platform Hub'
-          }
-        });
-      }
-    }
-
-    // 1.5. Verificación de Administradores adicionales en PostgreSQL
+    // 1. Verificación de Administradores en PostgreSQL (Tabla admin_users)
     try {
       const adminResult = await db.query(
-        'SELECT * FROM admin_users WHERE LOWER(username) = $1 OR LOWER(email) = $1 LIMIT 1',
+        'SELECT id, name, username, email, password_hash, role FROM admin_users WHERE LOWER(username) = $1 OR LOWER(email) = $1 LIMIT 1',
         [identifier]
       );
+
       if (adminResult.rows.length > 0) {
         const adminUser = adminResult.rows[0];
         const isMatch = await bcrypt.compare(cleanPassword, adminUser.password_hash);
-        if (isMatch || adminUser.password_hash === cleanPassword) {
+
+        if (isMatch) {
           const token = jwt.sign(
             {
               role: 'admin',
@@ -92,146 +63,86 @@ router.post('/login', async (req, res) => {
         }
       }
     } catch (adminErr) {
-      console.warn('Advertencia al consultar admin_users:', adminErr.message);
+      console.warn('[Auth] Error consultando admin_users:', adminErr.message);
     }
 
-    // 2. Verificación de Cuenta de Cliente en PostgreSQL (Soporta Múltiples Empresas por Correo)
-    const accountResult = await db.query(
-      'SELECT * FROM accounts WHERE LOWER(email) = $1 AND deleted_at IS NULL ORDER BY created_at DESC',
-      [identifier]
-    );
-
-    if (accountResult.rows.length > 0) {
-      // Verificar si la contraseña coincide con las cuentas del usuario
-      let validAccounts = [];
-      for (const acc of accountResult.rows) {
-        if (acc.status === 'inactive') continue;
-
-        const isMatch = await bcrypt.compare(cleanPassword, acc.password_hash);
-        const isLegacyMatch = !isMatch && (
-          acc.password_hash === cleanPassword || 
-          cleanPassword === 'Auto2026*' || 
-          cleanPassword === 'Magum2026*' || 
-          cleanPassword === 'MagumAdmin#2030'
-        );
-
-        if (isMatch || isLegacyMatch) {
-          validAccounts.push(acc);
-        }
-      }
-
-      if (validAccounts.length === 0) {
-        return res.status(401).json({
-          success: false,
-          message: GENERIC_AUTH_ERROR
-        });
-      }
-
-      // Si el cliente tiene múltiples empresas activas y aún no seleccionó cuál, solicitar selección
-      if (validAccounts.length > 1 && !accountId) {
-        return res.json({
-          success: true,
-          multipleAccounts: true,
-          message: 'Selecciona la empresa a la que deseas acceder.',
-          accounts: validAccounts.map(acc => ({
-            id: acc.id,
-            business: acc.business,
-            clientName: `${acc.first_name} ${acc.last_name}`,
-            email: acc.email,
-            modules: {
-              social: acc.module_social,
-              web: acc.module_web,
-              crm: acc.module_crm
-            }
-          }))
-        });
-      }
-
-      // Si especificó cuenta o solo tiene una
-      let account = validAccounts[0];
-      if (accountId) {
-        const found = validAccounts.find(a => a.id === accountId);
-        if (found) account = found;
-      }
-
-      const token = jwt.sign(
-        {
-          role: 'client',
-          accountId: account.id,
-          email: account.email,
-          clientName: `${account.first_name} ${account.last_name}`,
-          business: account.business,
-          modules: {
-            social: account.module_social,
-            web: account.module_web,
-            crm: account.module_crm
-          }
-        },
-        JWT_SECRET,
-        { expiresIn: '7d' }
+    // 2. Verificación de Cuentas de Cliente en PostgreSQL
+    try {
+      const accountResult = await db.query(
+        'SELECT * FROM accounts WHERE LOWER(email) = $1 AND deleted_at IS NULL ORDER BY created_at DESC',
+        [identifier]
       );
 
-      return res.json({
-        success: true,
-        message: `Bienvenido a ${account.business}.`,
-        token,
-        user: {
-          role: 'client',
-          accountId: account.id,
-          email: account.email,
-          clientName: `${account.first_name} ${account.last_name}`,
-          business: account.business,
-          modules: {
-            social: account.module_social,
-            web: account.module_web,
-            crm: account.module_crm
-          },
-          availableAccounts: validAccounts.map(a => ({
-            id: a.id,
-            business: a.business,
-            clientName: `${a.first_name} ${a.last_name}`,
-            modules: { social: a.module_social, web: a.module_web, crm: a.module_crm }
-          }))
+      if (accountResult.rows.length > 0) {
+        let validAccounts = [];
+
+        for (const acc of accountResult.rows) {
+          if (acc.status === 'inactive') continue;
+
+          // Comparación estricta y segura con Bcrypt (Cero puertas traseras ni texto plano)
+          const isMatch = await bcrypt.compare(cleanPassword, acc.password_hash);
+          if (isMatch) {
+            validAccounts.push(acc);
+          }
         }
-      });
-    }
 
-    // 3. Verificación de Profesional del Equipo en PostgreSQL
-    const profResult = await db.query(
-      `SELECT p.*, a.business, a.status as account_status, a.module_social, a.module_web, a.module_crm 
-       FROM professionals p
-       JOIN accounts a ON p.account_id = a.id
-       WHERE LOWER(p.email) = $1 LIMIT 1`,
-      [identifier]
-    );
+        if (validAccounts.length === 0) {
+          // Verificar si todas las cuentas existentes estaban suspendidas
+          const anySuspended = accountResult.rows.some(a => a.status === 'inactive');
+          if (anySuspended) {
+            // Verificar si la clave era correcta para dar el mensaje de suspensión
+            for (const acc of accountResult.rows) {
+              if (await bcrypt.compare(cleanPassword, acc.password_hash)) {
+                return res.status(403).json({
+                  success: false,
+                  message: 'Esta cuenta se encuentra suspendida. Comunícate con el administrador.'
+                });
+              }
+            }
+          }
+          return res.status(401).json({
+            success: false,
+            message: GENERIC_AUTH_ERROR
+          });
+        }
 
-    if (profResult.rows.length > 0) {
-      const prof = profResult.rows[0];
+        // Si el usuario tiene múltiples empresas activas y aún no especificó cuál ingresar
+        if (validAccounts.length > 1 && !accountId) {
+          return res.json({
+            success: true,
+            multipleAccounts: true,
+            message: 'Selecciona la empresa a la que deseas acceder.',
+            accounts: validAccounts.map(acc => ({
+              id: acc.id,
+              business: acc.business,
+              clientName: `${acc.first_name} ${acc.last_name}`,
+              email: acc.email,
+              modules: {
+                social: acc.module_social,
+                web: acc.module_web,
+                crm: acc.module_crm
+              }
+            }))
+          });
+        }
 
-      if (prof.account_status === 'inactive') {
-        return res.status(403).json({
-          success: false,
-          message: 'La empresa principal se encuentra inactiva. Comunícate con el administrador.'
-        });
-      }
+        let account = validAccounts[0];
+        if (accountId) {
+          const found = validAccounts.find(a => a.id === accountId);
+          if (found) account = found;
+        }
 
-      const isMatch = await bcrypt.compare(cleanPassword, prof.password_hash);
-      const isLegacyMatch = !isMatch && (prof.password_hash === cleanPassword || prof.password_hash === 'Mateo2026*' || cleanPassword === 'Auto2026*');
-
-      if (isMatch || isLegacyMatch) {
         const token = jwt.sign(
           {
-            role: 'team_member',
-            profId: prof.id,
-            accountId: prof.account_id,
-            email: prof.email,
-            name: prof.name,
-            roleTitle: prof.role,
-            business: prof.business,
+            role: 'client',
+            accountId: account.id,
+            email: account.email,
+            clientName: `${account.first_name} ${account.last_name}`,
+            business: account.business,
             modules: {
-              social: prof.module_social,
-              web: prof.module_web,
-              crm: prof.module_crm
+              social: account.module_social,
+              web: account.module_web,
+              crm: account.module_crm
             }
           },
           JWT_SECRET,
@@ -240,34 +151,107 @@ router.post('/login', async (req, res) => {
 
         return res.json({
           success: true,
-          message: `Acceso autorizado para ${prof.name} (${prof.role}).`,
+          message: `Bienvenido a ${account.business}.`,
           token,
           user: {
-            role: 'team_member',
-            profId: prof.id,
-            accountId: prof.account_id,
-            email: prof.email,
-            name: prof.name,
-            roleTitle: prof.role,
-            business: prof.business,
+            role: 'client',
+            accountId: account.id,
+            business: account.business,
+            clientName: `${account.first_name} ${account.last_name}`,
+            email: account.email,
             modules: {
-              social: prof.module_social,
-              web: prof.module_web,
-              crm: prof.module_crm
-            }
+              social: account.module_social,
+              web: account.module_web,
+              crm: account.module_crm
+            },
+            availableAccounts: validAccounts.map(a => ({
+              id: a.id,
+              business: a.business,
+              clientName: `${a.first_name} ${a.last_name}`,
+              modules: { social: a.module_social, web: a.module_web, crm: a.module_crm }
+            }))
           }
         });
       }
+    } catch (accErr) {
+      console.warn('[Auth] Error consultando accounts:', accErr.message);
     }
 
-    // Si ninguna credencial fue válida, retornar mensaje genérico sin dar pistas
+    // 3. Verificación de Profesionales del Equipo en PostgreSQL
+    try {
+      const profResult = await db.query(
+        `SELECT p.*, a.business, a.status as account_status, a.deleted_at as account_deleted_at,
+                a.module_social, a.module_web, a.module_crm 
+         FROM professionals p
+         JOIN accounts a ON p.account_id = a.id
+         WHERE LOWER(p.email) = $1 AND p.deleted_at IS NULL LIMIT 1`,
+        [identifier]
+      );
+
+      if (profResult.rows.length > 0) {
+        const prof = profResult.rows[0];
+
+        if (prof.account_status === 'inactive' || prof.account_deleted_at) {
+          return res.status(403).json({
+            success: false,
+            message: 'La empresa principal se encuentra inactiva o ha sido dada de baja.'
+          });
+        }
+
+        const isMatch = await bcrypt.compare(cleanPassword, prof.password_hash);
+        if (isMatch) {
+          const token = jwt.sign(
+            {
+              role: 'team_member',
+              profId: prof.id,
+              accountId: prof.account_id,
+              email: prof.email,
+              name: prof.name,
+              roleTitle: prof.role,
+              business: prof.business,
+              modules: {
+                social: prof.module_social,
+                web: prof.module_web,
+                crm: prof.module_crm
+              }
+            },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+          );
+
+          return res.json({
+            success: true,
+            message: `Acceso autorizado para ${prof.name} (${prof.role}).`,
+            token,
+            user: {
+              role: 'team_member',
+              profId: prof.id,
+              accountId: prof.account_id,
+              email: prof.email,
+              name: prof.name,
+              roleTitle: prof.role,
+              business: prof.business,
+              modules: {
+                social: prof.module_social,
+                web: prof.module_web,
+                crm: prof.module_crm
+              }
+            }
+          });
+        }
+      }
+    } catch (profErr) {
+      console.warn('[Auth] Error consultando professionals:', profErr.message);
+    }
+
+    // Si ninguna credencial fue válida, retornar mensaje genérico unificado
     return res.status(401).json({
       success: false,
       message: GENERIC_AUTH_ERROR
     });
 
   } catch (error) {
-    console.error('Error en POST /api/auth/login:', error);
+    console.error('Error no capturado en POST /api/auth/login:', error);
     return res.status(500).json({
       success: false,
       message: 'Error interno del servidor al procesar el inicio de sesión.'
@@ -275,7 +259,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// GET /api/auth/me
+// GET /api/auth/me - Obtener información del usuario autenticado
 router.get('/me', verifyToken, (req, res) => {
   res.json({
     success: true,

@@ -746,14 +746,8 @@ body.dark-mode .icon-crm { background: rgba(253, 211, 68, 0.15); color: var(--br
   color: #64748b;
 }
 
-.badge-status-archived {
-  background: #fff7ed;
-  color: #c2410c;
-}
-
 body.dark-mode .badge-status-active { background: rgba(5, 150, 105, 0.2); color: #6ee7b7; }
 body.dark-mode .badge-status-inactive { background: rgba(255, 255, 255, 0.08); color: #94a3b8; }
-body.dark-mode .badge-status-archived { background: rgba(194, 65, 12, 0.2); color: #fdba74; }
 
 .status-indicator-dot {
   width: 7px;
@@ -802,16 +796,6 @@ body.dark-mode .badge-status-archived { background: rgba(194, 65, 12, 0.2); colo
 
 body.dark-mode .btn-impersonate {
   background: rgba(255, 0, 219, 0.12);
-}
-
-.btn-archive-acc:hover {
-  border-color: #ea580c;
-  color: #ea580c;
-  background: #fff7ed;
-}
-
-body.dark-mode .btn-archive-acc:hover {
-  background: rgba(234, 88, 12, 0.15);
 }
 
 .btn-delete-acc:hover {

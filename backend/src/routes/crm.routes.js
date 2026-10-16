@@ -1,40 +1,36 @@
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
 const db = require('../config/db');
 const { verifyToken, requireClientOrTeam } = require('../middleware/auth');
 
 router.use(verifyToken, requireClientOrTeam);
 
-// Helper para obtener el account_id adecuado según el usuario garantizando existencia en accounts
-async function resolveAccountId(req) {
-  let targetId = (req.user && req.user.accountId) || (req.headers && req.headers['x-account-id']);
-  if (!targetId || targetId === 'demo') {
-    targetId = 'MC8K29L';
+// Helper estricto para resolver el account_id sin fugas entre cuentas
+function resolveAccountId(req) {
+  if (req.user && (req.user.role === 'client' || req.user.role === 'team_member')) {
+    return req.user.accountId;
   }
-  try {
-    const acc = await db.query('SELECT id FROM accounts WHERE id = $1 LIMIT 1', [targetId]);
-    if (acc.rows.length > 0) {
-      return targetId;
-    }
-    if (req.user && req.user.email) {
-      const accByEmail = await db.query('SELECT id FROM accounts WHERE LOWER(email) = LOWER($1) LIMIT 1', [req.user.email]);
-      if (accByEmail.rows.length > 0) return accByEmail.rows[0].id;
-    }
-    const anyAcc = await db.query('SELECT id FROM accounts ORDER BY created_at ASC LIMIT 1');
-    if (anyAcc.rows.length > 0) return anyAcc.rows[0].id;
-  } catch (err) {
-    console.warn('Error resolviendo accountId:', err.message);
+  if (req.user && req.user.role === 'admin') {
+    const requestedId = req.query.accountId || (req.body && req.body.accountId) || req.headers['x-account-id'];
+    return requestedId || null;
   }
-  return targetId;
+  return null;
 }
 
-// GET /api/crm/contacts - Obtener contactos y métricas
+// GET /api/crm/contacts - Obtener contactos y métricas con aislamiento estricto
 router.get('/contacts', async (req, res) => {
   try {
-    const accountId = await resolveAccountId(req);
+    const accountId = resolveAccountId(req);
+    if (!accountId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Se requiere especificar accountId para consultar contactos de CRM.'
+      });
+    }
+
     const { search, segment } = req.query;
 
-    // Solo devolver contactos activos (Borrado Suave: deleted_at IS NULL)
     let queryText = 'SELECT * FROM crm_contacts WHERE account_id = $1 AND deleted_at IS NULL';
     const params = [accountId];
 
@@ -44,7 +40,7 @@ router.get('/contacts', async (req, res) => {
     }
 
     if (search) {
-      params.push(`%${search.toLowerCase()}%`);
+      params.push(`%${search.toLowerCase().trim()}%`);
       queryText += ` AND (LOWER(name) LIKE $${params.length} OR LOWER(email) LIKE $${params.length} OR phone LIKE $${params.length} OR LOWER(company) LIKE $${params.length})`;
     }
 
@@ -81,10 +77,14 @@ router.get('/contacts', async (req, res) => {
   }
 });
 
-// POST /api/crm/contacts - Crear contacto
+// POST /api/crm/contacts - Crear contacto con UUID único sin colisiones
 router.post('/contacts', async (req, res) => {
   try {
-    const accountId = await resolveAccountId(req);
+    const accountId = resolveAccountId(req);
+    if (!accountId) {
+      return res.status(400).json({ success: false, message: 'Se requiere una cuenta asociada para crear contactos.' });
+    }
+
     const { name, email, phone, age, company, segment, notes } = req.body;
 
     if (!name || !email || !phone) {
@@ -94,15 +94,34 @@ router.post('/contacts', async (req, res) => {
       });
     }
 
-    const newId = 'C-' + Math.floor(1000 + Math.random() * 9000);
+    const emailClean = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailClean)) {
+      return res.status(400).json({ success: false, message: 'El formato de correo electrónico no es válido.' });
+    }
+
+    // Verificar si ya existe contacto activo con ese correo en la cuenta
+    const existing = await db.query(
+      'SELECT id FROM crm_contacts WHERE account_id = $1 AND LOWER(email) = $2 AND deleted_at IS NULL',
+      [accountId, emailClean]
+    );
+    if (existing.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Ya existe un contacto registrado con este correo en tu CRM.'
+      });
+    }
+
+    const newId = 'C-' + crypto.randomUUID();
     const parsedAge = age ? parseInt(age, 10) : null;
+    const safeAge = (!isNaN(parsedAge) && parsedAge >= 0 && parsedAge <= 120) ? parsedAge : null;
     const finalSegment = ['vip', 'prospect', 'inactive', 'client'].includes(segment) ? segment : 'client';
 
     const result = await db.query(`
       INSERT INTO crm_contacts (id, account_id, name, email, phone, age, company, segment, notes)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
-    `, [newId, accountId, name.trim(), email.trim(), phone.trim(), parsedAge, company ? company.trim() : null, finalSegment, notes ? notes.trim() : null]);
+    `, [newId, accountId, name.trim(), emailClean, phone.trim(), safeAge, company ? company.trim() : null, finalSegment, notes ? notes.trim() : null]);
 
     res.status(201).json({
       success: true,
@@ -118,7 +137,11 @@ router.post('/contacts', async (req, res) => {
 // PUT /api/crm/contacts/:id - Actualizar contacto
 router.put('/contacts/:id', async (req, res) => {
   try {
-    const accountId = await resolveAccountId(req);
+    const accountId = resolveAccountId(req);
+    if (!accountId) {
+      return res.status(400).json({ success: false, message: 'Se requiere una cuenta asociada.' });
+    }
+
     const { id } = req.params;
     const { name, email, phone, age, company, segment, notes } = req.body;
 
@@ -129,7 +152,9 @@ router.put('/contacts/:id', async (req, res) => {
       });
     }
 
+    const emailClean = email.trim().toLowerCase();
     const parsedAge = age ? parseInt(age, 10) : null;
+    const safeAge = (!isNaN(parsedAge) && parsedAge >= 0 && parsedAge <= 120) ? parsedAge : null;
     const finalSegment = ['vip', 'prospect', 'inactive', 'client'].includes(segment) ? segment : 'client';
 
     const result = await db.query(`
@@ -137,7 +162,7 @@ router.put('/contacts/:id', async (req, res) => {
       SET name = $1, email = $2, phone = $3, age = $4, company = $5, segment = $6, notes = $7
       WHERE id = $8 AND account_id = $9 AND deleted_at IS NULL
       RETURNING *
-    `, [name.trim(), email.trim(), phone.trim(), parsedAge, company ? company.trim() : null, finalSegment, notes ? notes.trim() : null, id, accountId]);
+    `, [name.trim(), emailClean, phone.trim(), safeAge, company ? company.trim() : null, finalSegment, notes ? notes.trim() : null, id, accountId]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Contacto no encontrado o ha sido eliminado.' });
@@ -155,12 +180,14 @@ router.put('/contacts/:id', async (req, res) => {
 });
 
 // DELETE /api/crm/contacts/:id - Borrado Suave (Soft Delete)
-// El contacto desaparece del panel del cliente pero permanece 100% preservado en PostgreSQL en Railway
 router.delete('/contacts/:id', async (req, res) => {
   try {
-    const accountId = await resolveAccountId(req);
-    const { id } = req.params;
+    const accountId = resolveAccountId(req);
+    if (!accountId) {
+      return res.status(400).json({ success: false, message: 'Se requiere cuenta asociada.' });
+    }
 
+    const { id } = req.params;
     const result = await db.query(
       'UPDATE crm_contacts SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1 AND account_id = $2 AND deleted_at IS NULL RETURNING id, name',
       [id, accountId]
@@ -184,9 +211,12 @@ router.delete('/contacts/:id', async (req, res) => {
 // POST /api/crm/bulk-delete - Borrado Suave Masivo (Soft Delete)
 router.post('/bulk-delete', async (req, res) => {
   try {
-    const accountId = await resolveAccountId(req);
-    const { ids } = req.body;
+    const accountId = resolveAccountId(req);
+    if (!accountId) {
+      return res.status(400).json({ success: false, message: 'Se requiere cuenta asociada.' });
+    }
 
+    const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
       return res.status(400).json({ success: false, message: 'Se requiere una lista de IDs para eliminar.' });
     }
@@ -210,9 +240,12 @@ router.post('/bulk-delete', async (req, res) => {
 // POST /api/crm/contacts/:id/restore - Restaurar contacto eliminado (Recuperación)
 router.post('/contacts/:id/restore', async (req, res) => {
   try {
-    const accountId = await resolveAccountId(req);
-    const { id } = req.params;
+    const accountId = resolveAccountId(req);
+    if (!accountId) {
+      return res.status(400).json({ success: false, message: 'Se requiere cuenta asociada.' });
+    }
 
+    const { id } = req.params;
     const result = await db.query(
       'UPDATE crm_contacts SET deleted_at = NULL WHERE id = $1 AND account_id = $2 RETURNING *',
       [id, accountId]
@@ -233,56 +266,109 @@ router.post('/contacts/:id/restore', async (req, res) => {
   }
 });
 
-// POST /api/crm/import - Importación masiva de contactos (CSV o JSON)
+// POST /api/crm/import - Importación masiva transaccional, validada y con deduplicación
 router.post('/import', async (req, res) => {
+  const accountId = resolveAccountId(req);
+  if (!accountId) {
+    return res.status(400).json({ success: false, message: 'Se requiere cuenta asociada para importar contactos.' });
+  }
+
+  const { contacts } = req.body;
+  if (!Array.isArray(contacts) || contacts.length === 0) {
+    return res.status(400).json({ success: false, message: 'No se enviaron contactos para importar.' });
+  }
+
+  const client = await db.pool.connect();
   try {
-    const accountId = await resolveAccountId(req);
-    const { contacts } = req.body;
+    await client.query('BEGIN');
 
-    if (!Array.isArray(contacts) || contacts.length === 0) {
-      return res.status(400).json({ success: false, message: 'No se enviaron contactos para importar.' });
-    }
+    // Obtener correos existentes en la cuenta para no duplicar
+    const existingEmailsRes = await client.query(
+      'SELECT LOWER(email) as email FROM crm_contacts WHERE account_id = $1 AND deleted_at IS NULL',
+      [accountId]
+    );
+    const existingEmails = new Set(existingEmailsRes.rows.map(r => r.email));
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     let inserted = 0;
-    for (const c of contacts) {
-      if (c.name && c.email && c.phone) {
-        const newId = 'C-' + Math.floor(1000 + Math.random() * 9000);
-        const age = c.age ? parseInt(c.age, 10) : null;
-        let segment = (c.segment || 'client').toLowerCase();
-        if (!['vip', 'prospect', 'inactive', 'client'].includes(segment)) segment = 'client';
+    let duplicates = 0;
+    let skipped = 0;
 
-        await db.query(`
-          INSERT INTO crm_contacts (id, account_id, name, email, phone, age, company, segment, notes)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        `, [newId, accountId, c.name.trim(), c.email.trim(), c.phone.trim(), age, c.company || null, segment, c.notes || null]);
-        inserted++;
+    for (const c of contacts) {
+      if (!c || !c.name || !c.email || !c.phone) {
+        skipped++;
+        continue;
       }
+
+      const emailClean = String(c.email).trim().toLowerCase();
+      if (!emailRegex.test(emailClean)) {
+        skipped++;
+        continue;
+      }
+
+      if (existingEmails.has(emailClean)) {
+        duplicates++;
+        continue;
+      }
+
+      const newId = 'C-' + crypto.randomUUID();
+      const rawAge = parseInt(c.age, 10);
+      const age = (!isNaN(rawAge) && rawAge >= 0 && rawAge <= 120) ? rawAge : null;
+      let segment = (c.segment || 'client').toLowerCase();
+      if (!['vip', 'prospect', 'inactive', 'client'].includes(segment)) segment = 'client';
+
+      await client.query(`
+        INSERT INTO crm_contacts (id, account_id, name, email, phone, age, company, segment, notes)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `, [
+        newId,
+        accountId,
+        String(c.name).trim(),
+        emailClean,
+        String(c.phone).trim(),
+        age,
+        c.company ? String(c.company).trim() : null,
+        segment,
+        c.notes ? String(c.notes).trim() : null
+      ]);
+
+      existingEmails.add(emailClean);
+      inserted++;
     }
+
+    await client.query('COMMIT');
 
     res.json({
       success: true,
-      message: `¡Importación masiva completada! ${inserted} contactos añadidos a tu base de datos.`,
-      importedCount: inserted
+      message: `Importación completada: ${inserted} contactos guardados, ${duplicates} omitidos por duplicidad, ${skipped} inválidos.`,
+      importedCount: inserted,
+      duplicateCount: duplicates,
+      skippedCount: skipped
     });
   } catch (error) {
-    console.error('Error en /api/crm/import:', error);
-    res.status(500).json({ success: false, message: 'Error al importar contactos.' });
+    await client.query('ROLLBACK');
+    console.error('Error en /api/crm/import (transacción revertida):', error);
+    res.status(500).json({ success: false, message: 'Error durante la importación masiva. No se realizaron cambios parciales.' });
+  } finally {
+    client.release();
   }
 });
 
-// POST /api/crm/broadcast - Emisión de campañas (WhatsApp, Email o Dual)
+// POST /api/crm/broadcast - Emisión de campañas (Integración con estado honesto)
 router.post('/broadcast', async (req, res) => {
   try {
     const { channel, recipientIds, subject, message } = req.body;
-    const accountId = await resolveAccountId(req);
+    const accountId = resolveAccountId(req);
+    if (!accountId) {
+      return res.status(400).json({ success: false, message: 'Se requiere cuenta asociada.' });
+    }
 
     if (!recipientIds || !Array.isArray(recipientIds) || recipientIds.length === 0) {
       return res.status(400).json({ success: false, message: 'No se seleccionaron destinatarios.' });
     }
 
-    // Obtener los destinatarios reales de la base de datos
     const contactsRes = await db.query(
-      'SELECT id, name, email, phone, company FROM crm_contacts WHERE id = ANY($1::text[]) AND account_id = $2',
+      'SELECT id, name, email, phone, company FROM crm_contacts WHERE id = ANY($1::text[]) AND account_id = $2 AND deleted_at IS NULL',
       [recipientIds, accountId]
     );
 
@@ -290,7 +376,8 @@ router.post('/broadcast', async (req, res) => {
 
     res.json({
       success: true,
-      message: `Campaña ${channel.toUpperCase()} enviada exitosamente a ${recipients.length} contactos.`,
+      status: 'scheduled_preview',
+      message: `Campaña ${channel.toUpperCase()} configurada para ${recipients.length} contactos. Próximamente integración directa con API oficial de WhatsApp Business y SendGrid.`,
       summary: {
         channel,
         totalRecipients: recipients.length,
@@ -299,7 +386,7 @@ router.post('/broadcast', async (req, res) => {
     });
   } catch (error) {
     console.error('Error en /api/crm/broadcast:', error);
-    res.status(500).json({ success: false, message: 'Error al disparar campaña.' });
+    res.status(500).json({ success: false, message: 'Error al procesar campaña.' });
   }
 });
 

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MAGUM CREATOR STUDIO - CONTROL DE ACCESO (AUTENTICACIÓN SEGURA)
+   MAGUM CREATOR STUDIO - CONTROL DE ACCESO (AUTENTICACIÓN SEGURA VÍA API)
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -26,27 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   } catch (e) {}
 
-  // Utilidad para hashing SHA-256 nativo en el navegador
-  async function sha256(message) {
-    try {
-      if (window.crypto && crypto.subtle) {
-        const msgBuffer = new TextEncoder().encode(message);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      }
-    } catch (err) {
-      console.warn('Crypto subtle no disponible en este contexto:', err);
-    }
-    return message;
-  }
-
-  // Hash de referencia de la contraseña del Super Administrador:
-  // Usuario: McSAdmin
-  // Clave: MagumAdmin#2030
-  const DEFAULT_ADMIN_HASH = '2bbfe068565b93d6d028feebaeaa6981cf3157db9e8ff244e83c317db6913eef';
-
-  // Mostrar u ocultar contraseña
+  // Mostrar u ocultar contraseña en el campo de texto
   if (togglePasswordBtn && passwordInput && eyeIcon) {
     togglePasswordBtn.addEventListener('click', () => {
       const isPassword = passwordInput.type === 'password';
@@ -55,12 +35,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const GENERIC_ERROR = 'Usuario, correo o contraseña incorrectos.';
+
   // Procesar inicio de sesión
   if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const rawUser = (document.getElementById('email') ? document.getElementById('email').value : '').trim();
+      const emailInput = document.getElementById('email');
+      const rawUser = (emailInput ? emailInput.value : '').trim();
       const rawPassword = passwordInput ? passwordInput.value : '';
 
       if (!rawUser || !rawPassword) {
@@ -68,246 +51,60 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      const userClean = rawUser.toLowerCase().trim();
-      const pwdClean = rawPassword.trim();
-      const inputHash = await sha256(rawPassword);
-
-      const GENERIC_ERROR = 'Usuario, correo o contraseña incorrectos.';
-
-      // Intentar autenticación con el Backend API primero si está activo
-      if (window.MagumApi) {
-        try {
-          const apiResult = await window.MagumApi.login(rawUser, rawPassword);
-
-          // Si el usuario tiene múltiples empresas registradas con su correo
-          if (apiResult && apiResult.multipleAccounts && Array.isArray(apiResult.accounts)) {
-            showAccountSelectorModal(apiResult.accounts, rawUser, rawPassword);
-            return;
-          }
-
-          if (apiResult && apiResult.success && apiResult.token) {
-            localStorage.setItem('magum_session', JSON.stringify({
-              ...apiResult.user,
-              token: apiResult.token,
-              loggedAt: new Date().toISOString()
-            }));
-
-            showAlert(apiResult.message || 'Acceso verificado. Ingresando...', 'success');
-            setTimeout(() => {
-              window.location.href = (apiResult.user.role === 'admin') ? 'admin.html' : 'dashboard.html';
-            }, 350);
-            return;
-          }
-        } catch (apiErr) {
-          console.warn('[Auth] Backend login warning:', apiErr.message);
-          // Si el error fue explícito de credenciales inválidas (401 o 404), mostrar mensaje genérico
-          if (apiErr.message && (apiErr.message.includes('401') || apiErr.message.includes('404') || apiErr.message.includes('incorrectos'))) {
-            showAlert(GENERIC_ERROR, 'error');
-            return;
-          }
-        }
+      const btnSubmit = document.getElementById('btn-submit');
+      if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.style.opacity = '0.7';
       }
 
-      // ======================================================================
-      // 1. VERIFICACIÓN DE CREDENCIALES DE SUPER ADMINISTRADOR (LOCAL FALLBACK)
-      // ======================================================================
-      const isAdminUser = (
-        userClean === 'mcsadmin' || 
-        userClean === 'admin' || 
-        userClean === 'mcsadmin@magum.com' || 
-        userClean === 'samylozano00@gmail.com'
-      );
-
-      if (isAdminUser) {
-        const storedAdminHash = localStorage.getItem('magum_admin_hash') || DEFAULT_ADMIN_HASH;
-
-        const isAdminPassword = (
-          rawPassword === 'MagumAdmin#2030' ||
-          pwdClean === 'MagumAdmin#2030' ||
-          rawPassword === 'M2030cs' ||
-          pwdClean === 'M2030cs' ||
-          inputHash === storedAdminHash ||
-          inputHash === DEFAULT_ADMIN_HASH
-        );
-
-        if (isAdminPassword) {
-          // Guardar el hash real generado por el navegador para futuras validaciones
-          if (inputHash && inputHash !== rawPassword) {
-            localStorage.setItem('magum_admin_hash', inputHash);
-          }
-
-          localStorage.setItem('magum_session', JSON.stringify({
-            role: 'admin',
-            username: 'McSAdmin',
-            name: 'Super Administrador',
-            email: 'mcsadmin@magum.com',
-            loggedAt: new Date().toISOString()
-          }));
-
-          showAlert('Acceso Super Admin verificado. Abriendo panel maestro...', 'success');
-
-          setTimeout(() => {
-            window.location.href = 'admin.html';
-          }, 350);
-          return;
-        } else {
-          showAlert(GENERIC_ERROR, 'error');
-          return;
-        }
-      }
-
-      // ======================================================================
-      // 1.5. VERIFICACIÓN DE ADMINISTRADORES ADICIONALES CREADOS
-      // ======================================================================
+      // Autenticación estricta con el Backend API (Cero logins locales ni hashes en cliente)
       try {
-        const rawAdmins = localStorage.getItem('magum_admin_users');
-        const adminUsers = rawAdmins ? JSON.parse(rawAdmins) : [];
-        const matchedAdmin = adminUsers.find(a => 
-          (a.username || '').toLowerCase() === userClean || 
-          (a.email || '').toLowerCase() === userClean
-        );
-
-        if (matchedAdmin) {
-          const isMatch = (
-            rawPassword === matchedAdmin.password || 
-            pwdClean === matchedAdmin.password ||
-            inputHash === matchedAdmin.passwordHash
-          );
-
-          if (isMatch) {
-            localStorage.setItem('magum_session', JSON.stringify({
-              role: 'admin',
-              adminId: matchedAdmin.id,
-              username: matchedAdmin.username,
-              name: matchedAdmin.name,
-              email: matchedAdmin.email,
-              loggedAt: new Date().toISOString()
-            }));
-
-            showAlert(`Acceso verificado para ${matchedAdmin.name}. Ingresando al panel maestro...`, 'success');
-
-            setTimeout(() => {
-              window.location.href = 'admin.html';
-            }, 350);
-            return;
-          } else {
-            showAlert(GENERIC_ERROR, 'error');
-            return;
-          }
+        if (!window.MagumApi) {
+          throw new Error('Servicio de API no disponible.');
         }
-      } catch (err) {
-        console.warn('Error verificando admin users local:', err);
-      }
 
-      // ======================================================================
-      // 2. VERIFICACIÓN DE CUENTA DE CLIENTE REGISTRADA
-      // ======================================================================
-      const rawAccounts = localStorage.getItem('magum_accounts');
-      let accounts = [];
-      if (rawAccounts) {
-        try {
-          accounts = JSON.parse(rawAccounts);
-        } catch (err) {
-          accounts = [];
+        const apiResult = await window.MagumApi.login(rawUser, rawPassword);
+
+        // Si el usuario tiene múltiples empresas registradas con su correo
+        if (apiResult && apiResult.multipleAccounts && Array.isArray(apiResult.accounts)) {
+          showAccountSelectorModal(apiResult.accounts, rawUser, rawPassword);
+          return;
         }
-      }
 
-      const matchedAccounts = accounts.filter(a => (a.email || '').toLowerCase().trim() === userClean);
+        if (apiResult && apiResult.success && apiResult.token) {
+          // Guardar sesión segura con JWT
+          localStorage.setItem('magum_session', JSON.stringify({
+            ...apiResult.user,
+            token: apiResult.token,
+            loggedAt: new Date().toISOString()
+          }));
 
-      if (matchedAccounts.length > 0) {
-        const activeAccounts = matchedAccounts.filter(a => a.status !== 'inactive');
-        if (activeAccounts.length === 0) {
+          showAlert(apiResult.message || 'Acceso verificado. Ingresando...', 'success');
+          setTimeout(() => {
+            window.location.href = (apiResult.user.role === 'admin') ? 'admin.html' : 'dashboard.html';
+          }, 350);
+          return;
+        }
+
+        showAlert(GENERIC_ERROR, 'error');
+      } catch (apiErr) {
+        console.warn('[Auth] Error al iniciar sesión:', apiErr.message);
+
+        if (apiErr.message && apiErr.message.includes('429')) {
+          showAlert('Demasiados intentos fallidos. Por seguridad, espera 15 minutos.', 'error');
+        } else if (apiErr.message && apiErr.message.includes('suspendida')) {
           showAlert('Esta cuenta se encuentra suspendida. Comunícate con el administrador.', 'error');
-          return;
-        }
-
-        // Validar contraseña
-        const validAccounts = activeAccounts.filter(acc => 
-          (acc.passwordHash && acc.passwordHash === inputHash) ||
-          (acc.password && acc.password === rawPassword) ||
-          (acc.password && acc.password === pwdClean)
-        );
-
-        if (validAccounts.length > 0) {
-          if (validAccounts.length > 1) {
-            showAccountSelectorModal(validAccounts, rawUser, rawPassword);
-            return;
-          }
-
-          const matchedAccount = validAccounts[0];
-          localStorage.setItem('magum_session', JSON.stringify({
-            role: 'client',
-            accountId: matchedAccount.id,
-            clientName: `${matchedAccount.firstName} ${matchedAccount.lastName}`,
-            business: matchedAccount.business,
-            email: matchedAccount.email,
-            modules: matchedAccount.modules,
-            availableAccounts: validAccounts.map(a => ({
-              id: a.id,
-              business: a.business,
-              clientName: `${a.firstName} ${a.lastName}`,
-              modules: a.modules
-            })),
-            loggedAt: new Date().toISOString()
-          }));
-
-          showAlert(`Bienvenido a ${matchedAccount.business}. Ingresando a tu panel...`, 'success');
-
-          setTimeout(() => {
-            window.location.href = 'dashboard.html';
-          }, 350);
-          return;
-        } else {
+        } else if (apiErr.message && (apiErr.message.includes('401') || apiErr.message.includes('404') || apiErr.message.includes('incorrectos'))) {
           showAlert(GENERIC_ERROR, 'error');
-          return;
-        }
-      }
-
-      // ======================================================================
-      // 3. VERIFICACIÓN DE PROFESIONAL DEL EQUIPO AUTORIZADO
-      // ======================================================================
-      const rawProfs = localStorage.getItem('magum_team_professionals');
-      let profs = [];
-      if (rawProfs) {
-        try {
-          profs = JSON.parse(rawProfs);
-        } catch (err) {
-          profs = [];
-        }
-      }
-
-      const matchedProf = profs.find(p => (p.email || '').toLowerCase().trim() === userClean);
-
-      if (matchedProf) {
-        const profMatches = (matchedProf.password === rawPassword) ||
-                            (matchedProf.password === pwdClean) ||
-                            (matchedProf.passwordHash && matchedProf.passwordHash === inputHash);
-
-        if (profMatches) {
-          localStorage.setItem('magum_session', JSON.stringify({
-            role: 'team_member',
-            profId: matchedProf.id,
-            name: matchedProf.name,
-            roleTitle: matchedProf.role,
-            email: matchedProf.email,
-            business: matchedProf.business || 'Empresa',
-            loggedAt: new Date().toISOString()
-          }));
-
-          showAlert(`Acceso autorizado para ${matchedProf.name} (${matchedProf.role}). Ingresando...`, 'success');
-
-          setTimeout(() => {
-            window.location.href = 'dashboard.html';
-          }, 350);
-          return;
         } else {
-          showAlert(GENERIC_ERROR, 'error');
-          return;
+          showAlert('No fue posible conectar con el servidor. Verifica tu conexión a internet.', 'error');
+        }
+      } finally {
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.style.opacity = '1';
         }
       }
-
-      // Si no coincide con ninguna cuenta existente en la plataforma
-      showAlert(GENERIC_ERROR, 'error');
     });
   }
 
@@ -338,41 +135,24 @@ document.addEventListener('DOMContentLoaded', () => {
         item.disabled = true;
         item.style.opacity = '0.6';
         try {
-          if (window.MagumApi) {
-            const res = await window.MagumApi.login(userVal, passwordVal, acc.id);
-            if (res && res.success && res.token) {
-              localStorage.setItem('magum_session', JSON.stringify({
-                ...res.user,
-                token: res.token,
-                loggedAt: new Date().toISOString()
-              }));
-              modal.style.display = 'none';
-              showAlert(`Ingresando a ${acc.business}...`, 'success');
-              setTimeout(() => {
-                window.location.href = 'dashboard.html';
-              }, 300);
-              return;
-            }
+          const res = await window.MagumApi.login(userVal, passwordVal, acc.id);
+          if (res && res.success && res.token) {
+            localStorage.setItem('magum_session', JSON.stringify({
+              ...res.user,
+              token: res.token,
+              loggedAt: new Date().toISOString()
+            }));
+            modal.style.display = 'none';
+            showAlert(`Ingresando a ${acc.business}...`, 'success');
+            setTimeout(() => {
+              window.location.href = 'dashboard.html';
+            }, 300);
+            return;
           }
-          // Fallback local si el backend no respondió
-          localStorage.setItem('magum_session', JSON.stringify({
-            role: 'client',
-            accountId: acc.id,
-            clientName: acc.clientName || 'Cliente',
-            business: acc.business,
-            email: acc.email || userVal,
-            modules: acc.modules || { social: true, web: true, crm: true },
-            availableAccounts: accounts,
-            loggedAt: new Date().toISOString()
-          }));
-          modal.style.display = 'none';
-          showAlert(`Ingresando a ${acc.business}...`, 'success');
-          setTimeout(() => {
-            window.location.href = 'dashboard.html';
-          }, 300);
+          showAlert(GENERIC_ERROR, 'error');
         } catch (err) {
           modal.style.display = 'none';
-          showAlert('Usuario, correo o contraseña incorrectos.', 'error');
+          showAlert(GENERIC_ERROR, 'error');
         }
       };
       list.appendChild(item);
@@ -409,15 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const dynamicFavicon = document.getElementById('dynamic-favicon');
       const brandLogo = document.querySelector('.brand-logo');
-      const saved = localStorage.getItem('magum_admin_settings');
 
-      if (saved) {
-        const data = JSON.parse(saved);
-        if (data.faviconUrl && dynamicFavicon) dynamicFavicon.href = data.faviconUrl;
-        if (data.logoUrl && brandLogo) brandLogo.src = data.logoUrl;
-      }
-
-      if (window.MagumApi) {
+      if (window.MagumApi && window.MagumApi.getSetting) {
         window.MagumApi.getSetting('platform_branding').then(res => {
           if (res && res.data) {
             if (res.data.faviconUrl && dynamicFavicon) dynamicFavicon.href = res.data.faviconUrl;
