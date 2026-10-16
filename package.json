@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node backend/server.js",
     "dev": "node backend/server.js",
-    "test": "node --test backend/tests/*.test.js"
+    "test": "node --test --test-force-exit backend/tests/*.test.js"
   },
   "engines": {
     "node": ">=18.0.0"

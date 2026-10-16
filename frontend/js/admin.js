@@ -308,17 +308,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.querySelectorAll('.btn-toggle-status').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const accId = btn.getAttribute('data-id');
         const accounts = getAccounts();
         const acc = accounts.find(a => a.id === accId);
         if (acc) {
-          acc.status = (acc.status === 'active') ? 'inactive' : 'active';
+          const newStatus = (acc.status === 'active') ? 'inactive' : 'active';
+          if (window.MagumApi) {
+            try {
+              await window.MagumApi.toggleAccountStatus(accId);
+            } catch (e) {
+              MagumAlert.error('Error al cambiar estado', e.message || 'No se pudo actualizar el estado en el servidor.');
+              return;
+            }
+          }
+          acc.status = newStatus;
           saveAccounts(accounts);
           render();
-          if (window.MagumApi) {
-            window.MagumApi.toggleAccountStatus(accId).catch(e => console.warn('Toggle status backend warning:', e.message));
-          }
         }
       });
     });
@@ -335,11 +341,16 @@ document.addEventListener('DOMContentLoaded', () => {
             'Sí, eliminar cuenta'
           );
           if (ok) {
+            if (window.MagumApi) {
+              try {
+                await window.MagumApi.deleteAccount(accId);
+              } catch (e) {
+                MagumAlert.error('Error al eliminar', e.message || 'No se pudo eliminar la cuenta en el servidor.');
+                return;
+              }
+            }
             saveAccounts(accounts.filter(a => a.id !== accId));
             render();
-            if (window.MagumApi) {
-              window.MagumApi.deleteAccount(accId).catch(e => console.warn('Delete account backend warning:', e.message));
-            }
             MagumAlert.success('Cuenta Eliminada', `La cuenta de "${acc.business}" fue eliminada.`);
           }
         }
@@ -418,16 +429,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const companiesList = existingWithEmail.map(a => `"${a.business}"`).join(', ');
         const ok = await MagumAlert.confirm(
           'Correo ya Registrado',
-          `El correo "${email}" ya tiene acceso a: ${companiesList}.\n\n¿Te gustaría asignarle también esta nueva cuenta ("${business}") a "${email}"?`,
-          'Sí, asignarle esta cuenta'
+          `El correo "${email}" ya tiene acceso a: ${companiesList}.\n\n¿Deseas vincular esta nueva empresa ("${business}") a este usuario?\n\n(Aviso: La contraseña ingresada unificará el acceso para todas las empresas de este usuario).`,
+          'Sí, vincular empresa'
         );
         if (!ok) return;
       }
 
-      const newId = generate7CharId();
-      const passwordHash = await sha256(password);
-
-      const newAccount = {
+      let newId = generate7CharId();
+      let createdAccount = {
         id: newId,
         firstName,
         lastName,
@@ -442,12 +451,9 @@ document.addEventListener('DOMContentLoaded', () => {
         status: 'active'
       };
 
-      accounts.unshift(newAccount);
-      saveAccounts(accounts);
-
-      // Sincronizar con backend PostgreSQL en Railway
-      try {
-        if (window.MagumApi) {
+      // 1. Guardar en backend PostgreSQL PRIMERO (Única fuente de la verdad)
+      if (window.MagumApi) {
+        try {
           const apiRes = await window.MagumApi.createAccount({
             firstName,
             lastName,
@@ -456,29 +462,23 @@ document.addEventListener('DOMContentLoaded', () => {
             password,
             modules: { social: socialCheck, web: webCheck, crm: true }
           });
-          if (apiRes && apiRes.data && apiRes.data.id) {
-            newId = apiRes.data.id;
-            newAccount.id = newId;
+          if (apiRes && apiRes.data) {
+            newId = apiRes.data.id || newId;
+            createdAccount = {
+              ...createdAccount,
+              ...apiRes.data,
+              id: newId
+            };
           }
+        } catch (syncErr) {
+          MagumAlert.error('Error al Crear Cuenta', syncErr.message || 'No se pudo registrar la cuenta en el servidor.');
+          return;
         }
-      } catch (syncErr) {
-        console.warn('Sync backend error:', syncErr.message || syncErr);
       }
 
-      // También registrar automáticamente en el CRM de facturación
-      const billingItems = getBilling();
-      billingItems.unshift({
-        id: 'B' + generate7CharId(),
-        clientName: `${firstName} ${lastName}`,
-        business,
-        plan: 'monthly',
-        amount: 150000,
-        startDate: new Date().toISOString().split('T')[0],
-        modules: `${socialCheck ? 'Social Media ' : ''}${webCheck ? 'Web Editor' : ''}`.trim() || 'CRM',
-        notes: 'Cliente creado desde panel maestro.',
-        paymentStatus: 'paid'
-      });
-      saveBilling(billingItems);
+      // 2. Solo tras éxito del backend, persistir localmente y refrescar UI
+      accounts.unshift(createdAccount);
+      saveAccounts(accounts);
 
       closeModal();
       render();
@@ -698,11 +698,16 @@ document.addEventListener('DOMContentLoaded', () => {
             'Sí, eliminar'
           );
           if (ok) {
+            if (window.MagumApi) {
+              try {
+                await window.MagumApi.deleteBilling(id);
+              } catch (e) {
+                MagumAlert.error('Error al Eliminar Factura', e.message || 'No se pudo eliminar el registro en el servidor.');
+                return;
+              }
+            }
             saveBilling(items.filter(i => i.id !== id));
             renderBillingTable();
-            if (window.MagumApi) {
-              window.MagumApi.deleteBilling(id).catch(e => console.warn('Delete billing backend warning:', e.message));
-            }
             MagumAlert.success('Registro Eliminado', `El cobro de "${item.business}" fue retirado.`);
           }
         }
@@ -755,9 +760,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      let newBillingId = 'B' + generate7CharId();
+      let newBillingItem = {
+        id: 'B' + generate7CharId(),
+        clientName,
+        business,
+        plan,
+        amount,
+        startDate,
+        modules,
+        notes,
+        paymentStatus: 'paid'
+      };
 
-      // Guardar en backend PostgreSQL de Railway
+      // Guardar en backend PostgreSQL de Railway PRIMERO
       if (window.MagumApi) {
         try {
           const apiRes = await window.MagumApi.createBilling({
@@ -769,27 +784,20 @@ document.addEventListener('DOMContentLoaded', () => {
             modules,
             notes
           });
-          if (apiRes && apiRes.data && apiRes.data.id) {
-            newBillingId = apiRes.data.id;
+          if (apiRes && apiRes.data) {
+            newBillingItem = {
+              ...newBillingItem,
+              ...apiRes.data
+            };
           }
         } catch (apiErr) {
-          console.warn('Backend billing creation warning:', apiErr.message);
+          MagumAlert.error('Error al Registrar Factura', apiErr.message || 'No se pudo guardar la facturación en el servidor.');
+          return;
         }
       }
 
       const items = getBilling();
-      items.unshift({
-        id: newBillingId,
-        clientName,
-        business,
-        plan,
-        amount,
-        startDate,
-        modules,
-        notes,
-        paymentStatus: 'paid'
-      });
-
+      items.unshift(newBillingItem);
       saveBilling(items);
       closeBillingModal();
       renderBillingTable();
@@ -1035,14 +1043,15 @@ document.addEventListener('DOMContentLoaded', () => {
         );
 
         if (ok) {
-          // Intentar borrar en backend
-          try {
-            if (window.MagumApiClient) {
+          // Borrar en backend primero
+          if (window.MagumApiClient) {
+            try {
               const client = new MagumApiClient();
               await client.request(`/accounts/admins/${adminId}`, { method: 'DELETE' });
+            } catch (e) {
+              MagumAlert.error('Error al Revocar Administrador', e.message || 'No se pudo eliminar el administrador en el servidor.');
+              return;
             }
-          } catch (e) {
-            console.warn('Advertencia backend al eliminar admin:', e.message);
           }
 
           const current = getLocalAdminUsers();
@@ -1107,8 +1116,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      const newAdminId = 'ADM-' + generate7CharId();
-      const newAdmin = {
+      let newAdminId = 'ADM-' + generate7CharId();
+      let newAdmin = {
         id: newAdminId,
         name,
         username,
@@ -1117,11 +1126,11 @@ document.addEventListener('DOMContentLoaded', () => {
         createdAt: new Date().toISOString()
       };
 
-      // Registrar en backend PostgreSQL
-      try {
-        if (window.MagumApiClient) {
+      // Registrar en backend PostgreSQL PRIMERO
+      if (window.MagumApiClient) {
+        try {
           const client = new MagumApiClient();
-          await client.request('/accounts/admins', {
+          const apiRes = await client.request('/accounts/admins', {
             method: 'POST',
             body: JSON.stringify({
               name,
@@ -1131,9 +1140,14 @@ document.addEventListener('DOMContentLoaded', () => {
               role: 'admin'
             })
           });
+          if (apiRes && apiRes.data && apiRes.data.id) {
+            newAdminId = apiRes.data.id;
+            newAdmin.id = newAdminId;
+          }
+        } catch (e) {
+          MagumAlert.error('Error al Crear Administrador', e.message || 'No se pudo registrar el administrador en el servidor.');
+          return;
         }
-      } catch (e) {
-        console.warn('Aviso backend admin:', e.message);
       }
 
       existingAdmins.unshift(newAdmin);

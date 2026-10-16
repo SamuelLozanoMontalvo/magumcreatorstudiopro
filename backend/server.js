@@ -17,6 +17,9 @@ const settingsRoutes = require('./src/routes/settings.routes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Configurar trust proxy para que req.ip reconozca la IP real del cliente detrás de Railway/Cloudflare/Envoy
+app.set('trust proxy', 1);
+
 // Cabeceras de seguridad HTTP
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -43,7 +46,6 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Permitir peticiones sin origen (same-origin, curl, server-to-server) o si está en la lista permitida
     if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
       return callback(null, true);
     }
@@ -57,45 +59,6 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Limitador de tasa de solicitudes (Rate Limiter) en memoria para prevenir ataques de fuerza bruta en Login
-const loginAttemptsMap = new Map();
-const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutos
-const MAX_LOGIN_ATTEMPTS = 15;
-
-function loginRateLimiter(req, res, next) {
-  const ip = req.ip || req.connection.remoteAddress || 'unknown';
-  const now = Date.now();
-  const clientData = loginAttemptsMap.get(ip) || { count: 0, firstAttempt: now };
-
-  if (now - clientData.firstAttempt > RATE_LIMIT_WINDOW) {
-    clientData.count = 1;
-    clientData.firstAttempt = now;
-  } else {
-    clientData.count++;
-  }
-
-  loginAttemptsMap.set(ip, clientData);
-
-  if (clientData.count > MAX_LOGIN_ATTEMPTS) {
-    return res.status(429).json({
-      success: false,
-      message: 'Demasiados intentos de acceso fallidos desde esta dirección IP. Por seguridad, intenta nuevamente en 15 minutos.'
-    });
-  }
-
-  next();
-}
-
-// Limpiar periódicamente el mapa de intentos de inicio de sesión
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, data] of loginAttemptsMap.entries()) {
-    if (now - data.firstAttempt > RATE_LIMIT_WINDOW) {
-      loginAttemptsMap.delete(ip);
-    }
-  }
-}, 5 * 60 * 1000);
-
 // Healthcheck para Railway y monitoreo
 app.get('/api/health', (req, res) => {
   res.json({
@@ -106,8 +69,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Montar Rutas de la API
-app.use('/api/auth/login', loginRateLimiter);
+// Montar Rutas de la API (El rate limiting de intentos fallidos opera dentro de auth.routes)
 app.use('/api/auth', authRoutes);
 app.use('/api/accounts', accountsRoutes);
 app.use('/api/crm', crmRoutes);
@@ -145,7 +107,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Manejo preventivo de excepciones con salida limpia para reinicio por el gestor de procesos
+// Manejo preventivo de excepciones con salida limpia
 process.on('unhandledRejection', (reason, promise) => {
   console.error('⚠️ Promesa no manejada:', reason);
 });
@@ -165,7 +127,7 @@ app.listen(PORT, '0.0.0.0', async () => {
   try {
     await initDatabase();
   } catch (err) {
-    console.error('Nota: La base de datos se conectará cuando DATABASE_URL esté disponible en Railway/local:', err.message);
+    console.error('Error iniciando la base de datos:', err.message);
   }
 });
 

@@ -1,8 +1,42 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 
-// 1. Prueba de generador de IDs únicos (Cero colisiones con UUID)
+// Asegurar variables de entorno antes de importar módulos
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'test_jwt_secret_super_secure_key_12345';
+process.env.INITIAL_ADMIN_PASSWORD = process.env.INITIAL_ADMIN_PASSWORD || 'TestAdmin2026!';
+
+// Importar directamente del código real del proyecto
+const {
+  addMonthsSafe,
+  getIntervalMonths,
+  calculateBillingPeriod,
+  normalizeMonthlyRevenue
+} = require('../src/utils/billing.utils');
+
+const {
+  resolveAccountId,
+  isIpBlocked,
+  recordFailedAttempt,
+  resetFailedAttempts,
+  requireAdmin,
+  requireAccountOwnerOrAdmin,
+  JWT_SECRET
+} = require('../src/middleware/auth');
+
+const db = require('../src/config/db');
+
+// Cerrar el pool de base de datos al finalizar los tests para que node --test termine limpiamente
+test.after(async () => {
+  try {
+    await db.pool.end();
+  } catch (err) {
+    // Silently ignore if already closed
+  }
+});
+
+// 1. Generación de IDs con UUID (Cero colisiones)
 test('Generación de IDs con UUID produce identificadores únicos sin colisiones', () => {
   const ids = new Set();
   const TOTAL = 2000;
@@ -14,73 +48,175 @@ test('Generación de IDs con UUID produce identificadores únicos sin colisiones
   assert.strictEqual(ids.size, TOTAL);
 });
 
-// 2. Prueba del cálculo seguro de fechas (Bug de desbordamiento de setMonth)
-test('addMonthsSafe no desborda días hacia el mes siguiente (ej. 31 de Enero + 1 mes)', () => {
-  function addMonthsSafe(dateObj, monthsToAdd) {
-    const d = new Date(dateObj);
-    const originalDay = d.getDate();
-    d.setDate(1);
-    d.setMonth(d.getMonth() + monthsToAdd);
-    const lastDayOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-    d.setDate(Math.min(originalDay, lastDayOfMonth));
-    return d;
-  }
-
-  // 31 de Enero de 2026 + 1 mes debe dar 28 de Febrero de 2026 (no 2 ó 3 de Marzo)
-  const jan31 = new Date(2026, 0, 31); // Enero = mes 0
+// 2. Cálculo seguro de fechas con la función real addMonthsSafe
+test('addMonthsSafe del código real no desborda días hacia el mes siguiente', () => {
+  // 31 de Enero de 2026 + 1 mes debe dar 28 de Febrero de 2026 (año no bisiesto)
+  const jan31 = new Date(2026, 0, 31);
   const febResult = addMonthsSafe(jan31, 1);
   assert.strictEqual(febResult.getMonth(), 1, 'El mes resultante debe ser Febrero (mes 1)');
   assert.strictEqual(febResult.getDate(), 28, 'El día resultante debe ser 28 de Febrero');
 
+  // 31 de Enero de 2024 (bisiesto) + 1 mes debe dar 29 de Febrero
+  const jan31Leap = new Date(2024, 0, 31);
+  const febResultLeap = addMonthsSafe(jan31Leap, 1);
+  assert.strictEqual(febResultLeap.getMonth(), 1);
+  assert.strictEqual(febResultLeap.getDate(), 29);
+
   // 31 de Marzo de 2026 + 1 mes debe dar 30 de Abril de 2026
   const mar31 = new Date(2026, 2, 31);
   const aprResult = addMonthsSafe(mar31, 1);
-  assert.strictEqual(aprResult.getMonth(), 3, 'El mes resultante debe ser Abril (mes 3)');
-  assert.strictEqual(aprResult.getDate(), 30, 'El día resultante debe ser 30 de Abril');
+  assert.strictEqual(aprResult.getMonth(), 3);
+  assert.strictEqual(aprResult.getDate(), 30);
 });
 
-// 3. Prueba de validación de monto 0 en facturación
-test('Validación de monto en facturación permite monto 0 (clientes vitalicios o gratuitos)', () => {
-  function isValidBillingAmount(amount) {
-    return !(amount === undefined || amount === null || isNaN(Number(amount)) || Number(amount) < 0);
-  }
+// 3. Duración de planes y periodos libres ("Cada N meses" y "prepago de N meses")
+test('getIntervalMonths y calculateBillingPeriod procesan correctamente planes estándar y personalizados', () => {
+  assert.strictEqual(getIntervalMonths('monthly'), 1);
+  assert.strictEqual(getIntervalMonths('quarterly'), 3);
+  assert.strictEqual(getIntervalMonths('biannual'), 6);
+  assert.strictEqual(getIntervalMonths('annual'), 12);
+  assert.strictEqual(getIntervalMonths('lifetime'), 0);
+  assert.strictEqual(getIntervalMonths('custom', 8), 8, 'Debe aceptar intervalos libres de N meses');
 
-  assert.strictEqual(isValidBillingAmount(0), true, 'Monto 0 debe ser válido');
-  assert.strictEqual(isValidBillingAmount('0'), true, 'Monto "0" en string debe ser válido');
-  assert.strictEqual(isValidBillingAmount(150000), true, 'Monto positivo debe ser válido');
-  assert.strictEqual(isValidBillingAmount(-50), false, 'Monto negativo debe ser rechazado');
-  assert.strictEqual(isValidBillingAmount(null), false, 'Monto null debe ser rechazado');
-  assert.strictEqual(isValidBillingAmount('abc'), false, 'Monto no numérico debe ser rechazado');
+  // Cálculo de fechas de inicio y fin de periodo
+  const period = calculateBillingPeriod('2026-01-15', 'quarterly');
+  assert.strictEqual(period.expirationDate, '2026-04-15');
+  assert.strictEqual(period.intervalMonths, 3);
+
+  // Plan vitalicio no tiene fecha de vencimiento
+  const lifetimePeriod = calculateBillingPeriod('2026-01-15', 'lifetime');
+  assert.strictEqual(lifetimePeriod.expirationDate, null);
+  assert.strictEqual(lifetimePeriod.status, 'lifetime');
 });
 
-// 4. Prueba de sanitización y parsing seguro de edad en CRM
-test('Parsing de edad en CRM maneja NaN e inválidos de forma segura sin romper la consulta SQL', () => {
-  function parseSafeAge(rawAge) {
-    const parsed = parseInt(rawAge, 10);
-    return (!isNaN(parsed) && parsed >= 0 && parsed <= 120) ? parsed : null;
-  }
-
-  assert.strictEqual(parseSafeAge('35'), 35);
-  assert.strictEqual(parseSafeAge(42), 42);
-  assert.strictEqual(parseSafeAge('abc'), null, 'Strings no numéricos deben convertirse en null en vez de NaN');
-  assert.strictEqual(parseSafeAge(undefined), null);
-  assert.strictEqual(parseSafeAge(-5), null, 'Edades negativas deben convertirse en null');
-  assert.strictEqual(parseSafeAge(250), null, 'Edades mayores a 120 deben convertirse en null');
+// 4. Normalización de ingresos mensuales (MRR) incluyendo monto 0
+test('normalizeMonthlyRevenue calcula el ingreso mensual equivalente correctamente', () => {
+  assert.strictEqual(normalizeMonthlyRevenue(150000, 'monthly'), 150000);
+  assert.strictEqual(normalizeMonthlyRevenue(300000, 'quarterly'), 100000);
+  assert.strictEqual(normalizeMonthlyRevenue(600000, 'biannual'), 100000);
+  assert.strictEqual(normalizeMonthlyRevenue(1200000, 'annual'), 100000);
+  assert.strictEqual(normalizeMonthlyRevenue(0, 'monthly'), 0, 'Monto 0 (vitalicio o gratuito) debe dar 0 mensual');
+  assert.strictEqual(normalizeMonthlyRevenue(500000, 'custom', 5), 100000);
 });
 
-// 5. Prueba de expiración de planes prepago
-test('Cálculo de vigencia de planes detecta correctamente suscripciones vencidas', () => {
-  function isPrepaidExpired(startDateStr, planMonths, referenceDate = new Date()) {
-    const start = new Date(startDateStr);
-    const end = new Date(start);
-    end.setMonth(end.getMonth() + planMonths);
-    return referenceDate > end;
+// 5. Aislamiento estricto de cuentas (resolveAccountId)
+test('resolveAccountId previene fugas de información entre cuentas y rechaza suplantación', () => {
+  // Caso 1: Un cliente intenta consultar o manipular los datos enviando un header x-account-id de otra empresa
+  const clientReq = {
+    user: { role: 'client', accountId: 'ACC-REAL-CLIENT' },
+    headers: { 'x-account-id': 'ACC-VICTIM-HACK' },
+    query: { accountId: 'ACC-VICTIM-HACK' },
+    body: { accountId: 'ACC-VICTIM-HACK' }
+  };
+  const resolvedForClient = resolveAccountId(clientReq);
+  assert.strictEqual(
+    resolvedForClient,
+    'ACC-REAL-CLIENT',
+    'Un cliente NUNCA debe poder suplantar otra cuenta mediante headers, queries o body'
+  );
+
+  // Caso 2: Un profesional/miembro de equipo pertenece estrictamente a su empresa
+  const teamReq = {
+    user: { role: 'team_member', accountId: 'ACC-PROFESSIONAL-CORP' },
+    headers: { 'x-account-id': 'ACC-OTHER' }
+  };
+  assert.strictEqual(resolveAccountId(teamReq), 'ACC-PROFESSIONAL-CORP');
+
+  // Caso 3: Un Super Admin gestiona una cuenta específica indicada en query o header
+  const adminReq = {
+    user: { role: 'admin' },
+    query: { accountId: 'ACC-CLIENT-42' }
+  };
+  assert.strictEqual(resolveAccountId(adminReq), 'ACC-CLIENT-42');
+
+  // Caso 4: Petición sin usuario autenticado devuelve null (sin fallback a cuentas aleatorias)
+  const unauthReq = {
+    user: null,
+    headers: { 'x-account-id': 'ACC-RANDOM' }
+  };
+  assert.strictEqual(resolveAccountId(unauthReq), null);
+});
+
+// 6. Protección de fuerza bruta en logins (Rate Limiter enfocado únicamente en intentos fallidos)
+test('El Rate Limiter bloquea solo tras intentos fallidos y se restablece al iniciar sesión', () => {
+  const testIp = '192.168.1.100';
+  resetFailedAttempts(testIp);
+
+  assert.strictEqual(isIpBlocked(testIp), false, 'La IP no debe estar bloqueada inicialmente');
+
+  // Simular 9 intentos fallidos (límite es 10)
+  for (let i = 0; i < 9; i++) {
+    recordFailedAttempt(testIp);
   }
+  assert.strictEqual(isIpBlocked(testIp), false, 'Con 9 intentos fallidos aún no debe bloquearse');
 
-  // Una suscripción mensual iniciada hace 40 días debe estar expirada
-  const fortyDaysAgo = new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString();
-  assert.strictEqual(isPrepaidExpired(fortyDaysAgo, 1), true, 'Plan mensual de hace 40 días debe estar expirado');
+  // Décimo intento fallido -> Bloqueo
+  recordFailedAttempt(testIp);
+  assert.strictEqual(isIpBlocked(testIp), true, 'Al alcanzar 10 intentos fallidos debe bloquearse');
 
-  // Una suscripción anual iniciada hace 40 días debe estar activa
-  assert.strictEqual(isPrepaidExpired(fortyDaysAgo, 12), false, 'Plan anual de hace 40 días debe estar activo');
+  // Éxito de login -> Restablece el contador inmediatamente
+  resetFailedAttempts(testIp);
+  assert.strictEqual(isIpBlocked(testIp), false, 'Tras un login exitoso la IP debe desbloquearse');
+});
+
+// 7. Middlewares de autorización y control de roles
+test('requireAdmin y requireAccountOwnerOrAdmin bloquean accesos no autorizados con 403', () => {
+  let statusCode = null;
+  let responseData = null;
+  let nextCalled = false;
+
+  const mockRes = () => ({
+    status: (code) => {
+      statusCode = code;
+      return {
+        json: (data) => { responseData = data; }
+      };
+    }
+  });
+
+  const mockNext = () => { nextCalled = true; };
+
+  // Prueba requireAdmin con usuario cliente (debe rechazar)
+  statusCode = null;
+  nextCalled = false;
+  requireAdmin({ user: { role: 'client' } }, mockRes(), mockNext);
+  assert.strictEqual(statusCode, 403);
+  assert.strictEqual(nextCalled, false);
+
+  // Prueba requireAdmin con Super Admin (debe permitir)
+  statusCode = null;
+  nextCalled = false;
+  requireAdmin({ user: { role: 'admin' } }, mockRes(), mockNext);
+  assert.strictEqual(nextCalled, true);
+  assert.strictEqual(statusCode, null);
+
+  // Prueba requireAccountOwnerOrAdmin con miembro de equipo (no puede borrar la cuenta ni gestionar admins)
+  statusCode = null;
+  nextCalled = false;
+  requireAccountOwnerOrAdmin({ user: { role: 'team_member' } }, mockRes(), mockNext);
+  assert.strictEqual(statusCode, 403);
+  assert.strictEqual(nextCalled, false);
+
+  // Prueba requireAccountOwnerOrAdmin con cliente titular (debe permitir)
+  statusCode = null;
+  nextCalled = false;
+  requireAccountOwnerOrAdmin({ user: { role: 'client' } }, mockRes(), mockNext);
+  assert.strictEqual(nextCalled, true);
+});
+
+// 8. Validación y firma de tokens JWT
+test('Tokens JWT firmados con JWT_SECRET son validados y tokens alterados son rechazados', () => {
+  const payload = { userId: 'usr-123', role: 'admin', username: 'superadmin' };
+  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
+
+  // Token válido se decodifica correctamente
+  const decoded = jwt.verify(token, JWT_SECRET);
+  assert.strictEqual(decoded.userId, 'usr-123');
+  assert.strictEqual(decoded.role, 'admin');
+
+  // Token alterado lanza JsonWebTokenError
+  const tamperedToken = token.slice(0, -5) + 'xxxxx';
+  assert.throws(() => {
+    jwt.verify(tamperedToken, JWT_SECRET);
+  }, /invalid signature/i);
 });

@@ -3,21 +3,9 @@ const router = express.Router();
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const db = require('../config/db');
-const { verifyToken, requireClientOrTeam, requireAccountOwnerOrAdmin } = require('../middleware/auth');
+const { verifyToken, requireClientOrTeam, requireAccountOwnerOrAdmin, resolveAccountId } = require('../middleware/auth');
 
 router.use(verifyToken);
-
-// Helper estricto para resolver el account_id sin fugas entre cuentas
-function resolveAccountId(req) {
-  if (req.user && (req.user.role === 'client' || req.user.role === 'team_member')) {
-    return req.user.accountId;
-  }
-  if (req.user && req.user.role === 'admin') {
-    const requestedId = req.query.accountId || (req.body && req.body.accountId) || req.headers['x-account-id'];
-    return requestedId || null;
-  }
-  return null;
-}
 
 // GET /api/team - Listar profesionales de la cuenta (Accesible para titular, admin y miembros)
 router.get('/', requireClientOrTeam, async (req, res) => {

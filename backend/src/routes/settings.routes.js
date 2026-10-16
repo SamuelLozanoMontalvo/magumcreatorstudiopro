@@ -20,8 +20,8 @@ router.get('/platform_branding', async (req, res) => {
   }
 });
 
-// GET /api/settings/:key - Requiere sesión activa
-router.get('/:key', verifyToken, async (req, res) => {
+// GET /api/settings/:key - Requiere privilegios de Super Administrador (salvo platform_branding que es público)
+router.get('/:key', verifyToken, requireAdmin, async (req, res) => {
   try {
     const { key } = req.params;
     const result = await db.query('SELECT setting_value FROM system_settings WHERE setting_key = $1', [key]);

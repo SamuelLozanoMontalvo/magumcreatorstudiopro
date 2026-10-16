@@ -2,10 +2,52 @@ const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 require('dotenv').config();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'magum_creator_studio_super_secret_jwt_key_2026_xyz';
-if (!process.env.JWT_SECRET) {
-  console.warn('⚠️ ADVERTENCIA DE SEGURIDAD: JWT_SECRET no está definido en variables de entorno. Usando clave de desarrollo.');
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error('❌ ERROR FATAL: JWT_SECRET no está definida en las variables de entorno. Por motivos de seguridad estricta, el servidor no puede arrancar sin esta clave.');
+  process.exit(1);
 }
+
+// Mapa en memoria para rastrear únicamente intentos FALLIDOS de inicio de sesión por IP
+const failedLoginAttempts = new Map();
+const FAILED_RATE_WINDOW = 15 * 60 * 1000; // 15 minutos
+const MAX_FAILED_ATTEMPTS = 10;
+
+function isIpBlocked(ip) {
+  const record = failedLoginAttempts.get(ip);
+  if (!record) return false;
+  if (Date.now() - record.firstAttempt > FAILED_RATE_WINDOW) {
+    failedLoginAttempts.delete(ip);
+    return false;
+  }
+  return record.count >= MAX_FAILED_ATTEMPTS;
+}
+
+function recordFailedAttempt(ip) {
+  const now = Date.now();
+  const record = failedLoginAttempts.get(ip) || { count: 0, firstAttempt: now };
+  if (now - record.firstAttempt > FAILED_RATE_WINDOW) {
+    record.count = 1;
+    record.firstAttempt = now;
+  } else {
+    record.count++;
+  }
+  failedLoginAttempts.set(ip, record);
+}
+
+function resetFailedAttempts(ip) {
+  failedLoginAttempts.delete(ip);
+}
+
+// Limpieza periódica de IPs antiguas
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, data] of failedLoginAttempts.entries()) {
+    if (now - data.firstAttempt > FAILED_RATE_WINDOW) {
+      failedLoginAttempts.delete(ip);
+    }
+  }
+}, 5 * 60 * 1000);
 
 // Middleware principal: Verificación estricta de token JWT y estado de cuenta en tiempo real
 async function verifyToken(req, res, next) {
@@ -109,7 +151,7 @@ function requireClientOrTeam(req, res, next) {
   next();
 }
 
-// Middleware de guardia: Titular de la cuenta o Super Admin (Los profesionales NO pueden crear/borrar miembros)
+// Middleware de guardia: Titular de la cuenta o Super Admin
 function requireAccountOwnerOrAdmin(req, res, next) {
   if (!req.user || !['admin', 'client'].includes(req.user.role)) {
     return res.status(403).json({
@@ -120,10 +162,26 @@ function requireAccountOwnerOrAdmin(req, res, next) {
   next();
 }
 
+// Helper estricto para resolver el account_id sin fugas entre cuentas
+function resolveAccountId(req) {
+  if (req.user && (req.user.role === 'client' || req.user.role === 'team_member')) {
+    return req.user.accountId || null;
+  }
+  if (req.user && req.user.role === 'admin') {
+    const requestedId = req.query.accountId || (req.body && req.body.accountId) || req.headers['x-account-id'];
+    return requestedId || null;
+  }
+  return null;
+}
+
 module.exports = {
   verifyToken,
   requireAdmin,
   requireClientOrTeam,
   requireAccountOwnerOrAdmin,
+  resolveAccountId,
+  isIpBlocked,
+  recordFailedAttempt,
+  resetFailedAttempts,
   JWT_SECRET
 };

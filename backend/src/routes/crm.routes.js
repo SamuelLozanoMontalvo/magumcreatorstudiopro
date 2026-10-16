@@ -2,21 +2,9 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 const db = require('../config/db');
-const { verifyToken, requireClientOrTeam } = require('../middleware/auth');
+const { verifyToken, requireClientOrTeam, resolveAccountId } = require('../middleware/auth');
 
 router.use(verifyToken, requireClientOrTeam);
-
-// Helper estricto para resolver el account_id sin fugas entre cuentas
-function resolveAccountId(req) {
-  if (req.user && (req.user.role === 'client' || req.user.role === 'team_member')) {
-    return req.user.accountId;
-  }
-  if (req.user && req.user.role === 'admin') {
-    const requestedId = req.query.accountId || (req.body && req.body.accountId) || req.headers['x-account-id'];
-    return requestedId || null;
-  }
-  return null;
-}
 
 // GET /api/crm/contacts - Obtener contactos y métricas con aislamiento estricto
 router.get('/contacts', async (req, res) => {
@@ -276,6 +264,13 @@ router.post('/import', async (req, res) => {
   const { contacts } = req.body;
   if (!Array.isArray(contacts) || contacts.length === 0) {
     return res.status(400).json({ success: false, message: 'No se enviaron contactos para importar.' });
+  }
+
+  if (contacts.length > 500) {
+    return res.status(400).json({
+      success: false,
+      message: 'Límite excedido: El máximo permitido por importación es de 500 contactos.'
+    });
   }
 
   const client = await db.pool.connect();

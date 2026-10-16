@@ -3,19 +3,30 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
-const { verifyToken, JWT_SECRET } = require('../middleware/auth');
+const { verifyToken, JWT_SECRET, isIpBlocked, recordFailedAttempt, resetFailedAttempts } = require('../middleware/auth');
 require('dotenv').config();
 
 const GENERIC_AUTH_ERROR = 'Usuario, correo o contraseña incorrectos.';
 
-// POST /api/auth/login - Inicio de sesión unificado y seguro sin puertas traseras
+// POST /api/auth/login - Inicio de sesión seguro con protección contra fuerza bruta por IP real
 router.post('/login', async (req, res) => {
+  const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
+
+  // Verificar si la IP está bloqueada por exceso de intentos fallidos
+  if (isIpBlocked(clientIp)) {
+    return res.status(429).json({
+      success: false,
+      message: 'Demasiados intentos fallidos desde esta dirección IP. Por seguridad, espera 15 minutos.'
+    });
+  }
+
   try {
     const { username, email, password, accountId } = req.body;
     const identifier = (username || email || '').trim().toLowerCase();
     const cleanPassword = (password || '').trim();
 
     if (!identifier || !cleanPassword) {
+      recordFailedAttempt(clientIp);
       return res.status(400).json({
         success: false,
         message: 'Por favor ingresa usuario/correo y contraseña.'
@@ -34,6 +45,9 @@ router.post('/login', async (req, res) => {
         const isMatch = await bcrypt.compare(cleanPassword, adminUser.password_hash);
 
         if (isMatch) {
+          // Éxito: Limpiar contador de intentos fallidos para esta IP
+          resetFailedAttempts(clientIp);
+
           const token = jwt.sign(
             {
               role: 'admin',
@@ -79,7 +93,6 @@ router.post('/login', async (req, res) => {
         for (const acc of accountResult.rows) {
           if (acc.status === 'inactive') continue;
 
-          // Comparación estricta y segura con Bcrypt (Cero puertas traseras ni texto plano)
           const isMatch = await bcrypt.compare(cleanPassword, acc.password_hash);
           if (isMatch) {
             validAccounts.push(acc);
@@ -87,10 +100,9 @@ router.post('/login', async (req, res) => {
         }
 
         if (validAccounts.length === 0) {
-          // Verificar si todas las cuentas existentes estaban suspendidas
+          recordFailedAttempt(clientIp);
           const anySuspended = accountResult.rows.some(a => a.status === 'inactive');
           if (anySuspended) {
-            // Verificar si la clave era correcta para dar el mensaje de suspensión
             for (const acc of accountResult.rows) {
               if (await bcrypt.compare(cleanPassword, acc.password_hash)) {
                 return res.status(403).json({
@@ -105,6 +117,9 @@ router.post('/login', async (req, res) => {
             message: GENERIC_AUTH_ERROR
           });
         }
+
+        // Éxito: Limpiar intentos fallidos
+        resetFailedAttempts(clientIp);
 
         // Si el usuario tiene múltiples empresas activas y aún no especificó cuál ingresar
         if (validAccounts.length > 1 && !accountId) {
@@ -192,6 +207,7 @@ router.post('/login', async (req, res) => {
         const prof = profResult.rows[0];
 
         if (prof.account_status === 'inactive' || prof.account_deleted_at) {
+          recordFailedAttempt(clientIp);
           return res.status(403).json({
             success: false,
             message: 'La empresa principal se encuentra inactiva o ha sido dada de baja.'
@@ -200,6 +216,8 @@ router.post('/login', async (req, res) => {
 
         const isMatch = await bcrypt.compare(cleanPassword, prof.password_hash);
         if (isMatch) {
+          resetFailedAttempts(clientIp);
+
           const token = jwt.sign(
             {
               role: 'team_member',
@@ -244,7 +262,8 @@ router.post('/login', async (req, res) => {
       console.warn('[Auth] Error consultando professionals:', profErr.message);
     }
 
-    // Si ninguna credencial fue válida, retornar mensaje genérico unificado
+    // Si ninguna credencial fue válida, registrar intento fallido y responder 401
+    recordFailedAttempt(clientIp);
     return res.status(401).json({
       success: false,
       message: GENERIC_AUTH_ERROR
