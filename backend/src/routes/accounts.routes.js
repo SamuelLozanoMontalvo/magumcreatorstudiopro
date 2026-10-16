@@ -229,22 +229,25 @@ router.post('/', async (req, res) => {
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'active', $10, $11)
     `, [newId, firstName.trim(), lastName.trim(), business.trim(), emailClean, passwordHash, social, web, crm, inviteToken, inviteExpires]);
 
-    // Enviar correo de invitación con Resend de forma controlada
-    let emailResult = { success: false, setupUrl: '' };
+    const defaultBaseUrl = (req.headers.origin || req.headers.referer || process.env.FRONTEND_URL || 'https://magumcreatorstudiopro.vercel.app').split('?')[0].replace(/\/+$/, '');
+    const defaultSetupUrl = `${defaultBaseUrl}/setup-password.html?token=${encodeURIComponent(inviteToken)}`;
+
+    // Enviar correo de invitación de forma controlada y con timeout
+    let emailResult = { success: false, setupUrl: defaultSetupUrl };
     try {
       emailResult = await sendInviteEmail({
         to: emailClean,
         clientName: `${firstName.trim()} ${lastName.trim()}`,
         business: business.trim(),
         inviteToken,
-        origin: req.headers.origin || req.headers.referer
+        origin: defaultBaseUrl
       });
     } catch (emailErr) {
-      console.error('[Accounts] Error enviando correo de bienvenida:', emailErr.message);
+      console.warn('[Accounts] No se pudo enviar el correo de bienvenida de inmediato:', emailErr.message);
       emailResult = {
         success: false,
         error: emailErr.message,
-        setupUrl: `https://magumcreatorstudiopro.vercel.app/setup-password.html?token=${encodeURIComponent(inviteToken)}`
+        setupUrl: defaultSetupUrl
       };
     }
 
@@ -594,21 +597,24 @@ router.post('/:id/resend-invite', async (req, res) => {
       [inviteToken, inviteExpires, id]
     );
 
-    let emailResult = { success: false, setupUrl: '' };
+    const defaultBaseUrl = (req.headers.origin || req.headers.referer || process.env.FRONTEND_URL || 'https://magumcreatorstudiopro.vercel.app').split('?')[0].replace(/\/+$/, '');
+    const defaultSetupUrl = `${defaultBaseUrl}/setup-password.html?token=${encodeURIComponent(inviteToken)}`;
+
+    let emailResult = { success: false, setupUrl: defaultSetupUrl };
     try {
       emailResult = await sendInviteEmail({
         to: acc.email,
         clientName: `${acc.first_name} ${acc.last_name}`,
         business: acc.business,
         inviteToken,
-        origin: req.headers.origin || req.headers.referer
+        origin: defaultBaseUrl
       });
     } catch (err) {
-      console.error('[Accounts] Error reenviando correo de bienvenida:', err.message);
+      console.warn('[Accounts] Error reenviando correo de bienvenida:', err.message);
       emailResult = {
         success: false,
         error: err.message,
-        setupUrl: `https://magumcreatorstudiopro.vercel.app/setup-password.html?token=${encodeURIComponent(inviteToken)}`
+        setupUrl: defaultSetupUrl
       };
     }
 

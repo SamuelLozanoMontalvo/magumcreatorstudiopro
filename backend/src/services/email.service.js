@@ -7,6 +7,19 @@ function cleanEnv(val) {
   return String(val).trim().replace(/^['"]+|['"]+$/g, '');
 }
 
+/**
+  * Ejecuta una promesa con un tiempo límite estricto para evitar bloqueos del servidor
+  */
+function withTimeout(promise, ms, errorMsg) {
+  let timer = null;
+  const timeoutPromise = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(errorMsg || `Tiempo de espera agotado (${ms}ms)`)), ms);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
+}
+
 function getGmailTransporter() {
   const user = cleanEnv(process.env.GMAIL_USER || process.env.SMTP_USER);
   const pass = cleanEnv(process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS).replace(/\s+/g, '');
@@ -18,11 +31,14 @@ function getGmailTransporter() {
     transporter: nodemailer.createTransport({
       host: 'smtp.gmail.com',
       port: 465,
-      secure: true, // Conexión SSL directa en puerto 465 (la más compatible con Railway y hosting en la nube)
+      secure: true,
       auth: {
         user,
         pass
       },
+      connectionTimeout: 4000, // Máximo 4s para handshake TCP (evita que Railway quede colgado si bloquea el puerto)
+      greetingTimeout: 3000,
+      socketTimeout: 5000,
       tls: {
         rejectUnauthorized: false
       }
@@ -31,74 +47,125 @@ function getGmailTransporter() {
 }
 
 /**
- * Función base para enviar correos: Prioriza Gmail SMTP y respalda en Resend API
+ * Función base para enviar correos: Prioriza Gmail SMTP -> Brevo API -> Resend API
  */
 async function sendEmail({ to, subject, html, text }) {
-  const gmailConfig = getGmailTransporter();
+  const errors = [];
 
-  // 1. Prioridad: Gmail SMTP (Sin restricciones de destinatarios de prueba ni de dominios)
+  // 1. Prioridad: Gmail SMTP
+  const gmailConfig = getGmailTransporter();
   if (gmailConfig) {
     try {
-      // Gmail exige estrictamente que el remitente coincida con el usuario autenticado
       const gmailFrom = `"Magum Creator Studio" <${gmailConfig.user}>`;
-      const info = await gmailConfig.transporter.sendMail({
-        from: gmailFrom,
-        to,
-        subject,
-        html,
-        text
-      });
+      const info = await withTimeout(
+        gmailConfig.transporter.sendMail({
+          from: gmailFrom,
+          to,
+          subject,
+          html,
+          text
+        }),
+        5000,
+        'Tiempo de espera agotado conectando con Gmail SMTP (posible bloqueo de puertos en el hosting)'
+      );
       console.log(`[EmailService] ✅ Correo entregado vía Gmail SMTP a "${to}" (ID: ${info.messageId})`);
       return { success: true, id: info.messageId, provider: 'gmail' };
     } catch (gmailErr) {
-      console.error('[EmailService] ❌ Error enviando correo vía Gmail SMTP:', gmailErr.message);
-      const resendKey = cleanEnv(process.env.RESEND_API_KEY);
-      if (!resendKey) {
-        return { success: false, error: gmailErr.message, provider: 'gmail' };
-      }
-      console.warn('[EmailService] Intentando respaldo con Resend API...');
+      console.warn('[EmailService] ⚠️ Gmail SMTP falló o fue bloqueado:', gmailErr.message);
+      errors.push(`Gmail SMTP: ${gmailErr.message}`);
     }
   }
 
-  // 2. Respaldo o método alternativo: Resend API
+  // 2. Respaldo directo: Brevo REST API (HTTPS Puerto 443 - Nunca bloqueado por Railway y envía a cualquier correo)
+  const brevoKey = cleanEnv(process.env.BREVO_API_KEY || process.env.SENDINBLUE_API_KEY);
+  if (brevoKey) {
+    try {
+      const senderEmail = cleanEnv(process.env.BREVO_SENDER_EMAIL || process.env.GMAIL_USER || process.env.SMTP_USER) || 'notificaciones@magum.com';
+      const senderName = cleanEnv(process.env.BREVO_SENDER_NAME) || 'Magum Creator Studio';
+
+      const response = await withTimeout(
+        fetch('https://api.brevo.com/v3/smtp/email', {
+          method: 'POST',
+          headers: {
+            'api-key': brevoKey,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            sender: { name: senderName, email: senderEmail },
+            to: [{ email: to }],
+            subject,
+            htmlContent: html,
+            textContent: text
+          })
+        }),
+        5000,
+        'Tiempo de espera agotado conectando con Brevo API'
+      );
+
+      const data = await response.json().catch(() => ({}));
+      if (response.ok) {
+        console.log(`[EmailService] ✅ Correo entregado vía Brevo API a "${to}" (ID: ${data.messageId || 'ok'})`);
+        return { success: true, id: data.messageId, provider: 'brevo' };
+      } else {
+        console.warn('[EmailService] ⚠️ Brevo API rechazó la solicitud:', data);
+        errors.push(`Brevo: ${data.message || response.statusText}`);
+      }
+    } catch (brevoErr) {
+      console.warn('[EmailService] ⚠️ Error conectando a Brevo API:', brevoErr.message);
+      errors.push(`Brevo: ${brevoErr.message}`);
+    }
+  }
+
+  // 3. Respaldo: Resend REST API (HTTPS Puerto 443)
   const resendKey = cleanEnv(process.env.RESEND_API_KEY);
   if (resendKey) {
     try {
       const emailFrom = cleanEnv(process.env.EMAIL_FROM) || 'Magum Creator Studio <onboarding@resend.dev>';
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${resendKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          from: emailFrom,
-          to: [to],
-          subject,
-          html,
-          text
-        })
-      });
+      const response = await withTimeout(
+        fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            from: emailFrom,
+            to: [to],
+            subject,
+            html,
+            text
+          })
+        }),
+        5000,
+        'Tiempo de espera agotado conectando con Resend API'
+      );
 
-      const data = await response.json();
-      if (!response.ok) {
-        console.error('[EmailService] Error devuelto por Resend API:', data);
-        return { success: false, error: data.message || 'Error al enviar correo con Resend', provider: 'resend' };
+      const data = await response.json().catch(() => ({}));
+      if (response.ok) {
+        console.log(`[EmailService] ✅ Correo entregado vía Resend a "${to}" (ID: ${data.id})`);
+        return { success: true, id: data.id, provider: 'resend' };
+      } else {
+        console.warn('[EmailService] ⚠️ Resend rechazó el envío:', data);
+        errors.push(`Resend: ${data.message || response.statusText}`);
       }
-
-      console.log(`[EmailService] ✅ Correo enviado exitosamente vía Resend a "${to}" (ID: ${data.id})`);
-      return { success: true, id: data.id, provider: 'resend' };
     } catch (error) {
-      console.error('[EmailService] Error de conexión con Resend:', error.message);
-      return { success: false, error: error.message, provider: 'resend' };
+      console.warn('[EmailService] ⚠️ Error de conexión con Resend:', error.message);
+      errors.push(`Resend: ${error.message}`);
     }
   }
 
-  // 3. Simulación en consola si no hay ningún servicio configurado
-  console.warn(`[EmailService] ⚠️ Ni Gmail (GMAIL_USER / GMAIL_APP_PASSWORD) ni Resend configurados. Simulando envío a "${to}".`);
-  console.log(`[EmailService] Asunto: ${subject}`);
-  if (text) console.log(`[EmailService] Contenido: ${text}`);
-  return { success: true, simulated: true };
+  // Si ningún proveedor estuvo configurado o todos fallaron
+  const isAnyConfigured = Boolean(gmailConfig || brevoKey || resendKey);
+  if (!isAnyConfigured) {
+    console.warn(`[EmailService] ⚠️ No hay servicio de correo configurado. Simulando envío a "${to}".`);
+    return { success: true, simulated: true };
+  }
+
+  return {
+    success: false,
+    error: errors.join(' | ') || 'No fue posible entregar el correo con los proveedores configurados.'
+  };
 }
 
 /**
@@ -162,7 +229,14 @@ async function sendInviteEmail({ to, clientName, business, inviteToken, origin }
     </html>
   `;
 
-  const emailRes = await sendEmail({ to, subject, html, text });
+  let emailRes = { success: false };
+  try {
+    emailRes = await sendEmail({ to, subject, html, text });
+  } catch (err) {
+    console.warn('[EmailService] Error capturado en sendInviteEmail:', err.message);
+    emailRes = { success: false, error: err.message };
+  }
+
   return {
     ...emailRes,
     setupUrl,

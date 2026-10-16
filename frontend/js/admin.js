@@ -504,6 +504,13 @@ document.addEventListener('DOMContentLoaded', () => {
         status: 'active'
       };
 
+      const submitBtn = formCreate.querySelector('button[type="submit"]');
+      const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando cuenta...';
+      }
+
       // 1. Guardar en backend PostgreSQL PRIMERO (Única fuente de la verdad)
       let apiInviteUrl = '';
       let apiEmailSent = false;
@@ -535,16 +542,27 @@ document.addEventListener('DOMContentLoaded', () => {
             apiIsExistingClient = Boolean(apiRes.isExistingClient);
           }
         } catch (syncErr) {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnHtml;
+          }
           MagumAlert.error('Error al Crear Cuenta', syncErr.message || 'No se pudo registrar la cuenta en el servidor.');
           return;
         }
       }
 
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHtml;
+      }
+
       // 2. Solo tras éxito del backend, persistir localmente y refrescar UI
-      accounts.unshift(createdAccount);
-      saveAccounts(accounts);
+      const currentAccounts = getAccounts();
+      currentAccounts.unshift(createdAccount);
+      saveAccounts(currentAccounts);
 
       closeModal();
+      formCreate.reset();
       render();
 
       // Notificación estética de alta fidelidad con enlace de activación copiable
