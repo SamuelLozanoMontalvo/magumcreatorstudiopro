@@ -89,7 +89,7 @@
             <div><strong style="color: #64748b;">Titular:</strong> ${firstName} ${lastName}</div>
             <div><strong style="color: #64748b;">Correo de acceso:</strong> <span style="color: #3b82f6; font-weight: 600;">${email}</span></div>
             <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(100, 116, 139, 0.2); font-size: 0.84rem; color: #10b981; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-              <i class="fa-solid fa-circle-check"></i> El cliente ya puede iniciar sesión desde el portal con sus credenciales.
+              <i class="fa-solid fa-paper-plane" style="color: #e5007d;"></i> Se envió la invitación al correo para que el cliente active su acceso y defina su clave.
             </div>
           </div>
         `,

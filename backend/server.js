@@ -94,6 +94,10 @@ app.get('/login', (req, res) => {
   res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
+app.get('/setup-password', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'setup-password.html'));
+});
+
 // Manejador global de errores
 app.use((err, req, res, next) => {
   console.error('Error no capturado en Express:', err.message || err);

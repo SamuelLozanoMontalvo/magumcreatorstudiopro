@@ -230,6 +230,32 @@ class MagumApiClient {
       method: 'DELETE'
     });
   }
+
+  // Invitación y Recuperación de Contraseñas
+  async verifyInvite(token) {
+    return this.request(`/auth/verify-invite?token=${encodeURIComponent(token)}`);
+  }
+
+  async setupPassword(token, password) {
+    return this.request('/auth/setup-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, password })
+    });
+  }
+
+  async forgotPassword(email) {
+    return this.request('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    });
+  }
+
+  async verifyResetCode(email, code, newPassword) {
+    return this.request('/auth/verify-reset-code', {
+      method: 'POST',
+      body: JSON.stringify({ email, code, newPassword })
+    });
+  }
 }
 
 // Clases e instancias globales disponibles en todos los scripts del frontend

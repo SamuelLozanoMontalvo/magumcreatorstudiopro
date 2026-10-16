@@ -410,8 +410,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const socialCheck = document.getElementById('module-social-check').checked;
       const webCheck = document.getElementById('module-web-check').checked;
 
-      if (!firstName || !lastName || !business || !email || !password) {
-        MagumAlert.error('Campos Obligatorios', 'Por favor completa todos los campos requeridos para dar de alta la cuenta.');
+      if (!firstName || !lastName || !business || !email) {
+        MagumAlert.error('Campos Obligatorios', 'Por favor completa nombre, apellido, empresa y correo electrónico.');
         return;
       }
 

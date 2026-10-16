@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const { verifyToken, JWT_SECRET, isIpBlocked, recordFailedAttempt, resetFailedAttempts } = require('../middleware/auth');
+const { sendResetCodeEmail } = require('../services/email.service');
 require('dotenv').config();
 
 const GENERIC_AUTH_ERROR = 'Usuario, correo o contraseña incorrectos.';
@@ -284,6 +285,267 @@ router.get('/me', verifyToken, (req, res) => {
     success: true,
     user: req.user
   });
+});
+
+// GET /api/auth/verify-invite - Verificar si el enlace de invitación es válido
+router.get('/verify-invite', async (req, res) => {
+  try {
+    const { token } = req.query;
+    if (!token) {
+      return res.status(400).json({ success: false, message: 'Token de invitación no proporcionado.' });
+    }
+
+    const result = await db.query(
+      `SELECT id, first_name, last_name, business, email, invite_expires_at 
+       FROM accounts 
+       WHERE invite_token = $1 AND deleted_at IS NULL`,
+      [token]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'El enlace de invitación es inválido o ya fue utilizado.' });
+    }
+
+    const acc = result.rows[0];
+    if (new Date(acc.invite_expires_at) < new Date()) {
+      return res.status(410).json({ success: false, message: 'El enlace de invitación ha expirado. Solicita uno nuevo a tu administrador.' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        email: acc.email,
+        business: acc.business,
+        clientName: `${acc.first_name} ${acc.last_name}`
+      }
+    });
+  } catch (error) {
+    console.error('Error en GET /verify-invite:', error);
+    res.status(500).json({ success: false, message: 'Error al verificar la invitación.' });
+  }
+});
+
+// POST /api/auth/setup-password - Establecer contraseña por primera vez y acceder directamente
+router.post('/setup-password', async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password || password.trim().length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'La contraseña debe tener al menos 6 caracteres.'
+      });
+    }
+
+    const result = await db.query(
+      `SELECT id, first_name, last_name, business, email, module_social, module_web, module_crm, invite_expires_at 
+       FROM accounts 
+       WHERE invite_token = $1 AND deleted_at IS NULL`,
+      [token]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'El enlace de invitación es inválido o ya fue utilizado.' });
+    }
+
+    const acc = result.rows[0];
+    if (new Date(acc.invite_expires_at) < new Date()) {
+      return res.status(410).json({ success: false, message: 'El enlace de invitación ha expirado.' });
+    }
+
+    const passwordHash = await bcrypt.hash(password.trim(), 10);
+
+    // Actualizar contraseña y limpiar el token de invitación (unificar para todas las empresas de ese correo si tuviera más)
+    await db.query(
+      `UPDATE accounts 
+       SET password_hash = $1, invite_token = NULL, invite_expires_at = NULL, status = 'active'
+       WHERE LOWER(email) = LOWER($2) AND deleted_at IS NULL`,
+      [passwordHash, acc.email]
+    );
+
+    // Generar sesión JWT directa
+    const jwtToken = jwt.sign(
+      {
+        role: 'client',
+        accountId: acc.id,
+        email: acc.email,
+        clientName: `${acc.first_name} ${acc.last_name}`,
+        business: acc.business,
+        modules: {
+          social: acc.module_social,
+          web: acc.module_web,
+          crm: acc.module_crm
+        }
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      success: true,
+      message: '¡Contraseña configurada con éxito! Ingresando a la plataforma...',
+      token: jwtToken,
+      user: {
+        role: 'client',
+        accountId: acc.id,
+        email: acc.email,
+        clientName: `${acc.first_name} ${acc.last_name}`,
+        business: acc.business,
+        modules: {
+          social: acc.module_social,
+          web: acc.module_web,
+          crm: acc.module_crm
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error en POST /setup-password:', error);
+    res.status(500).json({ success: false, message: 'Error al establecer la contraseña.' });
+  }
+});
+
+// POST /api/auth/forgot-password - Solicitar código de 6 dígitos por problemas de acceso
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email || !email.trim()) {
+      return res.status(400).json({ success: false, message: 'Ingresa tu correo electrónico.' });
+    }
+
+    const emailClean = email.trim().toLowerCase();
+
+    // Buscar en accounts
+    const accRes = await db.query(
+      `SELECT id, first_name, last_name, business FROM accounts 
+       WHERE LOWER(email) = $1 AND deleted_at IS NULL AND status = 'active' LIMIT 1`,
+      [emailClean]
+    );
+
+    let clientName = 'Usuario';
+    let isFound = false;
+
+    if (accRes.rows.length > 0) {
+      isFound = true;
+      clientName = `${accRes.rows[0].first_name} ${accRes.rows[0].last_name}`.trim();
+    } else {
+      // Buscar en professionals
+      const profRes = await db.query(
+        `SELECT id, name FROM professionals 
+         WHERE LOWER(email) = $1 AND deleted_at IS NULL LIMIT 1`,
+        [emailClean]
+      );
+      if (profRes.rows.length > 0) {
+        isFound = true;
+        clientName = profRes.rows[0].name;
+      }
+    }
+
+    // Por seguridad, si el correo no existe respondemos genéricamente sin error para evitar enumeración
+    if (!isFound) {
+      return res.json({
+        success: true,
+        message: 'Si el correo está registrado, recibirás un código de verificación en tu bandeja de entrada.'
+      });
+    }
+
+    // Generar código numérico de 6 dígitos
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+
+    await db.query(
+      `UPDATE accounts 
+       SET password_reset_code = $1, password_reset_expires_at = $2 
+       WHERE LOWER(email) = $3 AND deleted_at IS NULL`,
+      [code, expiresAt, emailClean]
+    );
+
+    // Enviar correo con Resend
+    await sendResetCodeEmail({
+      to: emailClean,
+      clientName,
+      code
+    });
+
+    res.json({
+      success: true,
+      message: 'Hemos enviado un código de 6 dígitos a tu correo electrónico.'
+    });
+  } catch (error) {
+    console.error('Error en POST /forgot-password:', error);
+    res.status(500).json({ success: false, message: 'Error al procesar la solicitud de recuperación.' });
+  }
+});
+
+// POST /api/auth/verify-reset-code - Validar código de 6 dígitos y establecer nueva contraseña
+router.post('/verify-reset-code', async (req, res) => {
+  try {
+    const { email, code, newPassword } = req.body;
+
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Todos los campos son obligatorios.' });
+    }
+
+    if (newPassword.trim().length < 6) {
+      return res.status(400).json({ success: false, message: 'La nueva contraseña debe tener al menos 6 caracteres.' });
+    }
+
+    const emailClean = email.trim().toLowerCase();
+    const cleanCode = String(code).trim().replace(/\s+/g, '');
+
+    const accRes = await db.query(
+      `SELECT id, password_reset_code, password_reset_expires_at 
+       FROM accounts 
+       WHERE LOWER(email) = $1 AND deleted_at IS NULL`,
+      [emailClean]
+    );
+
+    if (accRes.rows.length === 0 || !accRes.rows[0].password_reset_code) {
+      return res.status(400).json({
+        success: false,
+        message: 'No hay ninguna solicitud de recuperación activa para este correo.'
+      });
+    }
+
+    const record = accRes.rows[0];
+    if (new Date(record.password_reset_expires_at) < new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: 'El código ha expirado. Por favor solicita uno nuevo.'
+      });
+    }
+
+    if (record.password_reset_code !== cleanCode) {
+      return res.status(400).json({
+        success: false,
+        message: 'El código de 6 dígitos ingresado es incorrecto.'
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword.trim(), 10);
+
+    // Actualizar clave y limpiar código
+    await db.query(
+      `UPDATE accounts 
+       SET password_hash = $1, password_reset_code = NULL, password_reset_expires_at = NULL 
+       WHERE LOWER(email) = $2 AND deleted_at IS NULL`,
+      [passwordHash, emailClean]
+    );
+
+    // También actualizar si es profesional
+    await db.query(
+      `UPDATE professionals 
+       SET password_hash = $1 
+       WHERE LOWER(email) = $2 AND deleted_at IS NULL`,
+      [passwordHash, emailClean]
+    );
+
+    res.json({
+      success: true,
+      message: '¡Contraseña restablecida con éxito! Ya puedes iniciar sesión con tu nueva clave.'
+    });
+  } catch (error) {
+    console.error('Error en POST /verify-reset-code:', error);
+    res.status(500).json({ success: false, message: 'Error al verificar el código de recuperación.' });
+  }
 });
 
 module.exports = router;

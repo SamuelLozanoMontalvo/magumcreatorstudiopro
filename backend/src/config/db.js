@@ -143,6 +143,12 @@ async function initDatabase() {
 
       UPDATE accounts SET id = REPLACE(id, 'ACC-', 'MGM-') WHERE id LIKE 'ACC-%';
       UPDATE billing SET account_id = REPLACE(account_id, 'ACC-', 'MGM-') WHERE account_id LIKE 'ACC-%';
+
+      -- Columnas para invitación y restablecimiento de contraseña
+      ALTER TABLE accounts ADD COLUMN IF NOT EXISTS invite_token VARCHAR(100) DEFAULT NULL;
+      ALTER TABLE accounts ADD COLUMN IF NOT EXISTS invite_expires_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
+      ALTER TABLE accounts ADD COLUMN IF NOT EXISTS password_reset_code VARCHAR(100) DEFAULT NULL;
+      ALTER TABLE accounts ADD COLUMN IF NOT EXISTS password_reset_expires_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
     `);
 
     // Actualizar inmediatamente las credenciales de los administradores en PostgreSQL con la nueva clave segura

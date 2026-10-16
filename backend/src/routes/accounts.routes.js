@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const { verifyToken, requireAdmin, JWT_SECRET } = require('../middleware/auth');
+const { sendInviteEmail } = require('../services/email.service');
 
 function generateAccountId() {
   return 'MGM-' + crypto.randomBytes(4).toString('hex').toUpperCase();
@@ -62,15 +63,15 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/accounts - Crear nueva cuenta de cliente (con facturación opcional y configurable)
+// POST /api/accounts - Crear nueva cuenta de cliente (con invitación al correo para definir clave)
 router.post('/', async (req, res) => {
   try {
     const { firstName, lastName, business, email, password, modules, billingPlan, billingAmount, billingNotes } = req.body;
 
-    if (!firstName || !lastName || !business || !email || !password) {
+    if (!firstName || !lastName || !business || !email) {
       return res.status(400).json({
         success: false,
-        message: 'Todos los campos obligatorios deben ser diligenciados.'
+        message: 'Nombre, apellido, negocio y correo son obligatorios.'
       });
     }
 
@@ -93,19 +94,35 @@ router.post('/', async (req, res) => {
     }
 
     const newId = generateAccountId();
-    let passwordHash = await bcrypt.hash(password.trim(), 10);
+    const inviteToken = crypto.randomBytes(32).toString('hex');
+    const inviteExpires = new Date(Date.now() + 48 * 3600 * 1000); // 48 horas
 
-    // Si ya tiene cuentas previas con ese correo, unificar contraseña
-    await db.query('UPDATE accounts SET password_hash = $1 WHERE LOWER(email) = $2 AND deleted_at IS NULL', [passwordHash, emailClean]);
+    // Si el admin escribió una clave manual la usamos; si no, dejamos una provisional hasta que active su enlace
+    const rawPassword = password && password.trim() ? password.trim() : crypto.randomBytes(16).toString('hex');
+    let passwordHash = await bcrypt.hash(rawPassword, 10);
+
+    // Si ya tiene cuentas previas con ese correo y se definió clave manual, unificar
+    if (password && password.trim()) {
+      await db.query('UPDATE accounts SET password_hash = $1 WHERE LOWER(email) = $2 AND deleted_at IS NULL', [passwordHash, emailClean]);
+    }
 
     const social = modules && modules.social !== undefined ? Boolean(modules.social) : true;
     const web = modules && modules.web !== undefined ? Boolean(modules.web) : true;
     const crm = true;
 
     await db.query(`
-      INSERT INTO accounts (id, first_name, last_name, business, email, password_hash, module_social, module_web, module_crm, status)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'active')
-    `, [newId, firstName.trim(), lastName.trim(), business.trim(), emailClean, passwordHash, social, web, crm]);
+      INSERT INTO accounts (id, first_name, last_name, business, email, password_hash, module_social, module_web, module_crm, status, invite_token, invite_expires_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'active', $10, $11)
+    `, [newId, firstName.trim(), lastName.trim(), business.trim(), emailClean, passwordHash, social, web, crm, inviteToken, inviteExpires]);
+
+    // Enviar correo de invitación con Resend
+    sendInviteEmail({
+      to: emailClean,
+      clientName: `${firstName.trim()} ${lastName.trim()}`,
+      business: business.trim(),
+      inviteToken,
+      origin: req.headers.origin || req.headers.referer
+    }).catch(err => console.error('Aviso: Error enviando correo de invitación:', err.message));
 
     // Registrar facturación SOLO si el admin configuró monto y plan
     if (billingAmount !== undefined && billingAmount !== null && !isNaN(Number(billingAmount))) {
