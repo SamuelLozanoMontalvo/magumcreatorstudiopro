@@ -60,7 +60,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Healthcheck para Railway y monitoreo
-app.get('/api/health', (req, res) => {
+app.get(['/health', '/api/health'], (req, res) => {
   res.json({
     status: 'online',
     service: 'MAGUM Creator Studio Backend API',
