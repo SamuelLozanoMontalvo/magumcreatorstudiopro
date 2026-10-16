@@ -306,8 +306,79 @@ async function sendResetCodeEmail({ to, clientName, code }) {
   };
 }
 
+/**
+ * Enviar enlace directo para restablecer contraseña
+ */
+async function sendPasswordResetLinkEmail({ to, clientName, resetUrl }) {
+  const subject = `Restablece tu contraseña - Magum Creator Studio`;
+  const text = `Hola ${clientName || 'Usuario'},\n\nRecibimos una solicitud para restablecer tu contraseña en Magum Creator Studio.\n\nPara definir una nueva contraseña, ingresa al siguiente enlace:\n${resetUrl}\n\nEste enlace expira en 24 horas.\n\nSi no solicitaste este cambio, puedes ignorar este mensaje.\n\nEquipo Magum Creator Studio`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <title>Restablecer Contraseña | Magum Creator Studio</title>
+      <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #0b0717; color: #f1f5f9; margin: 0; padding: 0; }
+        .container { max-width: 580px; margin: 30px auto; background: #130e26; border-radius: 16px; border: 1px solid rgba(229, 0, 125, 0.25); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .header { background: linear-gradient(135deg, #210087 0%, #e5007d 100%); padding: 36px 24px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+        .header p { color: #f8fafc; opacity: 0.9; margin: 8px 0 0 0; font-size: 14px; }
+        .content { padding: 32px 28px; }
+        .greeting { font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 12px; }
+        .text { font-size: 15px; color: #cbd5e1; line-height: 1.6; margin-bottom: 24px; }
+        .btn-wrap { text-align: center; margin: 32px 0; }
+        .btn { display: inline-block; background: linear-gradient(135deg, #e5007d 0%, #210087 100%); color: #ffffff !important; text-decoration: none; font-weight: 700; font-size: 16px; padding: 14px 34px; border-radius: 12px; box-shadow: 0 6px 20px rgba(229, 0, 125, 0.35); }
+        .footer { padding: 24px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid rgba(255,255,255,0.06); }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>MAGUM CREATOR STUDIO</h1>
+          <p>Recuperación de Contraseña</p>
+        </div>
+        <div class="content">
+          <div class="greeting">¡Hola, ${clientName || 'Usuario'}!</div>
+          <p class="text">
+            Recibimos una solicitud para restablecer la contraseña de acceso de tu cuenta.
+          </p>
+          <p class="text">
+            Haz clic en el siguiente botón para definir tu nueva contraseña de acceso:
+          </p>
+          <div class="btn-wrap">
+            <a href="${resetUrl}" class="btn" target="_blank">Restablecer Mi Contraseña</a>
+          </div>
+          <p class="text" style="font-size: 13px; color: #94a3b8; text-align: center;">
+            Por seguridad, este enlace es personal y expirará en 24 horas. Si tú no solicitaste este cambio, puedes ignorar este correo sin problemas.
+          </p>
+        </div>
+        <div class="footer">
+          © 2026 MAGUM Creator Studio. Todos los derechos reservados.
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  let emailRes = { success: false };
+  try {
+    emailRes = await sendEmail({ to, subject, html, text });
+  } catch (err) {
+    console.warn('[EmailService] Error capturado en sendPasswordResetLinkEmail:', err.message);
+    emailRes = { success: false, error: err.message };
+  }
+
+  return {
+    ...emailRes,
+    resetUrl
+  };
+}
+
 module.exports = {
   sendEmail,
   sendInviteEmail,
-  sendResetCodeEmail
+  sendResetCodeEmail,
+  sendPasswordResetLinkEmail
 };

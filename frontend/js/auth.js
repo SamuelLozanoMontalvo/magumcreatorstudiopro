@@ -185,43 +185,33 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================================================
-  // RECUPERACIÓN DE CONTRASEÑA (PROBLEMAS DE ACCESO CON CÓDIGO OTP DE 6 DÍGITOS)
+  // RECUPERACIÓN DE CONTRASEÑA (PROBLEMAS DE ACCESO CON ENLACE AL CORREO)
   // ==========================================================================
   const forgotLink = document.getElementById('forgot-password-link');
   const modalForgot = document.getElementById('modal-forgot-password');
   const btnCloseForgot = document.getElementById('btn-close-forgot-modal');
+  const btnCloseForgotSuccess = document.getElementById('btn-close-forgot-success');
 
-  const step1 = document.getElementById('forgot-step-1');
-  const step2 = document.getElementById('forgot-step-2');
-  const formForgot1 = document.getElementById('form-forgot-request');
-  const formForgot2 = document.getElementById('form-forgot-verify');
-
+  const formView = document.getElementById('forgot-form-view');
+  const successView = document.getElementById('forgot-success-view');
+  const formForgot = document.getElementById('form-forgot-request');
   const inputForgotEmail = document.getElementById('input-forgot-email');
-  const inputOtpCode = document.getElementById('input-otp-code');
-  const inputResetPass1 = document.getElementById('input-reset-pass-1');
-  const inputResetPass2 = document.getElementById('input-reset-pass-2');
   const lblTargetEmail = document.getElementById('lbl-forgot-target-email');
+  const forgotAlert = document.getElementById('forgot-alert-1');
+  const btnSubmitForgot = document.getElementById('btn-submit-forgot-request');
 
-  const forgotAlert1 = document.getElementById('forgot-alert-1');
-  const forgotAlert2 = document.getElementById('forgot-alert-2');
-  const btnSubmitForgot1 = document.getElementById('btn-submit-forgot-request');
-  const btnSubmitForgot2 = document.getElementById('btn-submit-verify-reset');
-  const btnBackStep1 = document.getElementById('btn-back-to-step-1');
-
-  let currentResetEmail = '';
-
-  function showForgotAlert(box, msg, type = 'error') {
-    if (!box) return;
-    box.style.display = 'block';
-    box.textContent = msg;
+  function showForgotAlert(msg, type = 'error') {
+    if (!forgotAlert) return;
+    forgotAlert.style.display = 'block';
+    forgotAlert.textContent = msg;
     if (type === 'error') {
-      box.style.background = 'rgba(239, 68, 68, 0.12)';
-      box.style.border = '1px solid rgba(239, 68, 68, 0.35)';
-      box.style.color = '#ef4444';
+      forgotAlert.style.background = 'rgba(239, 68, 68, 0.12)';
+      forgotAlert.style.border = '1px solid rgba(239, 68, 68, 0.35)';
+      forgotAlert.style.color = '#ef4444';
     } else {
-      box.style.background = 'rgba(16, 185, 129, 0.12)';
-      box.style.border = '1px solid rgba(16, 185, 129, 0.35)';
-      box.style.color = '#10b981';
+      forgotAlert.style.background = 'rgba(16, 185, 129, 0.12)';
+      forgotAlert.style.border = '1px solid rgba(16, 185, 129, 0.35)';
+      forgotAlert.style.color = '#10b981';
     }
   }
 
@@ -231,10 +221,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inputForgotEmail && prefillEmail.includes('@')) {
       inputForgotEmail.value = prefillEmail;
     }
-    step1.style.display = 'block';
-    step2.style.display = 'none';
-    if (forgotAlert1) forgotAlert1.style.display = 'none';
-    if (forgotAlert2) forgotAlert2.style.display = 'none';
+    if (formView) formView.style.display = 'block';
+    if (successView) successView.style.display = 'none';
+    if (forgotAlert) forgotAlert.style.display = 'none';
     modalForgot.style.display = 'flex';
     if (inputForgotEmail) setTimeout(() => inputForgotEmail.focus(), 80);
   }
@@ -254,94 +243,38 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (btnCloseForgot) btnCloseForgot.addEventListener('click', closeForgotModal);
+  if (btnCloseForgotSuccess) btnCloseForgotSuccess.addEventListener('click', closeForgotModal);
   if (modalForgot) {
     modalForgot.addEventListener('click', (e) => {
       if (e.target === modalForgot) closeForgotModal();
     });
   }
 
-  if (btnBackStep1) {
-    btnBackStep1.addEventListener('click', () => {
-      step2.style.display = 'none';
-      step1.style.display = 'block';
-      if (forgotAlert1) forgotAlert1.style.display = 'none';
-      if (inputForgotEmail) inputForgotEmail.focus();
-    });
-  }
-
-  // Paso 1: Solicitar código
-  if (formForgot1) {
-    formForgot1.addEventListener('submit', async (e) => {
+  // Enviar enlace de restablecimiento al correo
+  if (formForgot) {
+    formForgot.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = inputForgotEmail.value.trim().toLowerCase();
       if (!email) return;
 
-      btnSubmitForgot1.disabled = true;
-      btnSubmitForgot1.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+      if (btnSubmitForgot) {
+        btnSubmitForgot.disabled = true;
+        btnSubmitForgot.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando enlace...';
+      }
 
       try {
         const res = await window.MagumApi.forgotPassword(email);
-        currentResetEmail = email;
         if (lblTargetEmail) lblTargetEmail.textContent = email;
 
-        step1.style.display = 'none';
-        step2.style.display = 'block';
-        if (inputOtpCode) {
-          inputOtpCode.value = '';
-          setTimeout(() => inputOtpCode.focus(), 80);
-        }
+        if (formView) formView.style.display = 'none';
+        if (successView) successView.style.display = 'block';
       } catch (err) {
-        showForgotAlert(forgotAlert1, err.message || 'No fue posible enviar el código. Inténtalo de nuevo.');
+        showForgotAlert(err.message || 'No fue posible enviar el enlace. Inténtalo de nuevo.');
       } finally {
-        btnSubmitForgot1.disabled = false;
-        btnSubmitForgot1.innerHTML = '<span>Enviar Código de Seguridad</span> <i class="fa-solid fa-paper-plane" style="margin-left: 6px;"></i>';
-      }
-    });
-  }
-
-  // Paso 2: Validar OTP y cambiar clave
-  if (formForgot2) {
-    formForgot2.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const code = inputOtpCode.value.trim().replace(/\s+/g, '');
-      const pass1 = inputResetPass1.value;
-      const pass2 = inputResetPass2.value;
-
-      if (code.length !== 6) {
-        showForgotAlert(forgotAlert2, 'El código debe tener 6 dígitos numéricos.');
-        return;
-      }
-
-      if (pass1.length < 6) {
-        showForgotAlert(forgotAlert2, 'La nueva contraseña debe tener al menos 6 caracteres.');
-        return;
-      }
-
-      if (pass1 !== pass2) {
-        showForgotAlert(forgotAlert2, 'Las contraseñas no coinciden.');
-        return;
-      }
-
-      btnSubmitForgot2.disabled = true;
-      btnSubmitForgot2.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Restableciendo...';
-
-      try {
-        const res = await window.MagumApi.verifyResetCode(currentResetEmail, code, pass1);
-        closeForgotModal();
-
-        if (identifierInput) identifierInput.value = currentResetEmail;
-        if (passwordInput) passwordInput.value = '';
-
-        if (window.MagumAlert && window.MagumAlert.success) {
-          window.MagumAlert.success('¡Contraseña Actualizada!', 'Tu clave ha sido restablecida. Ya puedes ingresar con tu nueva contraseña.');
-        } else {
-          showAlert('¡Contraseña actualizada con éxito! Ingresa con tu nueva clave.', 'success');
+        if (btnSubmitForgot) {
+          btnSubmitForgot.disabled = false;
+          btnSubmitForgot.innerHTML = '<span>Enviar Enlace al Correo</span> <i class="fa-solid fa-paper-plane" style="margin-left: 6px;"></i>';
         }
-      } catch (err) {
-        showForgotAlert(forgotAlert2, err.message || 'Código incorrecto o expirado.');
-      } finally {
-        btnSubmitForgot2.disabled = false;
-        btnSubmitForgot2.innerHTML = '<span>Guardar Nueva Contraseña</span> <i class="fa-solid fa-check" style="margin-left: 6px;"></i>';
       }
     });
   }

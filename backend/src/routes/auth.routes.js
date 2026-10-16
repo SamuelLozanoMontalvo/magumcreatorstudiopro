@@ -1,10 +1,11 @@
+const crypto = require('crypto');
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const { verifyToken, JWT_SECRET, isIpBlocked, recordFailedAttempt, resetFailedAttempts } = require('../middleware/auth');
-const { sendResetCodeEmail } = require('../services/email.service');
+const { sendResetCodeEmail, sendPasswordResetLinkEmail } = require('../services/email.service');
 require('dotenv').config();
 
 const GENERIC_AUTH_ERROR = 'Usuario, correo o contraseña incorrectos.';
@@ -403,7 +404,7 @@ router.post('/setup-password', async (req, res) => {
   }
 });
 
-// POST /api/auth/forgot-password - Solicitar código de 6 dígitos por problemas de acceso
+// POST /api/auth/forgot-password - Enviar enlace directo al correo para restablecer contraseña
 router.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
@@ -413,7 +414,7 @@ router.post('/forgot-password', async (req, res) => {
 
     const emailClean = email.trim().toLowerCase();
 
-    // Buscar en accounts
+    // 1. Buscar en accounts
     const accRes = await db.query(
       `SELECT id, first_name, last_name, business FROM accounts 
        WHERE LOWER(email) = $1 AND deleted_at IS NULL AND status = 'active' LIMIT 1`,
@@ -427,7 +428,7 @@ router.post('/forgot-password', async (req, res) => {
       isFound = true;
       clientName = `${accRes.rows[0].first_name} ${accRes.rows[0].last_name}`.trim();
     } else {
-      // Buscar en professionals
+      // 2. Buscar en professionals
       const profRes = await db.query(
         `SELECT id, name FROM professionals 
          WHERE LOWER(email) = $1 AND deleted_at IS NULL LIMIT 1`,
@@ -443,31 +444,37 @@ router.post('/forgot-password', async (req, res) => {
     if (!isFound) {
       return res.json({
         success: true,
-        message: 'Si el correo está registrado, recibirás un código de verificación en tu bandeja de entrada.'
+        message: 'Si el correo está registrado, recibirás un enlace de restablecimiento en tu bandeja de entrada.'
       });
     }
 
-    // Generar código numérico de 6 dígitos
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+    // Generar token criptográfico seguro para restablecimiento
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 24 * 3600 * 1000); // Válido por 24 horas
 
+    // Guardar token en accounts (unificado para todas las cuentas de este usuario)
     await db.query(
       `UPDATE accounts 
-       SET password_reset_code = $1, password_reset_expires_at = $2 
+       SET invite_token = $1, invite_expires_at = $2 
        WHERE LOWER(email) = $3 AND deleted_at IS NULL`,
-      [code, expiresAt, emailClean]
+      [resetToken, expiresAt, emailClean]
     );
 
-    // Enviar correo con Resend
-    await sendResetCodeEmail({
+    const baseUrl = (req.headers.origin || req.headers.referer || process.env.FRONTEND_URL || 'https://magumcreatorstudiopro.vercel.app').split('?')[0].replace(/\/+$/, '');
+    const resetUrl = `${baseUrl}/setup-password.html?token=${encodeURIComponent(resetToken)}`;
+
+    // Enviar correo con enlace seguro
+    const emailResult = await sendPasswordResetLinkEmail({
       to: emailClean,
       clientName,
-      code
+      resetUrl
     });
 
     res.json({
       success: true,
-      message: 'Hemos enviado un código de 6 dígitos a tu correo electrónico.'
+      message: 'Hemos enviado un enlace a tu correo para restablecer tu contraseña. Revisa tu bandeja de entrada o spam.',
+      emailSent: Boolean(emailResult.success),
+      resetUrl
     });
   } catch (error) {
     console.error('Error en POST /forgot-password:', error);

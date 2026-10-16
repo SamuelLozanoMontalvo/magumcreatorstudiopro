@@ -112,7 +112,7 @@
     </div>
   </div>
 
-  <!-- Modal Recuperación de Contraseña (Problemas de acceso con código de 6 dígitos) -->
+  <!-- Modal Recuperación de Contraseña (Problemas de acceso con enlace al correo) -->
   <div id="modal-forgot-password" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
     <div class="modal-box" style="background: #ffffff; width: 100%; max-width: 440px; border-radius: 18px; padding: 30px; box-shadow: 0 20px 45px rgba(0,0,0,0.3); text-align: center; border: 1px solid rgba(0,0,0,0.08); position: relative;">
       
@@ -120,15 +120,15 @@
         <i class="fa-solid fa-xmark"></i>
       </button>
 
-      <div style="width: 54px; height: 54px; border-radius: 14px; background: rgba(229,0,125,0.09); color: #e5007d; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 1.5rem;">
-        <i class="fa-solid fa-key"></i>
-      </div>
+      <!-- Vista 1: Formulario para ingresar correo -->
+      <div id="forgot-form-view">
+        <div style="width: 54px; height: 54px; border-radius: 14px; background: rgba(229,0,125,0.09); color: #e5007d; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 1.5rem;">
+          <i class="fa-solid fa-key"></i>
+        </div>
 
-      <!-- Paso 1: Solicitar código -->
-      <div id="forgot-step-1">
         <h3 style="margin: 0 0 8px; font-size: 1.3rem; font-weight: 700; color: #1e293b;">¿Problemas de acceso?</h3>
         <p style="margin: 0 0 20px; font-size: 0.88rem; color: #64748b; line-height: 1.5;">
-          Ingresa el correo electrónico de tu cuenta y te enviaremos un código de seguridad de 6 dígitos para restablecer tu clave.
+          Ingresa el correo electrónico de tu cuenta y te enviaremos un enlace seguro para restablecer o definir tu contraseña de acceso.
         </p>
 
         <form id="form-forgot-request">
@@ -148,73 +148,30 @@
           <div id="forgot-alert-1" style="display: none; padding: 10px; border-radius: 8px; margin-bottom: 14px; font-size: 0.85rem;"></div>
 
           <button type="submit" id="btn-submit-forgot-request" class="btn-submit" style="width: 100%; margin: 0; padding: 12px;">
-            <span>Enviar Código de Seguridad</span>
+            <span>Enviar Enlace al Correo</span>
             <i class="fa-solid fa-paper-plane" style="margin-left: 6px;"></i>
           </button>
         </form>
       </div>
 
-      <!-- Paso 2: Digitar 6 dígitos y definir nueva contraseña -->
-      <div id="forgot-step-2" style="display: none;">
-        <h3 style="margin: 0 0 6px; font-size: 1.25rem; font-weight: 700; color: #1e293b;">Verifica tu Código</h3>
-        <p style="margin: 0 0 16px; font-size: 0.85rem; color: #64748b;">
-          Enviamos un código de 6 dígitos a <strong id="lbl-forgot-target-email" style="color: #210087;"></strong>.
+      <!-- Vista 2: Éxito (Enlace enviado) -->
+      <div id="forgot-success-view" style="display: none;">
+        <div style="width: 58px; height: 58px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); color: #10b981; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 1.8rem;">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+
+        <h3 style="margin: 0 0 8px; font-size: 1.3rem; font-weight: 700; color: #1e293b;">¡Enlace Enviado!</h3>
+        <p style="margin: 0 0 16px; font-size: 0.88rem; color: #64748b; line-height: 1.6;">
+          Hemos enviado un correo a <strong id="lbl-forgot-target-email" style="color: #210087; word-break: break-all;"></strong> con el enlace para restablecer tu contraseña.
         </p>
 
-        <form id="form-forgot-verify">
-          <div style="margin-bottom: 16px;">
-            <label for="input-otp-code" style="display: block; font-size: 0.82rem; font-weight: 600; color: #475569; margin-bottom: 6px; text-align: left;">
-              Código de 6 Dígitos
-            </label>
-            <input 
-              type="text" 
-              id="input-otp-code" 
-              maxlength="6" 
-              required 
-              placeholder="000 000"
-              style="width: 100%; padding: 12px 14px; border-radius: 10px; border: 2px dashed #e5007d; font-size: 1.3rem; font-family: monospace; letter-spacing: 6px; text-align: center; box-sizing: border-box; font-weight: 700; color: #1e293b; outline: none;"
-            >
-          </div>
+        <div style="background: rgba(33, 0, 135, 0.04); border: 1px dashed rgba(33, 0, 135, 0.2); border-radius: 10px; padding: 12px 14px; font-size: 0.82rem; color: #475569; margin-bottom: 22px; text-align: left; line-height: 1.5;">
+          <i class="fa-solid fa-info-circle" style="color: #e5007d;"></i> Revisa tu <strong>bandeja de entrada</strong> o carpeta de <strong>spam</strong> y haz clic en el botón del correo para ingresar tu nueva contraseña.
+        </div>
 
-          <div style="margin-bottom: 14px; text-align: left;">
-            <label for="input-reset-pass-1" style="display: block; font-size: 0.82rem; font-weight: 600; color: #475569; margin-bottom: 6px;">
-              Nueva Contraseña
-            </label>
-            <input 
-              type="password" 
-              id="input-reset-pass-1" 
-              required 
-              minlength="6"
-              placeholder="Mínimo 6 caracteres"
-              style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.9rem; box-sizing: border-box; outline: none;"
-            >
-          </div>
-
-          <div style="margin-bottom: 18px; text-align: left;">
-            <label for="input-reset-pass-2" style="display: block; font-size: 0.82rem; font-weight: 600; color: #475569; margin-bottom: 6px;">
-              Confirmar Nueva Contraseña
-            </label>
-            <input 
-              type="password" 
-              id="input-reset-pass-2" 
-              required 
-              minlength="6"
-              placeholder="Repite la nueva contraseña"
-              style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.9rem; box-sizing: border-box; outline: none;"
-            >
-          </div>
-
-          <div id="forgot-alert-2" style="display: none; padding: 10px; border-radius: 8px; margin-bottom: 14px; font-size: 0.85rem;"></div>
-
-          <button type="submit" id="btn-submit-verify-reset" class="btn-submit" style="width: 100%; margin: 0 0 10px 0; padding: 12px;">
-            <span>Guardar Nueva Contraseña</span>
-            <i class="fa-solid fa-check" style="margin-left: 6px;"></i>
-          </button>
-
-          <button type="button" id="btn-back-to-step-1" style="background: transparent; border: none; color: #64748b; font-size: 0.84rem; font-weight: 600; cursor: pointer; text-decoration: underline;">
-            ¿No recibiste el código? Cambiar correo o reenviar
-          </button>
-        </form>
+        <button type="button" id="btn-close-forgot-success" class="btn-submit" style="width: 100%; margin: 0; padding: 12px; background: #210087;">
+          <span>Entendido</span>
+        </button>
       </div>
 
     </div>
