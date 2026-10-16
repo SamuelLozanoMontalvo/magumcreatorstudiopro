@@ -121,9 +121,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       accounts = accounts.map(acc => {
-        // Asegurar ID de 7 caracteres
-        if (!acc.id || acc.id.includes('-') || acc.id.startsWith('#') || acc.id.length !== 7) {
-          acc.id = generate7CharId();
+        // Preservar siempre el ID real asignado por PostgreSQL (ej. ACC-BA439145)
+        if (!acc.id) {
+          acc.id = 'ACC-' + Math.random().toString(36).substring(2, 10).toUpperCase();
           updated = true;
         }
         // Migrar passwords en texto plano a hash si existen
@@ -435,7 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!ok) return;
       }
 
-      let newId = generate7CharId();
+      let newId = 'ACC-' + Math.random().toString(36).substring(2, 10).toUpperCase();
       let createdAccount = {
         id: newId,
         firstName,
