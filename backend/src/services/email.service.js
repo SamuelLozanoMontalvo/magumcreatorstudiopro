@@ -50,7 +50,7 @@ async function sendEmail({ to, subject, html, text }) {
  */
 async function sendInviteEmail({ to, clientName, business, inviteToken, origin }) {
   const baseUrl = origin || process.env.FRONTEND_URL || 'https://magumcreatorstudiopro.vercel.app';
-  const setupUrl = `${baseUrl.replace(/\/$/, '')}/setup-password?token=${encodeURIComponent(inviteToken)}`;
+  const setupUrl = `${baseUrl.replace(/\/$/, '')}/setup-password.html?token=${encodeURIComponent(inviteToken)}`;
 
   const subject = `¡Bienvenido a Magum Creator Studio! Activa tu cuenta`;
   const text = `Hola ${clientName},\n\nTu cuenta para ${business} ha sido creada en Magum Creator Studio.\n\nPara activar tu cuenta y configurar tu contraseña de acceso, ingresa al siguiente enlace:\n${setupUrl}\n\nEste enlace expira en 48 horas.\n\nEquipo Magum Creator Studio`;
