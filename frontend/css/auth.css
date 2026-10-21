@@ -25,6 +25,7 @@
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --brand-magenta: #FF00DB;
+  --brand-gold: #FDD344;
   --brand-cyan: #06b6d4;
   --brand-blue: #3b82f6;
   --brand-indigo: #6366f1;
@@ -50,7 +51,7 @@ body.animated-login-body {
 }
 
 /* ==========================================================================
-   SPLIT LAYOUT (HERO IZQUIERDO + FORMULARIO DERECHO)
+   SPLIT LAYOUT (HERO IZQUIERDO + FORMULARIO DERECHO CENTRADO)
    ========================================================================== */
 .login-split-layout {
   display: flex;
@@ -59,7 +60,7 @@ body.animated-login-body {
 }
 
 /* ==========================================================================
-   LADO IZQUIERDO: RIPPLE + ÓRBITAS + BRANDING
+   LADO IZQUIERDO: RIPPLE + ÓRBITAS + TEXTO CENTRAL
    ========================================================================== */
 .login-hero-side {
   flex: 1.15;
@@ -69,7 +70,7 @@ body.animated-login-body {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: radial-gradient(circle at center, #0a1128 0%, #030712 100%);
+  background: radial-gradient(circle at center, #0b1329 0%, #030712 100%);
   border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -92,8 +93,8 @@ body.animated-login-body {
   width: var(--size, 200px);
   height: var(--size, 200px);
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.012);
   transform: translate(-50%, -50%);
   animation: ripple-pulse 3.5s ease-in-out var(--delay, 0s) infinite;
 }
@@ -104,9 +105,9 @@ body.animated-login-body {
     opacity: 0.35;
   }
   50% {
-    transform: translate(-50%, -50%) scale(1.04);
-    opacity: 0.75;
-    border-color: rgba(255, 0, 219, 0.15);
+    transform: translate(-50%, -50%) scale(1.05);
+    opacity: 0.8;
+    border-color: rgba(255, 0, 219, 0.18);
   }
 }
 
@@ -124,53 +125,43 @@ body.animated-login-body {
 
 .orbit-path {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.07);
+  stroke: rgba(255, 255, 255, 0.08);
   stroke-width: 1px;
-  stroke-dasharray: 4 5;
+  stroke-dasharray: 4 6;
 }
 
-/* 3. Texto y Logotipo Central */
+/* 3. Texto Central de Marca (Sin logo aquí, texto tipográfico gigante) */
 .orbit-center-brand {
   position: relative;
   z-index: 5;
   text-align: center;
   pointer-events: none;
-  padding: 0 20px;
-  max-width: 420px;
-}
-
-.orbit-brand-logo-wrap {
-  margin-bottom: 12px;
-}
-
-.orbit-brand-logo {
-  max-width: 110px;
-  height: auto;
-  filter: drop-shadow(0 0 20px rgba(255, 0, 219, 0.45));
+  padding: 0 24px;
+  max-width: 460px;
 }
 
 .orbit-brand-title {
   font-family: var(--font-brand);
-  font-size: 2.3rem;
+  font-size: 2.8rem;
   font-style: italic;
   font-weight: 700;
-  letter-spacing: -0.5px;
-  line-height: 1.15;
-  background: linear-gradient(180deg, #ffffff 10%, rgba(255, 255, 255, 0.35) 100%);
+  letter-spacing: -0.8px;
+  line-height: 1.08;
+  background: linear-gradient(180deg, #ffffff 15%, rgba(255, 255, 255, 0.38) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 35px rgba(255, 255, 255, 0.15);
+  text-shadow: 0 0 40px rgba(255, 255, 255, 0.18);
 }
 
 .orbit-brand-subtitle {
-  font-size: 0.86rem;
+  font-size: 0.92rem;
   color: var(--text-muted);
-  letter-spacing: 0.5px;
-  margin-top: 8px;
+  letter-spacing: 0.8px;
+  margin-top: 10px;
   font-weight: 500;
 }
 
-/* 4. Iconos en Órbita */
+/* 4. Iconos en Órbita con Logos Reales */
 .orbit-layer {
   position: absolute;
   top: 50%;
@@ -183,30 +174,82 @@ body.animated-login-body {
 
 .orbiting-icon {
   position: absolute;
-  width: 44px;
-  height: 44px;
-  margin-top: -22px;
-  margin-left: -22px;
+  width: 48px;
+  height: 48px;
+  margin-top: -24px;
+  margin-left: -24px;
   border-radius: 50%;
-  background: rgba(18, 24, 38, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), 0 0 12px rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(18, 24, 38, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), 0 0 10px rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
   pointer-events: auto;
   cursor: pointer;
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.25s ease;
   animation: orbit-loop var(--duration, 25s) linear infinite;
 }
 
+.orbiting-icon svg {
+  display: block;
+  transition: transform 0.25s ease;
+}
+
+/* ANIMACIÓN EN HOVER AL TOCAR LOS ICONOS */
 .orbiting-icon:hover {
-  border-color: var(--brand-magenta);
-  box-shadow: 0 0 20px rgba(255, 0, 219, 0.5), 0 8px 30px rgba(0, 0, 0, 0.7);
-  z-index: 10;
+  animation-play-state: paused !important;
+  transform: rotate(var(--angle, 0deg)) translateY(calc(-1 * var(--radius, 100px))) rotate(calc(-1 * var(--angle, 0deg))) scale(1.35) !important;
+  border-color: #ffffff !important;
+  box-shadow: 0 0 28px var(--glow-color, rgba(255, 0, 219, 0.7)), 0 12px 30px rgba(0, 0, 0, 0.8) !important;
+  z-index: 100 !important;
+}
+
+.orbiting-icon:hover svg {
+  transform: scale(1.1);
+}
+
+/* Tooltip emergente que muestra el nombre de la red social */
+.orbit-tooltip {
+  position: absolute;
+  top: -38px;
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  opacity: 0;
+  pointer-events: none;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.orbit-tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid rgba(15, 23, 42, 0.95);
+}
+
+.orbiting-icon:hover .orbit-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 @keyframes orbit-loop {
@@ -219,52 +262,64 @@ body.animated-login-body {
 }
 
 /* ==========================================================================
-   LADO DERECHO: FORMULARIO DE ACCESO (MODERN ANIMATED SIGN IN)
+   LADO DERECHO: FORMULARIO DE ACCESO (MÁS AMPLIO, CENTRADO Y CON LOGO MAGUM)
    ========================================================================== */
 .login-form-side {
-  flex: 0.95;
+  flex: 1;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 40px 30px;
+  padding: 60px 48px;
   background: #030712;
 }
 
 .form-wrapper-box {
   width: 100%;
-  max-width: 384px;
+  max-width: 430px;
 }
 
-/* Cabecera del formulario */
+/* Cabecera del formulario con el Logo de Magum */
 .auth-header {
-  margin-bottom: 24px;
+  text-align: center;
+  margin-bottom: 28px;
 }
 
-.auth-heading {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-main);
-  letter-spacing: -0.025em;
-  margin: 0;
+.form-brand-wrap {
+  margin-bottom: 8px;
 }
 
-.auth-subheading {
-  font-size: 0.88rem;
-  color: var(--text-muted);
-  margin-top: 6px;
+.form-brand-logo {
+  max-width: 215px;
+  height: auto;
+  display: inline-block;
+  filter: drop-shadow(0 4px 20px rgba(255, 0, 219, 0.35));
+}
+
+.badge-studio-tag {
+  display: inline-block;
+  font-family: var(--font-brand);
+  font-style: italic;
+  font-size: 0.78rem;
+  letter-spacing: 2.2px;
+  color: var(--brand-gold);
+  background: rgba(253, 211, 68, 0.08);
+  border: 1px solid rgba(253, 211, 68, 0.28);
+  padding: 4px 14px;
+  border-radius: 9999px;
+  margin-top: 4px;
 }
 
 /* Alerta de notificación */
 .alert-box {
-  padding: 12px 14px;
+  padding: 12px 16px;
   border-radius: 8px;
-  font-size: 0.84rem;
-  margin-bottom: 18px;
+  font-size: 0.86rem;
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   animation: alertFadeIn 0.25s ease;
 }
 
@@ -289,17 +344,17 @@ body.animated-login-body {
 .animated-auth-form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
 }
 
 .form-field-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
 }
 
 .field-label {
-  font-size: 0.84rem;
+  font-size: 0.88rem;
   font-weight: 500;
   color: #f1f5f9;
 }
@@ -308,27 +363,27 @@ body.animated-login-body {
   color: #ef4444;
 }
 
-/* Contenedor del Input con efecto de resplandor */
+/* Contenedor del Input con efecto de resplandor dinámico */
 .input-glow-wrapper {
   position: relative;
   border-radius: 8px;
   padding: 2px;
   background: transparent;
-  transition: background 0.3s ease;
+  transition: background 0.25s ease;
 }
 
 .modern-input {
   width: 100%;
-  height: 42px;
-  padding: 10px 14px;
+  height: 48px;
+  padding: 12px 16px;
   background: var(--bg-input);
   border: 1px solid var(--border-input);
-  border-radius: 6px;
+  border-radius: 8px;
   color: var(--text-main);
-  font-size: 0.9rem;
+  font-size: 0.94rem;
   font-family: inherit;
   outline: none;
-  box-shadow: 0px 2px 3px -1px rgba(0, 0, 0, 0.1), 0px 1px 0px 0px rgba(25, 28, 33, 0.02);
+  box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.15), 0px 1px 0px 0px rgba(25, 28, 33, 0.02);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
@@ -338,8 +393,8 @@ body.animated-login-body {
 
 .modern-input:focus {
   border-color: #52525b;
-  box-shadow: 0 0 0 2px rgba(82, 82, 91, 0.5);
-  background: #202024;
+  box-shadow: 0 0 0 2px rgba(82, 82, 91, 0.45);
+  background: #1f1f23;
 }
 
 /* Toggle Password */
@@ -348,23 +403,23 @@ body.animated-login-body {
 }
 
 .password-input-container .modern-input {
-  padding-right: 42px;
+  padding-right: 46px;
 }
 
 .btn-toggle-eye {
   position: absolute;
-  right: 10px;
+  right: 12px;
   top: 50%;
   transform: translateY(-50%);
   background: transparent;
   border: none;
   color: #71717a;
   cursor: pointer;
-  padding: 6px;
+  padding: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: 1.05rem;
   transition: color 0.2s ease;
 }
 
@@ -376,15 +431,16 @@ body.animated-login-body {
 .btn-modern-submit {
   position: relative;
   width: 100%;
-  height: 42px;
-  margin-top: 6px;
+  height: 48px;
+  margin-top: 8px;
   background: linear-gradient(to bottom right, #27272a 0%, #18181b 100%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
   color: #ffffff;
   font-family: inherit;
-  font-size: 0.92rem;
+  font-size: 0.96rem;
   font-weight: 500;
+  letter-spacing: 0.3px;
   cursor: pointer;
   overflow: hidden;
   display: flex;
@@ -396,7 +452,7 @@ body.animated-login-body {
 
 .btn-modern-submit:hover {
   background: linear-gradient(to bottom right, #3f3f46 0%, #27272a 100%);
-  border-color: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .btn-modern-submit:active {
@@ -408,7 +464,7 @@ body.animated-login-body {
   z-index: 2;
 }
 
-/* Efectos de resplandor inferior del botón (BottomGradient) */
+/* Efectos de resplandor inferior del botón */
 .bottom-gradient-cyan {
   position: absolute;
   bottom: 0;
@@ -417,20 +473,20 @@ body.animated-login-body {
   height: 1px;
   background: linear-gradient(to right, transparent, #06b6d4, transparent);
   opacity: 0;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.35s ease;
   z-index: 3;
 }
 
 .bottom-gradient-indigo {
   position: absolute;
   bottom: 0;
-  left: 25%;
-  right: 25%;
+  left: 20%;
+  right: 20%;
   height: 2px;
   background: linear-gradient(to right, transparent, #6366f1, transparent);
   filter: blur(2px);
   opacity: 0;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.35s ease;
   z-index: 3;
 }
 
@@ -441,12 +497,12 @@ body.animated-login-body {
 
 /* Enlace de recuperación */
 .forgot-password-box {
-  margin-top: 4px;
+  margin-top: 6px;
   text-align: center;
 }
 
 .forgot-link {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   color: #3b82f6;
   text-decoration: none;
   font-weight: 500;
@@ -479,37 +535,37 @@ body.animated-login-body {
   background: #0f172a;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
-  padding: 30px;
+  padding: 32px;
   width: 100%;
-  max-width: 440px;
+  max-width: 450px;
   text-align: center;
   position: relative;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
 }
 
 .modal-badge-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 12px;
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.55rem;
   margin: 0 auto 16px;
 }
 
 .modal-heading {
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 700;
   color: #f8fafc;
   margin: 0 0 8px;
 }
 
 .modal-text {
-  font-size: 0.86rem;
+  font-size: 0.88rem;
   color: #94a3b8;
   line-height: 1.5;
-  margin: 0 0 20px;
+  margin: 0 0 22px;
 }
 
 .modal-close-btn,
@@ -535,19 +591,19 @@ body.animated-login-body {
   gap: 10px;
   max-height: 280px;
   overflow-y: auto;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
 .btn-modal-cancel {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: #94a3b8;
-  padding: 10px 18px;
+  padding: 11px 18px;
   border-radius: 8px;
   font-weight: 500;
   cursor: pointer;
   width: 100%;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   transition: all 0.2s;
 }
 
@@ -572,6 +628,6 @@ body.animated-login-body {
   .login-form-side {
     flex: 1;
     width: 100%;
-    padding: 24px 20px;
+    padding: 30px 24px;
   }
 }
