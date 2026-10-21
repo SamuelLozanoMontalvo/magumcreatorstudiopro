@@ -1514,7 +1514,243 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================================================
-  // 10. CIERRE DE SESIÓN SEGURO
+  // 10. MÓDULO SOCIAL MEDIA & ANALÍTICA (ESTILO METRICOOL)
+  // ==========================================================================
+  const channelData = {
+    instagram: {
+      name: 'Instagram Business',
+      icon: 'fa-brands fa-instagram',
+      color: 'linear-gradient(135deg, #fdf497 0%, #fd5949 45%, #d6249f 70%, #285aeb 100%)',
+      badgeBg: 'rgba(225, 48, 108, 0.15)',
+      badgeColor: '#e1306c',
+      placeholder: '@tu_cuenta_instagram',
+      followers: '18,400',
+      reach: '24,100'
+    },
+    facebook: {
+      name: 'Facebook Fan Page',
+      icon: 'fa-brands fa-facebook-f',
+      color: '#1877f2',
+      badgeBg: 'rgba(24, 119, 242, 0.15)',
+      badgeColor: '#1877f2',
+      placeholder: 'Nombre o ID de la Fan Page',
+      followers: '16,400',
+      reach: '16,400'
+    },
+    tiktok: {
+      name: 'TikTok Pro',
+      icon: 'fa-brands fa-tiktok',
+      color: '#000000',
+      badgeBg: 'rgba(0, 0, 0, 0.15)',
+      badgeColor: '#000000',
+      placeholder: '@tu_cuenta_tiktok',
+      followers: '8,420',
+      reach: '8,420'
+    },
+    youtube: {
+      name: 'YouTube Channel',
+      icon: 'fa-brands fa-youtube',
+      color: '#ff0000',
+      badgeBg: 'rgba(255, 0, 0, 0.15)',
+      badgeColor: '#ff0000',
+      placeholder: '@tu_canal_youtube',
+      followers: '12,300',
+      reach: '35,800'
+    },
+    linkedin: {
+      name: 'LinkedIn Company Page',
+      icon: 'fa-brands fa-linkedin-in',
+      color: '#0a66c2',
+      badgeBg: 'rgba(10, 102, 194, 0.15)',
+      badgeColor: '#0a66c2',
+      placeholder: 'linkedin.com/company/tu-empresa',
+      followers: '5,140',
+      reach: '9,820'
+    }
+  };
+
+  const socialModal = document.getElementById('modal-connect-social');
+  const socialModalTitle = document.getElementById('modal-social-title');
+  const socialModalBubble = document.getElementById('modal-social-icon-bubble');
+  const socialHandleInput = document.getElementById('connect-social-handle');
+  const socialChannelInput = document.getElementById('connect-social-channel');
+  const socialSubmitBtn = document.getElementById('btn-simulate-oauth');
+  const socialSubmitText = document.getElementById('btn-social-submit-text');
+
+  window.openConnectModal = function(channelKey) {
+    const meta = channelData[channelKey] || {
+      name: channelKey,
+      icon: 'fa-solid fa-share-nodes',
+      color: '#ff00db',
+      placeholder: '@tu_cuenta'
+    };
+
+    if (socialChannelInput) socialChannelInput.value = channelKey;
+    if (socialModalTitle) socialModalTitle.textContent = `Conectar ${meta.name}`;
+    if (socialHandleInput) {
+      socialHandleInput.value = '';
+      socialHandleInput.placeholder = meta.placeholder;
+    }
+    if (socialModalBubble) {
+      socialModalBubble.innerHTML = `<i class="${meta.icon}"></i>`;
+      socialModalBubble.style.background = meta.color;
+      socialModalBubble.style.color = '#ffffff';
+    }
+    if (socialSubmitBtn) {
+      socialSubmitBtn.style.background = meta.color;
+    }
+    if (socialModal) socialModal.style.display = 'flex';
+  };
+
+  window.configureSocialChannel = function(channelKey) {
+    const meta = channelData[channelKey] || { name: channelKey };
+    if (window.MagumAlert) {
+      MagumAlert.success(
+        `${meta.name} Sincronizado`,
+        'La API oficial se encuentra activa y recibiendo estadísticas en tiempo real.'
+      );
+    } else {
+      alert(`La API de ${meta.name} está sincronizada y activa.`);
+    }
+  };
+
+  // Botones de cierre del modal de redes
+  const btnCloseSocialModal = document.getElementById('btn-close-social-modal');
+  const btnCancelSocialModal = document.getElementById('btn-cancel-social-modal');
+  if (btnCloseSocialModal) btnCloseSocialModal.addEventListener('click', () => socialModal.style.display = 'none');
+  if (btnCancelSocialModal) btnCancelSocialModal.addEventListener('click', () => socialModal.style.display = 'none');
+
+  // Autorización / Simulación de OAuth
+  if (socialSubmitBtn) {
+    socialSubmitBtn.addEventListener('click', () => {
+      const channelKey = socialChannelInput ? socialChannelInput.value : 'instagram';
+      const handle = (socialHandleInput && socialHandleInput.value.trim()) || `@empresa_${channelKey}`;
+      const meta = channelData[channelKey] || { name: channelKey };
+
+      const originalText = socialSubmitText ? socialSubmitText.textContent : '';
+      if (socialSubmitText) socialSubmitText.textContent = 'Autenticando con la API...';
+      socialSubmitBtn.disabled = true;
+
+      setTimeout(() => {
+        if (socialSubmitBtn) socialSubmitBtn.disabled = false;
+        if (socialSubmitText) socialSubmitText.textContent = originalText;
+        if (socialModal) socialModal.style.display = 'none';
+
+        // Actualizar fila en la tabla de cuentas
+        const row = document.querySelector(`tr[data-channel-row="${channelKey}"]`);
+        if (row) {
+          const cells = row.querySelectorAll('td');
+          if (cells.length >= 6) {
+            cells[1].innerHTML = `<span class="account-handle">${handle}</span>`;
+            cells[2].innerHTML = `<span class="badge-api-connected"><i class="fa-solid fa-circle-check"></i> Sincronizado</span>`;
+            cells[3].textContent = meta.followers || '1,200';
+            cells[4].textContent = meta.reach || '3,400';
+            cells[5].innerHTML = `<button type="button" class="btn-disconnect-sm" onclick="configureSocialChannel('${channelKey}')">Configurar</button>`;
+          }
+        }
+
+        // Actualizar botón en el sub-sidebar
+        const sideBtn = document.querySelector(`.btn-channel-connect[data-connect-channel="${channelKey}"]`);
+        if (sideBtn) {
+          sideBtn.innerHTML = '<i class="fa-solid fa-check" style="color: #10b981;"></i>';
+          sideBtn.title = `${meta.name} Conectado`;
+        }
+
+        if (window.MagumAlert) {
+          MagumAlert.success(
+            '¡Canal Vinculado con Éxito!',
+            `Se han sincronizado las métricas oficiales de ${meta.name} (${handle}).`
+          );
+        }
+      }, 900);
+    });
+  }
+
+  // Interacción de pestañas superiores estilo Metricool
+  const metricoolTabs = document.querySelectorAll('.metricool-tab-btn');
+  const metricoolViewTitle = document.getElementById('metricool-view-title');
+  metricoolTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      metricoolTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const tabName = tab.getAttribute('data-metricool-tab') || 'analitica';
+      const label = tab.querySelector('span')?.textContent || 'Analíticas';
+      if (metricoolViewTitle) {
+        metricoolViewTitle.textContent = label;
+      }
+    });
+  });
+
+  // Interacción de canales en el sub-sidebar
+  const metricoolChannelItems = document.querySelectorAll('.metricool-channel-item');
+  metricoolChannelItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      if (e.target.closest('.btn-channel-connect')) return;
+      metricoolChannelItems.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      const channel = item.getAttribute('data-channel');
+      const name = item.querySelector('.channel-title-text')?.textContent || 'Canal';
+      if (metricoolViewTitle) {
+        metricoolViewTitle.textContent = channel === 'resumen' ? 'Analíticas Generales' : `Métricas de ${name}`;
+      }
+    });
+  });
+
+  // Botones de conectar (+) en el sub-sidebar
+  const connectButtons = document.querySelectorAll('.btn-channel-connect');
+  connectButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const channel = btn.getAttribute('data-connect-channel');
+      window.openConnectModal(channel);
+    });
+  });
+
+  // Botón Más conexiones
+  const btnMoreConns = document.getElementById('btn-open-more-connections');
+  if (btnMoreConns) {
+    btnMoreConns.addEventListener('click', () => {
+      if (window.Swal) {
+        Swal.fire({
+          title: 'Conectar Canales Adicionales',
+          html: `
+            <div style="display: flex; flex-direction: column; gap: 12px; text-align: left; margin-top: 14px;">
+              <button class="period-pill" style="padding: 10px; display: flex; align-items: center; gap: 10px;" onclick="Swal.close(); openConnectModal('youtube')">
+                <i class="fa-brands fa-youtube" style="color: #ff0000; font-size: 1.2rem;"></i>
+                <span>YouTube Channel</span>
+              </button>
+              <button class="period-pill" style="padding: 10px; display: flex; align-items: center; gap: 10px;" onclick="Swal.close(); openConnectModal('linkedin')">
+                <i class="fa-brands fa-linkedin-in" style="color: #0a66c2; font-size: 1.2rem;"></i>
+                <span>LinkedIn Company Page</span>
+              </button>
+              <button class="period-pill" style="padding: 10px; display: flex; align-items: center; gap: 10px;" onclick="Swal.close(); alert('Próximamente soporte para X / Twitter')">
+                <i class="fa-brands fa-x-twitter" style="font-size: 1.2rem;"></i>
+                <span>X (Twitter)</span>
+              </button>
+            </div>
+          `,
+          showConfirmButton: false,
+          showCloseButton: true
+        });
+      }
+    });
+  }
+
+  // Botón Crear publicación estilo Metricool
+  const btnNewPost = document.getElementById('btn-metricool-new-post');
+  if (btnNewPost) {
+    btnNewPost.addEventListener('click', () => {
+      if (window.MagumAlert) {
+        MagumAlert.info(
+          'Planificador Multicanal',
+          'El editor de contenidos te permitirá redactar, programar y emitir publicaciones en Instagram, Facebook y TikTok al mismo tiempo.'
+        );
+      }
+    });
+  }
+
+  // ==========================================================================
+  // 11. CIERRE DE SESIÓN SEGURO
   // ==========================================================================
   const logoutBtn = document.getElementById('btn-logout');
   if (logoutBtn) {

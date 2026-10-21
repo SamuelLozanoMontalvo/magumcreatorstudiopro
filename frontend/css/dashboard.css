@@ -2412,4 +2412,636 @@ body.dark-mode tr.row-selected {
 body.dark-mode .recipients-chip-wrap {
   background: rgba(255, 255, 255, 0.04);
 }
+
+/* ==========================================================================
+   INTERFAZ COMPLETA ESTILO METRICOOL (SOCIAL MEDIA & ANALÍTICA)
+   ========================================================================== */
+.metricool-wrapper {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 40px;
+}
+
+/* 1. Barra Superior Estilo Metricool */
+.metricool-topbar {
+  background: #181224;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 64px;
+  border-bottom: 2px solid #281a3c;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.metricool-brand-mark {
+  font-size: 1.6rem;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: 12px;
+}
+
+.metricool-top-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  overflow-x: auto;
+}
+
+.metricool-tab-btn {
+  background: transparent;
+  border: none;
+  color: #a39cb2;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  height: 42px;
+  white-space: nowrap;
+}
+
+.metricool-tab-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.metricool-tab-btn.active {
+  background: #2a1b3d;
+  color: #ffffff;
+  position: relative;
+}
+
+.metricool-tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -11px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #c6f135;
+  border-radius: 2px 2px 0 0;
+}
+
+.metricool-topbar-actions {
+  display: flex;
+  align-items: center;
+}
+
+.btn-metricool-post {
+  background: linear-gradient(135deg, var(--brand-magenta), var(--brand-indigo));
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 18px;
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(255, 0, 219, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-metricool-post:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(255, 0, 219, 0.4);
+}
+
+/* 2. Cuerpo Principal: Subsidebar + Contenido */
+.metricool-body-layout {
+  display: flex;
+  min-height: 640px;
+}
+
+.metricool-subsidebar {
+  width: 250px;
+  border-right: 1px solid var(--border-color);
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: var(--bg-sidebar);
+  flex-shrink: 0;
+}
+
+.metricool-channels-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metricool-channel-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-main);
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.metricool-channel-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+body.dark-mode .metricool-channel-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.metricool-channel-item.active {
+  background: #1e1329;
+  color: #ffffff;
+}
+
+body.dark-mode .metricool-channel-item.active {
+  background: #251636;
+  color: #ffffff;
+  border: 1px solid rgba(255, 0, 219, 0.2);
+}
+
+.channel-main-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.channel-icon-pill {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.icon-resumen {
+  background: transparent;
+  color: inherit;
+  font-size: 1.15rem;
+}
+
+.icon-ig {
+  background: linear-gradient(135deg, #fdf497 0%, #fd5949 45%, #d6249f 70%, #285aeb 100%);
+}
+
+.icon-fb {
+  background: #1877f2;
+}
+
+.icon-tt {
+  background: #000000;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.icon-yt {
+  background: #ff0000;
+}
+
+.icon-li {
+  background: #0a66c2;
+}
+
+.btn-channel-connect {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.76rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-channel-connect:hover {
+  border-color: var(--brand-magenta);
+  color: var(--brand-magenta);
+  transform: scale(1.12);
+}
+
+.btn-channel-pro {
+  background: rgba(253, 211, 68, 0.15);
+  border-color: rgba(253, 211, 68, 0.4);
+  color: #fdd344;
+}
+
+.btn-more-connections {
+  width: 100%;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-main);
+  padding: 9px 14px;
+  border-radius: 20px;
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  margin-top: 20px;
+}
+
+.btn-more-connections:hover {
+  border-color: var(--brand-magenta);
+  color: var(--brand-magenta);
+  box-shadow: 0 0 12px rgba(255, 0, 219, 0.2);
+}
+
+/* 3. Área de Contenido Principal */
+.metricool-main-content {
+  flex: 1;
+  padding: 30px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background: var(--bg-card);
+}
+
+.metricool-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.metricool-section-heading {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.metricool-period-selector {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-sidebar);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.period-pill {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.period-pill.active {
+  background: var(--bg-card);
+  color: var(--text-main);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* Banner Hero estilo Metricool */
+.metricool-hero-banner {
+  background: #eef2ff;
+  border: 1px solid #dbeafe;
+  border-radius: 18px;
+  padding: 24px 30px;
+}
+
+body.dark-mode .metricool-hero-banner {
+  background: rgba(30, 41, 59, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hero-banner-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 6px;
+  letter-spacing: -0.2px;
+}
+
+.hero-banner-desc {
+  font-size: 0.94rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* Tarjetas de Métricas */
+.metricool-features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 1080px) {
+  .metricool-features-grid {
+    grid-template-columns: 1fr;
+  }
+  .metricool-body-layout {
+    flex-direction: column;
+  }
+  .metricool-subsidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+}
+
+.metricool-feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: var(--card-shadow);
+  transition: var(--transition);
+}
+
+.metricool-feature-card:hover {
+  border-color: rgba(255, 0, 219, 0.3);
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.feature-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.feature-card-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.feature-card-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.feature-icon-bubble {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #eef2ff;
+  color: #4f46e5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+body.dark-mode .feature-icon-bubble {
+  background: rgba(79, 70, 229, 0.16);
+  color: #818cf8;
+}
+
+.feature-metric-number {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.feature-num {
+  font-size: 1.95rem;
+  font-weight: 800;
+  color: var(--text-main);
+  font-family: var(--font-brand);
+}
+
+.feature-trend {
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.feature-trend.positive {
+  color: #10b981;
+}
+
+.feature-subtext {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+/* Tabla de Cuentas y Estado de Sincronización */
+.metricool-status-board {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: var(--card-shadow);
+}
+
+.status-board-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.status-board-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.badge-status-counter {
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  padding: 4px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.metricool-accounts-table-wrap {
+  overflow-x: auto;
+}
+
+.metricool-accounts-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+}
+
+.metricool-accounts-table th {
+  padding: 12px 16px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.metricool-accounts-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+  vertical-align: middle;
+}
+
+.table-channel-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.account-handle {
+  font-weight: 600;
+}
+
+.badge-api-connected {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #10b981;
+  font-weight: 700;
+  font-size: 0.8rem;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.badge-api-disconnected {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.8rem;
+  background: rgba(100, 116, 139, 0.1);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.btn-disconnect-sm,
+.btn-connect-sm {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-disconnect-sm {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+}
+
+.btn-disconnect-sm:hover {
+  border-color: var(--brand-magenta);
+  color: var(--brand-magenta);
+}
+
+.btn-connect-sm {
+  background: var(--brand-magenta);
+  border: 1px solid var(--brand-magenta);
+  color: #ffffff;
+}
+
+.btn-connect-sm:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Modal Conexión Redes */
+.social-oauth-info-box {
+  display: flex;
+  gap: 14px;
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.oauth-shield-icon {
+  font-size: 1.5rem;
+  color: #3b82f6;
+  flex-shrink: 0;
+}
+
+.oauth-info-text {
+  font-size: 0.84rem;
+  color: var(--text-main);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.social-permissions-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 18px 0;
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 0.85rem;
+  color: var(--text-main);
+}
+
+.perm-check-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.text-success {
+  color: #10b981;
+}
 

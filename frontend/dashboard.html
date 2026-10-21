@@ -915,105 +915,339 @@
 
       </div>
 
-      <!-- Vista Social Media -->
+      <!-- Vista Social Media & Analíticas (Estilo Metricool) -->
       <div id="view-marketing-social" class="tab-view" style="display: none;">
         
-        <section class="banner-card">
-          <div class="banner-info">
-            <div class="banner-tag">
-              <i class="fa-solid fa-share-nodes"></i>
-              <span>Social Media & Difusión Multicanal</span>
+        <div class="metricool-wrapper">
+          
+          <!-- BARRA SUPERIOR ESTILO METRICOOL -->
+          <header class="metricool-topbar">
+            <div class="metricool-brand-mark">
+              <i class="fa-solid fa-infinity"></i>
             </div>
-            <h2 class="banner-title">Emisión Simultánea y Redes Sociales</h2>
-            <p class="banner-desc">Programa y sincroniza tu contenido en Instagram, Facebook y TikTok con emisión simultánea.</p>
-          </div>
-          <button class="btn-quick-action" type="button" onclick="alert('Abriendo creador de publicaciones para redes sociales')">
-            <i class="fa-solid fa-plus"></i>
-            <span>Nueva Publicación</span>
-          </button>
-        </section>
-
-        <!-- Canales Vinculados -->
-        <section class="section-block">
-          <div class="channels-grid">
             
-            <div class="channel-summary-card">
-              <div class="channel-header">
-                <div class="channel-title-wrap">
-                  <div class="channel-icon" style="color: #E1306C; background: rgba(225, 48, 108, 0.1);">
-                    <i class="fa-brands fa-instagram"></i>
-                  </div>
-                  <div>
-                    <span class="badge-web-online">Sincronizado</span>
-                    <h3 class="channel-name">Instagram Business</h3>
-                    <span class="channel-meta">@automotorcartagena • 18,400 Seguidores</span>
-                  </div>
-                </div>
-              </div>
-              <div class="channel-stats-row">
-                <div class="stat-mini">
-                  <span class="stat-mini-num">24,100</span>
-                  <span class="stat-mini-label">Alcance mensual</span>
-                </div>
-                <div class="stat-mini">
-                  <span class="stat-mini-num">8</span>
-                  <span class="stat-mini-label">Posts en cola</span>
-                </div>
-              </div>
+            <nav class="metricool-top-nav">
+              <button type="button" class="metricool-tab-btn active" data-metricool-tab="analitica">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>Analítica</span>
+              </button>
+              <button type="button" class="metricool-tab-btn" data-metricool-tab="reporting">
+                <i class="fa-solid fa-file-waveform"></i>
+                <span>Reporting</span>
+              </button>
+              <button type="button" class="metricool-tab-btn" data-metricool-tab="inbox">
+                <i class="fa-regular fa-comments"></i>
+                <span>Inbox</span>
+              </button>
+              <button type="button" class="metricool-tab-btn" data-metricool-tab="planificacion">
+                <i class="fa-regular fa-calendar-days"></i>
+                <span>Planificación</span>
+              </button>
+              <button type="button" class="metricool-tab-btn" data-metricool-tab="smartlinks">
+                <i class="fa-solid fa-link"></i>
+                <span>SmartLinks</span>
+              </button>
+              <button type="button" class="metricool-tab-btn" data-metricool-tab="anuncios">
+                <i class="fa-solid fa-bullhorn"></i>
+                <span>Anuncios</span>
+              </button>
+            </nav>
+            
+            <div class="metricool-topbar-actions">
+              <button type="button" class="btn-metricool-post" id="btn-metricool-new-post">
+                <i class="fa-solid fa-plus"></i>
+                <span>Crear publicación</span>
+              </button>
             </div>
+          </header>
+          
+          <!-- CONTENEDOR PRINCIPAL: SUB-SIDEBAR + ÁREA DE CONTENIDO -->
+          <div class="metricool-body-layout">
+            
+            <!-- SUB-SIDEBAR DE CANALES SOCIALES -->
+            <aside class="metricool-subsidebar">
+              <ul class="metricool-channels-list">
+                
+                <!-- Resumen -->
+                <li class="metricool-channel-item active" data-channel="resumen">
+                  <div class="channel-main-info">
+                    <span class="channel-icon-pill icon-resumen">
+                      <i class="fa-solid fa-clipboard-list"></i>
+                    </span>
+                    <span class="channel-title-text">Resumen</span>
+                  </div>
+                </li>
 
-            <div class="channel-summary-card">
-              <div class="channel-header">
-                <div class="channel-title-wrap">
-                  <div class="channel-icon" style="color: #1877F2; background: rgba(24, 119, 242, 0.1);">
-                    <i class="fa-brands fa-facebook"></i>
+                <!-- Instagram -->
+                <li class="metricool-channel-item" data-channel="instagram">
+                  <div class="channel-main-info">
+                    <span class="channel-icon-pill icon-ig">
+                      <i class="fa-brands fa-instagram"></i>
+                    </span>
+                    <span class="channel-title-text">Instagram</span>
                   </div>
-                  <div>
-                    <span class="badge-web-online">Sincronizado</span>
-                    <h3 class="channel-name">Facebook Fan Page</h3>
-                    <span class="channel-meta" id="fb-channel-meta">Canal Oficial • Conectado</span>
-                  </div>
-                </div>
-              </div>
-              <div class="channel-stats-row">
-                <div class="stat-mini">
-                  <span class="stat-mini-num">16,400</span>
-                  <span class="stat-mini-label">Alcance mensual</span>
-                </div>
-                <div class="stat-mini">
-                  <span class="stat-mini-num">4</span>
-                  <span class="stat-mini-label">Posts en cola</span>
-                </div>
-              </div>
-            </div>
+                  <button type="button" class="btn-channel-connect" data-connect-channel="instagram" title="Conectar Instagram">
+                    <i class="fa-solid fa-plus"></i>
+                  </button>
+                </li>
 
-            <div class="channel-summary-card">
-              <div class="channel-header">
-                <div class="channel-title-wrap">
-                  <div class="channel-icon" style="color: #000000; background: rgba(0, 0, 0, 0.1);">
-                    <i class="fa-brands fa-tiktok"></i>
+                <!-- Facebook -->
+                <li class="metricool-channel-item" data-channel="facebook">
+                  <div class="channel-main-info">
+                    <span class="channel-icon-pill icon-fb">
+                      <i class="fa-brands fa-facebook-f"></i>
+                    </span>
+                    <span class="channel-title-text">Facebook</span>
                   </div>
-                  <div>
-                    <span class="badge-web-online">Sincronizado</span>
-                    <h3 class="channel-name">TikTok Pro</h3>
-                    <span class="channel-meta">@automotorco • 8,420 Seguidores</span>
+                  <button type="button" class="btn-channel-connect" data-connect-channel="facebook" title="Conectar Facebook">
+                    <i class="fa-solid fa-plus"></i>
+                  </button>
+                </li>
+
+                <!-- TikTok -->
+                <li class="metricool-channel-item" data-channel="tiktok">
+                  <div class="channel-main-info">
+                    <span class="channel-icon-pill icon-tt">
+                      <i class="fa-brands fa-tiktok"></i>
+                    </span>
+                    <span class="channel-title-text">TikTok</span>
                   </div>
+                  <button type="button" class="btn-channel-connect" data-connect-channel="tiktok" title="Conectar TikTok">
+                    <i class="fa-solid fa-plus"></i>
+                  </button>
+                </li>
+
+                <!-- YouTube -->
+                <li class="metricool-channel-item" data-channel="youtube">
+                  <div class="channel-main-info">
+                    <span class="channel-icon-pill icon-yt">
+                      <i class="fa-brands fa-youtube"></i>
+                    </span>
+                    <span class="channel-title-text">YouTube</span>
+                  </div>
+                  <button type="button" class="btn-channel-connect" data-connect-channel="youtube" title="Conectar YouTube">
+                    <i class="fa-solid fa-plus"></i>
+                  </button>
+                </li>
+
+                <!-- LinkedIn -->
+                <li class="metricool-channel-item" data-channel="linkedin">
+                  <div class="channel-main-info">
+                    <span class="channel-icon-pill icon-li">
+                      <i class="fa-brands fa-linkedin-in"></i>
+                    </span>
+                    <span class="channel-title-text">LinkedIn</span>
+                  </div>
+                  <button type="button" class="btn-channel-connect btn-channel-pro" data-connect-channel="linkedin" title="Conectar LinkedIn">
+                    <i class="fa-solid fa-gem"></i>
+                  </button>
+                </li>
+
+              </ul>
+
+              <!-- Botón Más Conexiones -->
+              <div class="metricool-more-connections-box">
+                <button type="button" class="btn-more-connections" id="btn-open-more-connections">
+                  <i class="fa-solid fa-plus"></i>
+                  <span>Más conexiones</span>
+                </button>
+              </div>
+            </aside>
+
+            <!-- ÁREA DE CONTENIDO PRINCIPAL -->
+            <main class="metricool-main-content">
+              
+              <!-- Encabezado de Sección -->
+              <div class="metricool-header-row">
+                <h2 class="metricool-section-heading" id="metricool-view-title">Analíticas</h2>
+                <div class="metricool-period-selector">
+                  <button type="button" class="period-pill active">Últimos 30 días</button>
+                  <button type="button" class="period-pill">Este mes</button>
+                  <button type="button" class="period-pill">Últimos 90 días</button>
                 </div>
               </div>
-              <div class="channel-stats-row">
-                <div class="stat-mini">
-                  <span class="stat-mini-num">8,420</span>
-                  <span class="stat-mini-label">Alcance mensual</span>
+
+              <!-- Banner Hero estilo Metricool -->
+              <section class="metricool-hero-banner">
+                <div class="hero-banner-text">
+                  <h3 class="hero-banner-title">Entiende qué funciona y toma decisiones basadas en datos</h3>
+                  <p class="hero-banner-desc">Analiza tu comunidad, el alcance de tus posts y tus campañas de ads desde un único dashboard.</p>
                 </div>
-                <div class="stat-mini">
-                  <span class="stat-mini-num">2</span>
-                  <span class="stat-mini-label">Posts en cola</span>
+              </section>
+
+              <!-- Tarjetas de Características / Resumen -->
+              <div class="metricool-features-grid">
+                
+                <!-- Tarjeta 1: Comunidad -->
+                <div class="metricool-feature-card">
+                  <div class="feature-card-header">
+                    <div class="feature-card-text">
+                      <h4 class="feature-card-title">Cómo crece tu comunidad</h4>
+                      <p class="feature-card-desc">Sigue la evolución de tus seguidores en todas tus redes desde un solo lugar.</p>
+                    </div>
+                    <div class="feature-icon-bubble">
+                      <i class="fa-solid fa-users"></i>
+                    </div>
+                  </div>
+                  <div class="feature-metric-number">
+                    <span class="feature-num" id="metric-followers-total">43,240</span>
+                    <span class="feature-trend positive"><i class="fa-solid fa-arrow-trend-up"></i> +14.2%</span>
+                  </div>
+                  <div class="feature-subtext">Seguidores consolidados multicanal</div>
                 </div>
+
+                <!-- Tarjeta 2: Alcance Real -->
+                <div class="metricool-feature-card">
+                  <div class="feature-card-header">
+                    <div class="feature-card-text">
+                      <h4 class="feature-card-title">El alcance real</h4>
+                      <p class="feature-card-desc">Descubre el alcance orgánico y qué formato de contenido funciona mejor.</p>
+                    </div>
+                    <div class="feature-icon-bubble">
+                      <i class="fa-solid fa-eye"></i>
+                    </div>
+                  </div>
+                  <div class="feature-metric-number">
+                    <span class="feature-num" id="metric-reach-total">48,920</span>
+                    <span class="feature-trend positive"><i class="fa-solid fa-arrow-trend-up"></i> +22.8%</span>
+                  </div>
+                  <div class="feature-subtext">Impresiones y visualizaciones totales</div>
+                </div>
+
+                <!-- Tarjeta 3: Engagement -->
+                <div class="metricool-feature-card">
+                  <div class="feature-card-header">
+                    <div class="feature-card-text">
+                      <h4 class="feature-card-title">Interacciones & Engagement</h4>
+                      <p class="feature-card-desc">Mide los me gusta, comentarios, compartidos y clics de tu audiencia.</p>
+                    </div>
+                    <div class="feature-icon-bubble">
+                      <i class="fa-solid fa-fire"></i>
+                    </div>
+                  </div>
+                  <div class="feature-metric-number">
+                    <span class="feature-num" id="metric-engagement-rate">5.4%</span>
+                    <span class="feature-trend positive"><i class="fa-solid fa-arrow-trend-up"></i> +0.8%</span>
+                  </div>
+                  <div class="feature-subtext">Tasa promedio de interacción</div>
+                </div>
+
               </div>
-            </div>
+
+              <!-- Estado de Conexión de Cuentas y Métricas Detalladas -->
+              <section class="metricool-status-board">
+                <div class="status-board-header">
+                  <h3 class="status-board-title">Canales sociales vinculados a esta marca</h3>
+                  <span class="badge-status-counter" id="connected-channels-count">3 de 6 redes conectadas</span>
+                </div>
+
+                <div class="metricool-accounts-table-wrap">
+                  <table class="metricool-accounts-table">
+                    <thead>
+                      <tr>
+                        <th>Red Social</th>
+                        <th>Cuenta Vinculada</th>
+                        <th>Estado de la API</th>
+                        <th>Seguidores</th>
+                        <th>Alcance Mensual</th>
+                        <th>Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody id="metricool-channels-tbody">
+                      <!-- Instagram -->
+                      <tr data-channel-row="instagram">
+                        <td>
+                          <div class="table-channel-name">
+                            <span class="channel-icon-pill icon-ig"><i class="fa-brands fa-instagram"></i></span>
+                            <strong>Instagram Business</strong>
+                          </div>
+                        </td>
+                        <td><span class="account-handle" id="handle-ig">@automotorcartagena</span></td>
+                        <td><span class="badge-api-connected"><i class="fa-solid fa-circle-check"></i> Sincronizado</span></td>
+                        <td>18,400</td>
+                        <td>24,100</td>
+                        <td>
+                          <button type="button" class="btn-disconnect-sm" onclick="configureSocialChannel('instagram')">Configurar</button>
+                        </td>
+                      </tr>
+
+                      <!-- Facebook -->
+                      <tr data-channel-row="facebook">
+                        <td>
+                          <div class="table-channel-name">
+                            <span class="channel-icon-pill icon-fb"><i class="fa-brands fa-facebook-f"></i></span>
+                            <strong>Facebook Fan Page</strong>
+                          </div>
+                        </td>
+                        <td><span class="account-handle" id="handle-fb">AutoMotor Colombia</span></td>
+                        <td><span class="badge-api-connected"><i class="fa-solid fa-circle-check"></i> Sincronizado</span></td>
+                        <td>16,400</td>
+                        <td>16,400</td>
+                        <td>
+                          <button type="button" class="btn-disconnect-sm" onclick="configureSocialChannel('facebook')">Configurar</button>
+                        </td>
+                      </tr>
+
+                      <!-- TikTok -->
+                      <tr data-channel-row="tiktok">
+                        <td>
+                          <div class="table-channel-name">
+                            <span class="channel-icon-pill icon-tt"><i class="fa-brands fa-tiktok"></i></span>
+                            <strong>TikTok Pro</strong>
+                          </div>
+                        </td>
+                        <td><span class="account-handle" id="handle-tt">@automotorco</span></td>
+                        <td><span class="badge-api-connected"><i class="fa-solid fa-circle-check"></i> Sincronizado</span></td>
+                        <td>8,420</td>
+                        <td>8,420</td>
+                        <td>
+                          <button type="button" class="btn-disconnect-sm" onclick="configureSocialChannel('tiktok')">Configurar</button>
+                        </td>
+                      </tr>
+
+                      <!-- YouTube -->
+                      <tr data-channel-row="youtube">
+                        <td>
+                          <div class="table-channel-name">
+                            <span class="channel-icon-pill icon-yt"><i class="fa-brands fa-youtube"></i></span>
+                            <strong>YouTube Channel</strong>
+                          </div>
+                        </td>
+                        <td><span class="account-handle text-muted">Sin vincular</span></td>
+                        <td><span class="badge-api-disconnected"><i class="fa-solid fa-circle-xmark"></i> Desconectado</span></td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>
+                          <button type="button" class="btn-connect-sm" onclick="openConnectModal('youtube')">Conectar API</button>
+                        </td>
+                      </tr>
+
+                      <!-- LinkedIn -->
+                      <tr data-channel-row="linkedin">
+                        <td>
+                          <div class="table-channel-name">
+                            <span class="channel-icon-pill icon-li"><i class="fa-brands fa-linkedin-in"></i></span>
+                            <strong>LinkedIn Page</strong>
+                          </div>
+                        </td>
+                        <td><span class="account-handle text-muted">Sin vincular</span></td>
+                        <td><span class="badge-api-disconnected"><i class="fa-solid fa-circle-xmark"></i> Desconectado</span></td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>
+                          <button type="button" class="btn-connect-sm" onclick="openConnectModal('linkedin')">Conectar API</button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
+            </main>
 
           </div>
-        </section>
+
+        </div>
 
       </div>
 
@@ -1545,6 +1779,73 @@
           </button>
         </footer>
       </form>
+    </div>
+  <!-- Modal: Conexión de Red Social (API OAuth) -->
+  <div class="modal-backdrop" id="modal-connect-social" style="display: none;">
+    <div class="modal-card">
+      <header class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-badge-icon" id="modal-social-icon-bubble">
+            <i class="fa-brands fa-instagram"></i>
+          </div>
+          <div>
+            <h2 class="modal-title" id="modal-social-title">Conectar Instagram Business</h2>
+            <p class="modal-subtitle">Vincula tu cuenta oficial para sincronizar seguidores y analíticas en tiempo real</p>
+          </div>
+        </div>
+        <button id="btn-close-social-modal" class="btn-close-modal" type="button" aria-label="Cerrar modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </header>
+
+      <div class="modal-body">
+        <div class="social-oauth-info-box">
+          <div class="oauth-shield-icon">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <p class="oauth-info-text">
+            Conexión segura vía protocolo <strong>OAuth 2.0 Oficial</strong>. Magum Creator Studio solo solicita permisos de lectura de analíticas y programación de contenido sin acceder a contraseñas personales.
+          </p>
+        </div>
+
+        <form id="form-connect-social" class="modal-form" onsubmit="return false;">
+          <input type="hidden" id="connect-social-channel" value="instagram">
+
+          <div class="form-group">
+            <label for="connect-social-handle" class="form-label">Nombre de usuario o Identificador de Página *</label>
+            <input 
+              type="text" 
+              id="connect-social-handle" 
+              class="form-input" 
+              placeholder="@tu_marca_oficial" 
+              required
+            >
+          </div>
+
+          <div class="social-permissions-checklist">
+            <div class="perm-check-item">
+              <i class="fa-solid fa-circle-check text-success"></i>
+              <span>Lectura de seguidores y métricas de alcance semanal/mensual</span>
+            </div>
+            <div class="perm-check-item">
+              <i class="fa-solid fa-circle-check text-success"></i>
+              <span>Estadísticas de visualizaciones, me gusta y comentarios</span>
+            </div>
+            <div class="perm-check-item">
+              <i class="fa-solid fa-circle-check text-success"></i>
+              <span>Emisión y programación simultánea desde Magum Studio</span>
+            </div>
+          </div>
+
+          <footer class="modal-footer">
+            <button type="button" id="btn-cancel-social-modal" class="btn-cancel">Cancelar</button>
+            <button type="button" id="btn-simulate-oauth" class="btn-submit-account" style="background: linear-gradient(135deg, #1877f2, #e1306c);">
+              <i class="fa-solid fa-link"></i>
+              <span id="btn-social-submit-text">Autorizar y Sincronizar API</span>
+            </button>
+          </footer>
+        </form>
+      </div>
     </div>
   </div>
 
