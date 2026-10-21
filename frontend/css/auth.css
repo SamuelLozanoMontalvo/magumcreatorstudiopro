@@ -130,7 +130,7 @@ body.animated-login-body {
   stroke-dasharray: 4 6;
 }
 
-/* 3. Texto Central de Marca (Sin logo aquí, texto tipográfico gigante) */
+/* 3. Texto Central de Marca */
 .orbit-center-brand {
   position: relative;
   z-index: 5;
@@ -161,7 +161,7 @@ body.animated-login-body {
   font-weight: 500;
 }
 
-/* 4. Iconos en Órbita con Logos Reales */
+/* 4. Iconos en Órbita con Logos Reales y Animación Fluida */
 .orbit-layer {
   position: absolute;
   top: 50%;
@@ -174,49 +174,52 @@ body.animated-login-body {
 
 .orbiting-icon {
   position: absolute;
-  width: 48px;
-  height: 48px;
-  margin-top: -24px;
-  margin-left: -24px;
-  border-radius: 50%;
-  background: rgba(18, 24, 38, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), 0 0 10px rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-top: -22px;
+  margin-left: -22px;
   pointer-events: auto;
   cursor: pointer;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
-              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
-              border-color 0.25s ease;
+  background: transparent;
+  border: none;
+  box-shadow: none;
   animation: orbit-loop var(--duration, 25s) linear infinite;
 }
 
-.orbiting-icon svg {
-  display: block;
-  transition: transform 0.25s ease;
+/* El elemento interno maneja el scale y resplandor para no romper la trayectoria de órbita */
+.icon-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), 
+              filter 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6));
 }
 
-/* ANIMACIÓN EN HOVER AL TOCAR LOS ICONOS */
+.icon-inner svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Al pasar el cursor: se pausa la órbita en su posición exacta y el icono se expande con halo */
 .orbiting-icon:hover {
   animation-play-state: paused !important;
-  transform: rotate(var(--angle, 0deg)) translateY(calc(-1 * var(--radius, 100px))) rotate(calc(-1 * var(--angle, 0deg))) scale(1.35) !important;
-  border-color: #ffffff !important;
-  box-shadow: 0 0 28px var(--glow-color, rgba(255, 0, 219, 0.7)), 0 12px 30px rgba(0, 0, 0, 0.8) !important;
-  z-index: 100 !important;
+  z-index: 60;
 }
 
-.orbiting-icon:hover svg {
-  transform: scale(1.1);
+.orbiting-icon:hover .icon-inner {
+  transform: scale(1.36);
+  filter: drop-shadow(0 0 16px var(--glow, #ff00db)) drop-shadow(0 10px 24px rgba(0, 0, 0, 0.9));
 }
 
 /* Tooltip emergente que muestra el nombre de la red social */
 .orbit-tooltip {
   position: absolute;
-  top: -38px;
+  top: -36px;
   left: 50%;
   transform: translateX(-50%) translateY(4px);
   opacity: 0;
@@ -262,7 +265,7 @@ body.animated-login-body {
 }
 
 /* ==========================================================================
-   LADO DERECHO: FORMULARIO DE ACCESO (MÁS AMPLIO, CENTRADO Y CON LOGO MAGUM)
+   LADO DERECHO: FORMULARIO DE ACCESO (MÁS AMPLIO, CENTRADO Y EN ESPAÑOL)
    ========================================================================== */
 .login-form-side {
   flex: 1;
@@ -277,7 +280,7 @@ body.animated-login-body {
 
 .form-wrapper-box {
   width: 100%;
-  max-width: 430px;
+  max-width: 440px;
 }
 
 /* Cabecera del formulario con el Logo de Magum */
@@ -291,7 +294,7 @@ body.animated-login-body {
 }
 
 .form-brand-logo {
-  max-width: 215px;
+  max-width: 220px;
   height: auto;
   display: inline-block;
   filter: drop-shadow(0 4px 20px rgba(255, 0, 219, 0.35));
@@ -427,7 +430,7 @@ body.animated-login-body {
   color: #e4e4e7;
 }
 
-/* Botón Sign In Moderno */
+/* Botón Ingresar */
 .btn-modern-submit {
   position: relative;
   width: 100%;
