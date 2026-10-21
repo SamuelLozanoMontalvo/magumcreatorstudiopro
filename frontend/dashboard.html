@@ -133,6 +133,27 @@
 
         <div class="topbar-actions">
           
+          <!-- Botón de Búsqueda estilo App1 -->
+          <button class="topbar-icon-btn" type="button" aria-label="Buscar" title="Buscar...">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </button>
+
+          <!-- Botón de Notificaciones con Indicador estilo App1 -->
+          <button class="topbar-icon-btn" type="button" aria-label="Notificaciones" title="Notificaciones">
+            <i class="fa-regular fa-bell"></i>
+            <span class="notification-indicator"></span>
+          </button>
+
+          <!-- Avatar de Usuario estilo App1 -->
+          <div class="topbar-avatar" title="Perfil del negocio">
+            <img 
+              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" 
+              alt="Avatar" 
+              class="topbar-avatar-img"
+            >
+            <span class="topbar-avatar-fallback">MN</span>
+          </div>
+
           <!-- Botón de Modo Claro / Modo Oscuro -->
           <button id="btn-theme-toggle" class="btn-theme-toggle" type="button" title="Cambiar tema">
             <i class="fa-solid fa-moon" id="theme-icon"></i>
@@ -166,72 +187,280 @@
           </div>
         </section>
 
-        <!-- Métricas 360° Integradas (Redes + Web + CRM) -->
-        <section class="section-block">
+        <!-- Métricas 360° Integradas (Estilo App-1 21st.dev) -->
+        <section class="section-block app1-section-clean">
           
-          <div class="section-header">
-            <div>
-              <h2 class="section-title">Rendimiento Consolidado</h2>
-              <p class="section-subtitle">Últimos 30 días en todos tus canales y clientes</p>
-            </div>
-          </div>
-
-          <div class="metrics-grid">
+          <div class="app1-stats-grid">
             
-            <div class="metric-card">
-              <div class="metric-icon-wrap icon-purple">
-                <i class="fa-solid fa-share-nodes"></i>
+            <div class="app1-card stat-card">
+              <div class="app1-card-header flex-between">
+                <span class="app1-card-title-sm metric-label">Alcance en Redes</span>
+                <i class="fa-solid fa-share-nodes app1-stat-icon text-muted"></i>
               </div>
-              <div class="metric-details">
-                <span class="metric-label">Alcance en Redes</span>
-                <span class="metric-value">48,920</span>
-                <span class="metric-trend trend-up">
+              <div class="app1-card-content">
+                <div class="app1-stat-value tabular-nums metric-value">48,920</div>
+                <div class="app1-stat-hint text-muted metric-trend trend-up">
                   <i class="fa-solid fa-arrow-trend-up"></i> +24.8% en canales
-                </span>
+                </div>
               </div>
             </div>
 
-            <div class="metric-card">
-              <div class="metric-icon-wrap icon-magenta">
-                <i class="fa-solid fa-globe"></i>
+            <div class="app1-card stat-card">
+              <div class="app1-card-header flex-between">
+                <span class="app1-card-title-sm metric-label">Visitas Sitio Web</span>
+                <i class="fa-solid fa-globe app1-stat-icon text-muted"></i>
               </div>
-              <div class="metric-details">
-                <span class="metric-label">Visitas Sitio Web</span>
-                <span class="metric-value">12,450</span>
-                <span class="metric-trend trend-up">
+              <div class="app1-card-content">
+                <div class="app1-stat-value tabular-nums metric-value">12,450</div>
+                <div class="app1-stat-hint text-muted metric-trend trend-up">
                   <i class="fa-solid fa-arrow-trend-up"></i> +18.2% este mes
-                </span>
+                </div>
               </div>
             </div>
 
-            <div class="metric-card">
-              <div class="metric-icon-wrap icon-gold">
-                <i class="fa-solid fa-users"></i>
+            <div class="app1-card stat-card">
+              <div class="app1-card-header flex-between">
+                <span class="app1-card-title-sm metric-label">Clientes en CRM</span>
+                <i class="fa-solid fa-users app1-stat-icon text-muted"></i>
               </div>
-              <div class="metric-details">
-                <span class="metric-label">Clientes en CRM</span>
-                <span class="metric-value">1,240</span>
-                <span class="metric-trend trend-up">
+              <div class="app1-card-content">
+                <div class="app1-stat-value tabular-nums metric-value">1,240</div>
+                <div class="app1-stat-hint text-muted metric-trend trend-up">
                   <i class="fa-solid fa-arrow-trend-up"></i> +38 nuevos este mes
-                </span>
+                </div>
               </div>
             </div>
 
-            <div class="metric-card">
-              <div class="metric-icon-wrap icon-blue">
-                <i class="fa-solid fa-calendar-check"></i>
+            <div class="app1-card stat-card">
+              <div class="app1-card-header flex-between">
+                <span class="app1-card-title-sm metric-label">Posts en Cola</span>
+                <i class="fa-regular fa-clipboard app1-stat-icon text-muted"></i>
               </div>
-              <div class="metric-details">
-                <span class="metric-label">Posts en Cola</span>
-                <span class="metric-value">14</span>
-                <span class="metric-trend trend-neutral">
-                  <i class="fa-solid fa-clock"></i> Próximo hoy 6:00 PM
-                </span>
+              <div class="app1-card-content">
+                <div class="app1-stat-value tabular-nums metric-value">14</div>
+                <div class="app1-stat-hint text-muted metric-trend trend-neutral">
+                  <i class="fa-regular fa-clock"></i> Próximo hoy 6:00 PM
+                </div>
               </div>
             </div>
 
           </div>
 
+        </section>
+
+        <!-- Rendimiento Consolidado: Throughput Chart (Estilo App-1 Recharts) -->
+        <section class="section-block app1-section-clean">
+          <div class="app1-card chart-card">
+            <div class="app1-card-header">
+              <h3 class="app1-card-title">Rendimiento Consolidado</h3>
+              <p class="app1-card-description">Evolución semanal de alcance, visitas web y tareas operativas</p>
+            </div>
+            <div class="app1-card-content">
+              <div class="app1-chart-container">
+                <svg viewBox="0 0 800 240" class="app1-chart-svg" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="app1CompletedGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="var(--chart-completed)" stop-opacity="0.32" />
+                      <stop offset="100%" stop-color="var(--chart-completed)" stop-opacity="0.02" />
+                    </linearGradient>
+                    <linearGradient id="app1OpenedGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="var(--chart-opened)" stop-opacity="0.25" />
+                      <stop offset="100%" stop-color="var(--chart-opened)" stop-opacity="0.01" />
+                    </linearGradient>
+                  </defs>
+                  
+                  <!-- Líneas de rejilla CartesianGrid vertical={false} strokeDasharray="3 3" -->
+                  <line x1="30" y1="30" x2="780" y2="30" class="chart-grid-line" stroke-dasharray="3 3" />
+                  <line x1="30" y1="80" x2="780" y2="80" class="chart-grid-line" stroke-dasharray="3 3" />
+                  <line x1="30" y1="130" x2="780" y2="130" class="chart-grid-line" stroke-dasharray="3 3" />
+                  <line x1="30" y1="180" x2="780" y2="180" class="chart-grid-line" stroke-dasharray="3 3" />
+
+                  <!-- Curva 1: Opened / Tareas (dashed) -->
+                  <path d="M 40 160 Q 140 120, 240 145 T 440 90 T 640 110 T 770 70" fill="none" stroke="var(--chart-opened)" stroke-width="2.2" stroke-dasharray="4 4" class="chart-line-opened" />
+
+                  <!-- Curva 2: Completed / Conversión con relleno en gradiente -->
+                  <path d="M 40 180 Q 140 150, 240 130 T 440 70 T 640 60 T 770 45 L 770 200 L 40 200 Z" fill="url(#app1CompletedGradient)" />
+                  <path d="M 40 180 Q 140 150, 240 130 T 440 70 T 640 60 T 770 45" fill="none" stroke="var(--chart-completed)" stroke-width="2.5" class="chart-line-completed" />
+
+                  <!-- Puntos destacados de interacción -->
+                  <circle cx="440" cy="70" r="4.5" fill="var(--chart-completed)" class="chart-dot" />
+                  <circle cx="770" cy="45" r="4.5" fill="var(--chart-completed)" class="chart-dot" />
+                </svg>
+
+                <!-- Ejes X -->
+                <div class="chart-xaxis">
+                  <span>Sem 1</span>
+                  <span>Sem 2</span>
+                  <span>Sem 3</span>
+                  <span>Sem 4</span>
+                  <span>Sem 5</span>
+                  <span>Sem 6</span>
+                  <span>Sem 7</span>
+                  <span>Sem 8</span>
+                </div>
+
+                <!-- Leyenda estilo ChartLegend -->
+                <div class="app1-chart-legend">
+                  <div class="legend-item">
+                    <span class="legend-indicator dot-dashed" style="background: var(--chart-opened);"></span>
+                    <span>Alcance Estimado</span>
+                  </div>
+                  <div class="legend-item">
+                    <span class="legend-indicator dot-solid" style="background: var(--chart-completed);"></span>
+                    <span>Conversión y Acciones</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Cuadrícula 2 Columnas: Proyectos Activos y Actividad Reciente (Estilo App-1) -->
+        <section class="section-block app1-section-clean">
+          <div class="app1-dual-grid">
+            
+            <!-- Proyectos Activos -->
+            <div class="app1-card">
+              <div class="app1-card-header">
+                <h3 class="app1-card-title">Campañas y Proyectos Activos</h3>
+                <p class="app1-card-description">Progreso de objetivos digitales para tu negocio</p>
+              </div>
+              <div class="app1-card-content flex-col gap-5">
+                
+                <!-- Proyecto 1 -->
+                <div class="app1-project-item">
+                  <div class="flex-between gap-2">
+                    <h4 class="app1-project-name">Rediseño Web & Experiencia de Usuario</h4>
+                    <span class="app1-badge badge-default">En Progreso</span>
+                  </div>
+                  <p class="app1-project-desc">Actualización visual de alta fidelidad y optimización para captación de clientes.</p>
+                  <div class="app1-progress-wrap">
+                    <div class="app1-progress-track">
+                      <div class="app1-progress-fill" style="width: 72%;"></div>
+                    </div>
+                    <span class="app1-progress-num">72%</span>
+                  </div>
+                  <div class="flex-between app1-project-meta">
+                    <div class="app1-avatar-stack">
+                      <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80" alt="Ana P." class="stack-avatar" title="Ana P.">
+                      <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&q=80" alt="Carlos M." class="stack-avatar" title="Carlos M.">
+                    </div>
+                    <span class="app1-due-date">Vence 28 Oct</span>
+                  </div>
+                </div>
+
+                <!-- Proyecto 2 -->
+                <div class="app1-project-item">
+                  <div class="flex-between gap-2">
+                    <h4 class="app1-project-name">Campaña de Fidelización WhatsApp VIP</h4>
+                    <span class="app1-badge badge-secondary">En Revisión</span>
+                  </div>
+                  <p class="app1-project-desc">Automatizaciones de difusión personalizada para 85 clientes recurrentes.</p>
+                  <div class="app1-progress-wrap">
+                    <div class="app1-progress-track">
+                      <div class="app1-progress-fill" style="width: 90%;"></div>
+                    </div>
+                    <span class="app1-progress-num">90%</span>
+                  </div>
+                  <div class="flex-between app1-project-meta">
+                    <div class="app1-avatar-stack">
+                      <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=80&q=80" alt="Sofia R." class="stack-avatar" title="Sofia R.">
+                    </div>
+                    <span class="app1-due-date">Vence 31 Oct</span>
+                  </div>
+                </div>
+
+                <!-- Proyecto 3 -->
+                <div class="app1-project-item">
+                  <div class="flex-between gap-2">
+                    <h4 class="app1-project-name">Estrategia de Reels & Video Corto</h4>
+                    <span class="app1-badge badge-outline">Planificación</span>
+                  </div>
+                  <p class="app1-project-desc">Guiones educativos virales para posicionar la marca en Instagram y TikTok.</p>
+                  <div class="app1-progress-wrap">
+                    <div class="app1-progress-track">
+                      <div class="app1-progress-fill" style="width: 45%;"></div>
+                    </div>
+                    <span class="app1-progress-num">45%</span>
+                  </div>
+                  <div class="flex-between app1-project-meta">
+                    <div class="app1-avatar-stack">
+                      <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80" alt="David G." class="stack-avatar" title="David G.">
+                      <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&q=80" alt="Carlos M." class="stack-avatar" title="Carlos M.">
+                    </div>
+                    <span class="app1-due-date">Vence 05 Nov</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Actividad Reciente -->
+            <div class="app1-card">
+              <div class="app1-card-header">
+                <h3 class="app1-card-title">Actividad Reciente del Equipo</h3>
+                <p class="app1-card-description">Últimas actualizaciones en tiempo real</p>
+              </div>
+              <div class="app1-card-content">
+                <ol class="app1-activity-list">
+                  <li class="app1-activity-item">
+                    <div class="app1-activity-avatar">
+                      <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=80&q=80" alt="Sofia Ramirez" class="avatar-img">
+                    </div>
+                    <div class="app1-activity-body">
+                      <p class="activity-text">
+                        <span class="activity-name">Sofia Ramirez</span>
+                        <span class="activity-action text-muted">publicó 3 nuevos posts en Instagram y TikTok</span>
+                      </p>
+                      <span class="activity-time text-muted">Hace 12 min</span>
+                    </div>
+                  </li>
+
+                  <li class="app1-activity-item">
+                    <div class="app1-activity-avatar">
+                      <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&q=80" alt="Carlos Mendoza" class="avatar-img">
+                    </div>
+                    <div class="app1-activity-body">
+                      <p class="activity-text">
+                        <span class="activity-name">Carlos Mendoza</span>
+                        <span class="activity-action text-muted">agendó 4 nuevos clientes en el CRM</span>
+                      </p>
+                      <span class="activity-time text-muted">Hace 45 min</span>
+                    </div>
+                  </li>
+
+                  <li class="app1-activity-item">
+                    <div class="app1-activity-avatar">
+                      <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80" alt="Ana Portillo" class="avatar-img">
+                    </div>
+                    <div class="app1-activity-body">
+                      <p class="activity-text">
+                        <span class="activity-name">Ana Portillo</span>
+                        <span class="activity-action text-muted">actualizó los contenidos del Web Editor</span>
+                      </p>
+                      <span class="activity-time text-muted">Hace 2 horas</span>
+                    </div>
+                  </li>
+
+                  <li class="app1-activity-item">
+                    <div class="app1-activity-avatar">
+                      <div class="avatar-fallback-icon">
+                        <i class="fa-solid fa-shield-halved"></i>
+                      </div>
+                    </div>
+                    <div class="app1-activity-body">
+                      <p class="activity-text">
+                        <span class="activity-name">Sistema Magum</span>
+                        <span class="activity-action text-muted">completó la sincronización y copia de seguridad del CRM</span>
+                      </p>
+                      <span class="activity-time text-muted">Hace 4 horas</span>
+                    </div>
+                  </li>
+                </ol>
+              </div>
+            </div>
+
+          </div>
         </section>
 
         <!-- Sugerencias Inteligentes de Crecimiento & CRM ("¿Qué hacer hoy?") -->
