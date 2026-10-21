@@ -134,18 +134,20 @@ async function initDatabase() {
       ALTER TABLE billing ADD COLUMN IF NOT EXISTS account_ids TEXT[] DEFAULT '{}';
       ALTER TABLE billing ADD COLUMN IF NOT EXISTS payment_history JSONB DEFAULT '[]';
 
-      -- Migración de prefijos de cuentas a MGM-
+      -- Migración segura de prefijos de cuentas a MGM- (elimina restricciones antes de actualizar para evitar fallos de integridad)
       ALTER TABLE professionals DROP CONSTRAINT IF EXISTS professionals_account_id_fkey;
-      ALTER TABLE professionals ADD CONSTRAINT professionals_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
       ALTER TABLE crm_contacts DROP CONSTRAINT IF EXISTS crm_contacts_account_id_fkey;
-      ALTER TABLE crm_contacts ADD CONSTRAINT crm_contacts_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
       ALTER TABLE billing DROP CONSTRAINT IF EXISTS billing_account_id_fkey;
-      ALTER TABLE billing ADD CONSTRAINT billing_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
       UPDATE accounts SET id = REPLACE(id, 'ACC-', 'MGM-') WHERE id LIKE 'ACC-%';
+      UPDATE professionals SET account_id = REPLACE(account_id, 'ACC-', 'MGM-') WHERE account_id LIKE 'ACC-%';
+      UPDATE crm_contacts SET account_id = REPLACE(account_id, 'ACC-', 'MGM-') WHERE account_id LIKE 'ACC-%';
       UPDATE billing SET account_id = REPLACE(account_id, 'ACC-', 'MGM-') WHERE account_id LIKE 'ACC-%';
+      UPDATE billing SET account_id = NULL WHERE account_id IS NOT NULL AND account_id NOT IN (SELECT id FROM accounts);
+
+      ALTER TABLE professionals ADD CONSTRAINT professionals_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON UPDATE CASCADE ON DELETE CASCADE;
+      ALTER TABLE crm_contacts ADD CONSTRAINT crm_contacts_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON UPDATE CASCADE ON DELETE CASCADE;
+      ALTER TABLE billing ADD CONSTRAINT billing_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
       -- Columnas para invitación y restablecimiento de contraseña
       ALTER TABLE accounts ADD COLUMN IF NOT EXISTS invite_token VARCHAR(100) DEFAULT NULL;

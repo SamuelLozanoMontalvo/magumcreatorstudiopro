@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const { verifyToken, JWT_SECRET, isIpBlocked, recordFailedAttempt, resetFailedAttempts } = require('../middleware/auth');
 const { sendResetCodeEmail, sendPasswordResetLinkEmail } = require('../services/email.service');
+const { getSafeBaseUrl } = require('../utils/user.utils');
 require('dotenv').config();
 
 const GENERIC_AUTH_ERROR = 'Usuario, correo o contraseña incorrectos.';
@@ -302,23 +303,6 @@ function checkForgotPasswordRateLimit(key, maxAttempts, windowMs) {
   return true;
 }
 
-// Orígenes confiables permitidos para construir enlaces de restablecimiento e invitación
-const TRUSTED_RESET_ORIGINS = [
-  process.env.FRONTEND_URL,
-  'https://magumcreatorstudiopro.vercel.app',
-  'http://localhost:3000',
-  'http://localhost:5173',
-  'http://127.0.0.1:5500'
-].filter(Boolean).map(url => url.replace(/\/+$/, ''));
-
-function getSafeBaseUrl(req) {
-  const envUrl = (process.env.FRONTEND_URL || 'https://magumcreatorstudiopro.vercel.app').replace(/\/+$/, '');
-  const reqOrigin = (req.headers.origin || '').replace(/\/+$/, '');
-  if (reqOrigin && TRUSTED_RESET_ORIGINS.includes(reqOrigin)) {
-    return reqOrigin;
-  }
-  return envUrl;
-}
 
 // GET /api/auth/verify-invite - Verificar si el enlace de invitación o restablecimiento es válido
 router.get('/verify-invite', async (req, res) => {
@@ -634,7 +618,7 @@ router.post('/forgot-password', async (req, res) => {
     if (isAccount || isProfessional) {
       const rawResetToken = crypto.randomBytes(32).toString('hex');
       const tokenHash = crypto.createHash('sha256').update(rawResetToken).digest('hex');
-      const expiresAt = new Date(Date.now() + 24 * 3600 * 1000); // 24 horas
+      const expiresAt = new Date(Date.now() + 2 * 3600 * 1000); // 2 horas de validez estricta
 
       // Guardar token en hash (no texto plano) y en password_reset_token (no pisa invite_token)
       if (isAccount) {

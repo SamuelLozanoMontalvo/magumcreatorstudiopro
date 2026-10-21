@@ -102,6 +102,27 @@ async function findGlobalEmailConflict(email, options = {}) {
   return { conflict: false };
 }
 
+/**
+ * Obtiene la URL base confiable del frontend para enlaces seguros (evita Host / Origin Header Poisoning)
+ */
+function getSafeBaseUrl(req) {
+  const envUrl = (process.env.FRONTEND_URL || 'https://magumcreatorstudiopro.vercel.app').replace(/\/+$/, '');
+  const reqOrigin = req && req.headers ? (req.headers.origin || '').trim().replace(/\/+$/, '') : '';
+
+  // Lista blanca estricta de orígenes permitidos
+  const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    'https://magumcreatorstudiopro.vercel.app',
+    ...(process.env.NODE_ENV !== 'production' ? ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:5500'] : [])
+  ].filter(Boolean).map(url => url.replace(/\/+$/, ''));
+
+  if (reqOrigin && allowedOrigins.includes(reqOrigin)) {
+    return reqOrigin;
+  }
+  return envUrl;
+}
+
 module.exports = {
-  findGlobalEmailConflict
+  findGlobalEmailConflict,
+  getSafeBaseUrl
 };

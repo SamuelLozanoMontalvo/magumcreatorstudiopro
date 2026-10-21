@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const { verifyToken, requireAdmin, requireClientOrTeam, requireAccountOwnerOrAdmin, resolveAccountId, JWT_SECRET } = require('../middleware/auth');
 const { sendInviteEmail, sendEmail } = require('../services/email.service');
-const { findGlobalEmailConflict } = require('../utils/user.utils');
+const { findGlobalEmailConflict, getSafeBaseUrl } = require('../utils/user.utils');
 
 function generateAccountId() {
   return 'MGM-' + crypto.randomBytes(4).toString('hex').toUpperCase();
@@ -197,7 +197,8 @@ router.post('/', async (req, res) => {
     }
 
     const newId = generateAccountId();
-    const inviteToken = crypto.randomBytes(32).toString('hex');
+    const rawInviteToken = crypto.randomBytes(32).toString('hex');
+    const inviteTokenHash = crypto.createHash('sha256').update(rawInviteToken).digest('hex');
     const inviteExpires = new Date(Date.now() + 48 * 3600 * 1000); // 48 horas
 
     // Si ya existe otra cuenta para este cliente, reutilizamos su clave existente
@@ -227,10 +228,10 @@ router.post('/', async (req, res) => {
     await db.query(`
       INSERT INTO accounts (id, first_name, last_name, business, email, password_hash, module_social, module_web, module_crm, status, invite_token, invite_expires_at)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'active', $10, $11)
-    `, [newId, firstName.trim(), lastName.trim(), business.trim(), emailClean, passwordHash, social, web, crm, inviteToken, inviteExpires]);
+    `, [newId, firstName.trim(), lastName.trim(), business.trim(), emailClean, passwordHash, social, web, crm, inviteTokenHash, inviteExpires]);
 
-    const defaultBaseUrl = (req.headers.origin || req.headers.referer || process.env.FRONTEND_URL || 'https://magumcreatorstudiopro.vercel.app').split('?')[0].replace(/\/+$/, '');
-    const defaultSetupUrl = `${defaultBaseUrl}/setup-password.html?token=${encodeURIComponent(inviteToken)}`;
+    const defaultBaseUrl = getSafeBaseUrl(req);
+    const defaultSetupUrl = `${defaultBaseUrl}/setup-password.html?token=${encodeURIComponent(rawInviteToken)}`;
 
     // Enviar correo de invitación de forma controlada y con timeout
     let emailResult = { success: false, setupUrl: defaultSetupUrl };
@@ -239,7 +240,7 @@ router.post('/', async (req, res) => {
         to: emailClean,
         clientName: `${firstName.trim()} ${lastName.trim()}`,
         business: business.trim(),
-        inviteToken,
+        inviteToken: rawInviteToken,
         origin: defaultBaseUrl
       });
     } catch (emailErr) {
@@ -589,16 +590,17 @@ router.post('/:id/resend-invite', async (req, res) => {
     }
 
     const acc = accRes.rows[0];
-    const inviteToken = crypto.randomBytes(32).toString('hex');
+    const rawInviteToken = crypto.randomBytes(32).toString('hex');
+    const inviteTokenHash = crypto.createHash('sha256').update(rawInviteToken).digest('hex');
     const inviteExpires = new Date(Date.now() + 48 * 3600 * 1000);
 
     await db.query(
       'UPDATE accounts SET invite_token = $1, invite_expires_at = $2 WHERE id = $3',
-      [inviteToken, inviteExpires, id]
+      [inviteTokenHash, inviteExpires, id]
     );
 
-    const defaultBaseUrl = (req.headers.origin || req.headers.referer || process.env.FRONTEND_URL || 'https://magumcreatorstudiopro.vercel.app').split('?')[0].replace(/\/+$/, '');
-    const defaultSetupUrl = `${defaultBaseUrl}/setup-password.html?token=${encodeURIComponent(inviteToken)}`;
+    const defaultBaseUrl = getSafeBaseUrl(req);
+    const defaultSetupUrl = `${defaultBaseUrl}/setup-password.html?token=${encodeURIComponent(rawInviteToken)}`;
 
     let emailResult = { success: false, setupUrl: defaultSetupUrl };
     try {
@@ -606,7 +608,7 @@ router.post('/:id/resend-invite', async (req, res) => {
         to: acc.email,
         clientName: `${acc.first_name} ${acc.last_name}`,
         business: acc.business,
-        inviteToken,
+        inviteToken: rawInviteToken,
         origin: defaultBaseUrl
       });
     } catch (err) {

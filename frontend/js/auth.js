@@ -1,7 +1,4 @@
-/* ==========================================================================
-   MAGUM CREATOR STUDIO - CONTROL DE ACCESO (AUTENTICACIÓN SEGURA VÍA API)
-   ========================================================================== */
-
+/
 document.addEventListener('DOMContentLoaded', () => {
 
   const loginForm = document.getElementById('login-form');
@@ -10,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const passwordInput = document.getElementById('password');
   const eyeIcon = document.getElementById('eye-icon');
 
-  // Limpiar URL si el navegador realizó un submit GET previamente y rellenar campos
+  
   try {
     const urlParams = new URLSearchParams(window.location.search);
     const paramEmail = urlParams.get('email');
@@ -26,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   } catch (e) {}
 
-  // Mostrar u ocultar contraseña en el campo de texto
+  
   if (togglePasswordBtn && passwordInput && eyeIcon) {
     togglePasswordBtn.addEventListener('click', () => {
       const isPassword = passwordInput.type === 'password';
@@ -37,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const GENERIC_ERROR = 'Usuario, correo o contraseña incorrectos.';
 
-  // Procesar inicio de sesión
+  
   if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -57,7 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSubmit.style.opacity = '0.7';
       }
 
-      // Autenticación estricta con el Backend API (Cero logins locales ni hashes en cliente)
       try {
         if (!window.MagumApi) {
           throw new Error('Servicio de API no disponible.');
@@ -108,7 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Renderizar modal para que el usuario elija su empresa si tiene varias
   function showAccountSelectorModal(accounts, userVal, passwordVal) {
     const modal = document.getElementById('modal-select-account');
     const list = document.getElementById('account-selector-list');
@@ -184,14 +179,11 @@ document.addEventListener('DOMContentLoaded', () => {
     alertBox.style.display = 'block';
   }
 
-  // ==========================================================================
-  // RECUPERACIÓN DE CONTRASEÑA (PROBLEMAS DE ACCESO CON ENLACE AL CORREO)
-  // ==========================================================================
   const forgotLink = document.getElementById('forgot-password-link');
   const modalForgot = document.getElementById('modal-forgot-password');
   const btnCloseForgot = document.getElementById('btn-close-forgot-modal');
-  const btnCloseForgotSuccess = document.getElementById('btn-close-forgot-success');
 
+  const btnCloseForgotSuccess = document.getElementById('btn-close-forgot-success');
   const formView = document.getElementById('forgot-form-view');
   const successView = document.getElementById('forgot-success-view');
   const formForgot = document.getElementById('form-forgot-request');
@@ -263,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
-        const res = await window.MagumApi.forgotPassword(email);
+        await window.MagumApi.forgotPassword(email);
         if (lblTargetEmail) lblTargetEmail.textContent = email;
 
         if (formView) formView.style.display = 'none';
@@ -279,7 +271,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Cargar Favicon y Branding de la plataforma configurado por el Super Admin
   function loadPlatformBranding() {
     try {
       const dynamicFavicon = document.getElementById('dynamic-favicon');

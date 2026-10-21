@@ -298,3 +298,27 @@ test('forgot-password nunca expone resetUrl ni emailSent en la respuesta y hashe
   assert.strictEqual(publicResponse.emailSent, undefined, 'La respuesta HTTP jamás debe incluir emailSent');
   assert.strictEqual(publicResponse.token, undefined, 'La respuesta HTTP jamás debe incluir ningún token');
 });
+
+// 13. getSafeBaseUrl rechaza orígenes maliciosos y previene Host Header / Origin Poisoning
+test('getSafeBaseUrl previene Origin Poisoning y rechaza dominios no autorizados', () => {
+  const { getSafeBaseUrl } = require('../src/utils/user.utils');
+  
+  // Intento de envenenamiento de cabecera Origin
+  const maliciousReq = {
+    headers: {
+      origin: 'https://evil-attacker.example.com',
+      referer: 'https://evil-attacker.example.com/exploit'
+    }
+  };
+  const safeUrl = getSafeBaseUrl(maliciousReq);
+  assert.strictEqual(safeUrl.includes('evil-attacker'), false, 'getSafeBaseUrl no debe aceptar dominios maliciosos');
+  assert.strictEqual(safeUrl, (process.env.FRONTEND_URL || 'https://magumcreatorstudiopro.vercel.app').replace(/\/+$/, ''));
+
+  // Origen legítimo de producción
+  const legitReq = {
+    headers: {
+      origin: 'https://magumcreatorstudiopro.vercel.app'
+    }
+  };
+  assert.strictEqual(getSafeBaseUrl(legitReq), 'https://magumcreatorstudiopro.vercel.app');
+});
