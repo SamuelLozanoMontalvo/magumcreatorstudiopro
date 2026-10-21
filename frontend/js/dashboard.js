@@ -1666,7 +1666,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const originalText = socialSubmitText ? socialSubmitText.textContent : '';
       if (socialSubmitText) socialSubmitText.textContent = 'Autenticando con la API...';
-      socialSubmitBtn.disabled = true;
+      // Si es Meta (Instagram o Facebook), intentar flujo OAuth oficial en vivo
+      if (channelKey === 'instagram' || channelKey === 'facebook') {
+        try {
+          if (window.MagumApi) {
+            const authRes = await MagumApi.getSocialAuthUrl('meta');
+            if (authRes && authRes.success && authRes.authUrl) {
+              window.location.href = authRes.authUrl;
+              return;
+            }
+          }
+        } catch (authErr) {
+          console.warn('Flujo OAuth en vivo no disponible, procediendo con registro directo:', authErr);
+        }
+      }
 
       try {
         if (window.MagumApi) {

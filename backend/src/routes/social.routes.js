@@ -59,11 +59,16 @@ router.get('/oauth/url/:provider', verifyToken, (req, res) => {
       { expiresIn: '15m' }
     );
 
-    let authUrl = '';
-    const redirectUri = `${SERVER_BASE_URL}/api/social/callback/${provider}`;
+    const appId = process.env.META_APP_ID || process.env.FACEBOOK_APP_ID;
+    const isMeta = (provider === 'meta' || provider === 'facebook' || provider === 'instagram');
+    const redirectUri = isMeta 
+      ? `${SERVER_BASE_URL}/api/social/callback/meta` 
+      : `${SERVER_BASE_URL}/api/social/callback/${provider}`;
 
-    if (provider === 'meta' || provider === 'facebook' || provider === 'instagram') {
-      if (!META_APP_ID) {
+    let authUrl = '';
+
+    if (isMeta) {
+      if (!appId) {
         return res.json({
           success: false,
           needsCredentials: true,
@@ -79,7 +84,7 @@ router.get('/oauth/url/:provider', verifyToken, (req, res) => {
         'business_management'
       ].join(',');
 
-      authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${META_APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&state=${stateToken}&response_type=code`;
+      authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&state=${stateToken}&response_type=code`;
     } else {
       return res.status(400).json({ success: false, message: `Proveedor ${provider} en proceso de homologación.` });
     }
