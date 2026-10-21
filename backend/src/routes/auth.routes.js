@@ -288,45 +288,116 @@ router.get('/me', verifyToken, (req, res) => {
   });
 });
 
-// GET /api/auth/verify-invite - Verificar si el enlace de invitación es válido
+// Rate Limiter en memoria para solicitudes de restablecimiento de contraseña (IP y Correo)
+const forgotPasswordAttempts = new Map();
+
+function checkForgotPasswordRateLimit(key, maxAttempts, windowMs) {
+  const now = Date.now();
+  const timestamps = (forgotPasswordAttempts.get(key) || []).filter(ts => now - ts < windowMs);
+  if (timestamps.length >= maxAttempts) {
+    return false;
+  }
+  timestamps.push(now);
+  forgotPasswordAttempts.set(key, timestamps);
+  return true;
+}
+
+// Orígenes confiables permitidos para construir enlaces de restablecimiento e invitación
+const TRUSTED_RESET_ORIGINS = [
+  process.env.FRONTEND_URL,
+  'https://magumcreatorstudiopro.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:5500'
+].filter(Boolean).map(url => url.replace(/\/+$/, ''));
+
+function getSafeBaseUrl(req) {
+  const envUrl = (process.env.FRONTEND_URL || 'https://magumcreatorstudiopro.vercel.app').replace(/\/+$/, '');
+  const reqOrigin = (req.headers.origin || '').replace(/\/+$/, '');
+  if (reqOrigin && TRUSTED_RESET_ORIGINS.includes(reqOrigin)) {
+    return reqOrigin;
+  }
+  return envUrl;
+}
+
+// GET /api/auth/verify-invite - Verificar si el enlace de invitación o restablecimiento es válido
 router.get('/verify-invite', async (req, res) => {
   try {
     const { token } = req.query;
     if (!token) {
-      return res.status(400).json({ success: false, message: 'Token de invitación no proporcionado.' });
+      return res.status(400).json({ success: false, message: 'Token de invitación o recuperación no proporcionado.' });
     }
 
-    const result = await db.query(
-      `SELECT id, first_name, last_name, business, email, invite_expires_at 
+    const tokenClean = String(token).trim();
+    const tokenHash = crypto.createHash('sha256').update(tokenClean).digest('hex');
+
+    // 1. Buscar en accounts (soporta token hash y token plano para compatibilidad)
+    const accRes = await db.query(
+      `SELECT id, first_name, last_name, business, email, status,
+              COALESCE(password_reset_expires_at, invite_expires_at) as expires_at,
+              (password_reset_token IS NOT NULL AND (password_reset_token = $1 OR password_reset_token = $2)) as is_reset
        FROM accounts 
-       WHERE invite_token = $1 AND deleted_at IS NULL`,
-      [token]
+       WHERE ((invite_token = $1 OR invite_token = $2) OR (password_reset_token = $1 OR password_reset_token = $2)) 
+         AND deleted_at IS NULL
+       LIMIT 1`,
+      [tokenHash, tokenClean]
     );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'El enlace de invitación es inválido o ya fue utilizado.' });
-    }
-
-    const acc = result.rows[0];
-    if (new Date(acc.invite_expires_at) < new Date()) {
-      return res.status(410).json({ success: false, message: 'El enlace de invitación ha expirado. Solicita uno nuevo a tu administrador.' });
-    }
-
-    res.json({
-      success: true,
-      data: {
-        email: acc.email,
-        business: acc.business,
-        clientName: `${acc.first_name} ${acc.last_name}`
+    if (accRes.rows.length > 0) {
+      const acc = accRes.rows[0];
+      if (acc.expires_at && new Date(acc.expires_at) < new Date()) {
+        return res.status(410).json({ success: false, message: 'El enlace ha expirado. Solicita uno nuevo a tu administrador o en la pantalla de inicio.' });
       }
-    });
+
+      return res.json({
+        success: true,
+        data: {
+          email: acc.email,
+          business: acc.business,
+          clientName: `${acc.first_name} ${acc.last_name}`.trim(),
+          isReset: Boolean(acc.is_reset)
+        }
+      });
+    }
+
+    // 2. Buscar en professionals
+    const profRes = await db.query(
+      `SELECT p.id, p.name, p.email, p.role, a.business,
+              COALESCE(p.password_reset_expires_at, p.invite_expires_at) as expires_at,
+              (p.password_reset_token IS NOT NULL AND (p.password_reset_token = $1 OR p.password_reset_token = $2)) as is_reset
+       FROM professionals p
+       LEFT JOIN accounts a ON a.id = p.account_id
+       WHERE ((p.invite_token = $1 OR p.invite_token = $2) OR (p.password_reset_token = $1 OR p.password_reset_token = $2)) 
+         AND p.deleted_at IS NULL
+       LIMIT 1`,
+      [tokenHash, tokenClean]
+    );
+
+    if (profRes.rows.length > 0) {
+      const prof = profRes.rows[0];
+      if (prof.expires_at && new Date(prof.expires_at) < new Date()) {
+        return res.status(410).json({ success: false, message: 'El enlace ha expirado. Solicita uno nuevo a tu administrador o en la pantalla de inicio.' });
+      }
+
+      return res.json({
+        success: true,
+        data: {
+          email: prof.email,
+          business: prof.business || 'MAGUM Creator Studio',
+          clientName: prof.name,
+          isReset: Boolean(prof.is_reset)
+        }
+      });
+    }
+
+    return res.status(404).json({ success: false, message: 'El enlace es inválido o ya fue utilizado.' });
   } catch (error) {
     console.error('Error en GET /verify-invite:', error);
-    res.status(500).json({ success: false, message: 'Error al verificar la invitación.' });
+    res.status(500).json({ success: false, message: 'Error al verificar el enlace.' });
   }
 });
 
-// POST /api/auth/setup-password - Establecer contraseña por primera vez y acceder directamente
+// POST /api/auth/setup-password - Establecer contraseña y acceder directamente
 router.post('/setup-password', async (req, res) => {
   try {
     const { token, password } = req.body;
@@ -337,67 +408,169 @@ router.post('/setup-password', async (req, res) => {
       });
     }
 
-    const result = await db.query(
-      `SELECT id, first_name, last_name, business, email, module_social, module_web, module_crm, invite_expires_at 
+    const tokenClean = String(token).trim();
+    const tokenHash = crypto.createHash('sha256').update(tokenClean).digest('hex');
+
+    // 1. Buscar en accounts
+    const accRes = await db.query(
+      `SELECT id, first_name, last_name, business, email, module_social, module_web, module_crm, status,
+              invite_token, password_reset_token,
+              COALESCE(password_reset_expires_at, invite_expires_at) as expires_at
        FROM accounts 
-       WHERE invite_token = $1 AND deleted_at IS NULL`,
-      [token]
+       WHERE ((invite_token = $1 OR invite_token = $2) OR (password_reset_token = $1 OR password_reset_token = $2))
+         AND deleted_at IS NULL
+       LIMIT 1`,
+      [tokenHash, tokenClean]
     );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'El enlace de invitación es inválido o ya fue utilizado.' });
-    }
-
-    const acc = result.rows[0];
-    if (new Date(acc.invite_expires_at) < new Date()) {
-      return res.status(410).json({ success: false, message: 'El enlace de invitación ha expirado.' });
-    }
-
-    const passwordHash = await bcrypt.hash(password.trim(), 10);
-
-    // Actualizar contraseña y limpiar el token de invitación (unificar para todas las empresas de ese correo si tuviera más)
-    await db.query(
-      `UPDATE accounts 
-       SET password_hash = $1, invite_token = NULL, invite_expires_at = NULL, status = 'active'
-       WHERE LOWER(email) = LOWER($2) AND deleted_at IS NULL`,
-      [passwordHash, acc.email]
-    );
-
-    // Generar sesión JWT directa
-    const jwtToken = jwt.sign(
-      {
-        role: 'client',
-        accountId: acc.id,
-        email: acc.email,
-        clientName: `${acc.first_name} ${acc.last_name}`,
-        business: acc.business,
-        modules: {
-          social: acc.module_social,
-          web: acc.module_web,
-          crm: acc.module_crm
-        }
-      },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    res.json({
-      success: true,
-      message: '¡Contraseña configurada con éxito! Ingresando a la plataforma...',
-      token: jwtToken,
-      user: {
-        role: 'client',
-        accountId: acc.id,
-        email: acc.email,
-        clientName: `${acc.first_name} ${acc.last_name}`,
-        business: acc.business,
-        modules: {
-          social: acc.module_social,
-          web: acc.module_web,
-          crm: acc.module_crm
-        }
+    if (accRes.rows.length > 0) {
+      const acc = accRes.rows[0];
+      if (acc.expires_at && new Date(acc.expires_at) < new Date()) {
+        return res.status(410).json({ success: false, message: 'El enlace ha expirado. Por favor solicita uno nuevo.' });
       }
-    });
+
+      const passwordHash = await bcrypt.hash(password.trim(), 10);
+
+      // Actualizar contraseña y limpiar tokens consumidos
+      // IMPORTANTE: NO reactivar cuentas inactivas o suspendidas automáticamente
+      await db.query(
+        `UPDATE accounts 
+         SET password_hash = $1, 
+             invite_token = CASE WHEN (invite_token = $3 OR invite_token = $4) THEN NULL ELSE invite_token END,
+             invite_expires_at = CASE WHEN (invite_token = $3 OR invite_token = $4) THEN NULL ELSE invite_expires_at END,
+             password_reset_token = CASE WHEN (password_reset_token = $3 OR password_reset_token = $4) THEN NULL ELSE password_reset_token END,
+             password_reset_expires_at = CASE WHEN (password_reset_token = $3 OR password_reset_token = $4) THEN NULL ELSE password_reset_expires_at END,
+             status = CASE 
+               WHEN id = $5 AND status NOT IN ('inactive', 'suspended') THEN 'active'
+               ELSE status 
+             END
+         WHERE LOWER(email) = LOWER($2) AND deleted_at IS NULL`,
+        [passwordHash, acc.email, tokenHash, tokenClean, acc.id]
+      );
+
+      // Si la cuenta seleccionada está suspendida, informar al usuario y no emitir token de sesión
+      if (acc.status === 'inactive' || acc.status === 'suspended') {
+        return res.status(403).json({
+          success: false,
+          message: 'Tu contraseña fue actualizada exitosamente, pero esta empresa se encuentra suspendida. Contacta a soporte para reactivarla.'
+        });
+      }
+
+      // Generar sesión JWT directa para la cuenta activa
+      const jwtToken = jwt.sign(
+        {
+          role: 'client',
+          accountId: acc.id,
+          email: acc.email,
+          clientName: `${acc.first_name} ${acc.last_name}`.trim(),
+          business: acc.business,
+          modules: {
+            social: acc.module_social,
+            web: acc.module_web,
+            crm: acc.module_crm
+          }
+        },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      return res.json({
+        success: true,
+        message: '¡Contraseña configurada con éxito! Ingresando a la plataforma...',
+        token: jwtToken,
+        user: {
+          role: 'client',
+          accountId: acc.id,
+          email: acc.email,
+          clientName: `${acc.first_name} ${acc.last_name}`.trim(),
+          business: acc.business,
+          modules: {
+            social: acc.module_social,
+            web: acc.module_web,
+            crm: acc.module_crm
+          }
+        }
+      });
+    }
+
+    // 2. Buscar en professionals
+    const profRes = await db.query(
+      `SELECT p.id, p.account_id, p.name, p.role, p.email,
+              a.business, a.module_social, a.module_web, a.module_crm, a.status as account_status,
+              COALESCE(p.password_reset_expires_at, p.invite_expires_at) as expires_at
+       FROM professionals p
+       LEFT JOIN accounts a ON a.id = p.account_id
+       WHERE ((p.invite_token = $1 OR p.invite_token = $2) OR (p.password_reset_token = $1 OR p.password_reset_token = $2))
+         AND p.deleted_at IS NULL
+       LIMIT 1`,
+      [tokenHash, tokenClean]
+    );
+
+    if (profRes.rows.length > 0) {
+      const prof = profRes.rows[0];
+      if (prof.expires_at && new Date(prof.expires_at) < new Date()) {
+        return res.status(410).json({ success: false, message: 'El enlace ha expirado. Por favor solicita uno nuevo.' });
+      }
+
+      const passwordHash = await bcrypt.hash(password.trim(), 10);
+
+      await db.query(
+        `UPDATE professionals 
+         SET password_hash = $1, 
+             invite_token = NULL, 
+             invite_expires_at = NULL,
+             password_reset_token = NULL,
+             password_reset_expires_at = NULL
+         WHERE id = $2 AND deleted_at IS NULL`,
+        [passwordHash, prof.id]
+      );
+
+      if (prof.account_status === 'inactive' || prof.account_status === 'suspended') {
+        return res.status(403).json({
+          success: false,
+          message: 'Tu contraseña fue actualizada, pero la cuenta de la empresa se encuentra suspendida.'
+        });
+      }
+
+      const jwtToken = jwt.sign(
+        {
+          role: 'team_member',
+          accountId: prof.account_id,
+          professionalId: prof.id,
+          email: prof.email,
+          clientName: prof.name,
+          business: prof.business || 'MAGUM Creator Studio',
+          modules: {
+            social: prof.module_social,
+            web: prof.module_web,
+            crm: prof.module_crm
+          }
+        },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      return res.json({
+        success: true,
+        message: '¡Contraseña configurada con éxito! Ingresando a la plataforma...',
+        token: jwtToken,
+        user: {
+          role: 'team_member',
+          accountId: prof.account_id,
+          professionalId: prof.id,
+          email: prof.email,
+          clientName: prof.name,
+          business: prof.business || 'MAGUM Creator Studio',
+          modules: {
+            social: prof.module_social,
+            web: prof.module_web,
+            crm: prof.module_crm
+          }
+        }
+      });
+    }
+
+    return res.status(404).json({ success: false, message: 'El enlace de invitación o recuperación es inválido o ya fue utilizado.' });
   } catch (error) {
     console.error('Error en POST /setup-password:', error);
     res.status(500).json({ success: false, message: 'Error al establecer la contraseña.' });
@@ -414,6 +587,22 @@ router.post('/forgot-password', async (req, res) => {
 
     const emailClean = email.trim().toLowerCase();
 
+    // Protección Rate Limiting por IP (máx 5 por 15 min) y por Correo (máx 3 por 15 min)
+    const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
+    if (!checkForgotPasswordRateLimit(`ip:${clientIp}`, 5, 15 * 60 * 1000)) {
+      return res.status(429).json({
+        success: false,
+        message: 'Demasiadas solicitudes de recuperación desde esta dirección. Por favor espera 15 minutos.'
+      });
+    }
+
+    if (!checkForgotPasswordRateLimit(`email:${emailClean}`, 3, 15 * 60 * 1000)) {
+      return res.status(429).json({
+        success: false,
+        message: 'Demasiadas solicitudes de recuperación para este correo. Por favor espera 15 minutos.'
+      });
+    }
+
     // 1. Buscar en accounts
     const accRes = await db.query(
       `SELECT id, first_name, last_name, business FROM accounts 
@@ -422,10 +611,11 @@ router.post('/forgot-password', async (req, res) => {
     );
 
     let clientName = 'Usuario';
-    let isFound = false;
+    let isAccount = false;
+    let isProfessional = false;
 
     if (accRes.rows.length > 0) {
-      isFound = true;
+      isAccount = true;
       clientName = `${accRes.rows[0].first_name} ${accRes.rows[0].last_name}`.trim();
     } else {
       // 2. Buscar en professionals
@@ -435,46 +625,52 @@ router.post('/forgot-password', async (req, res) => {
         [emailClean]
       );
       if (profRes.rows.length > 0) {
-        isFound = true;
+        isProfessional = true;
         clientName = profRes.rows[0].name;
       }
     }
 
-    // Por seguridad, si el correo no existe respondemos genéricamente sin error para evitar enumeración
-    if (!isFound) {
-      return res.json({
-        success: true,
-        message: 'Si el correo está registrado, recibirás un enlace de restablecimiento en tu bandeja de entrada.'
+    // Si el usuario existe, generar y enviar enlace
+    if (isAccount || isProfessional) {
+      const rawResetToken = crypto.randomBytes(32).toString('hex');
+      const tokenHash = crypto.createHash('sha256').update(rawResetToken).digest('hex');
+      const expiresAt = new Date(Date.now() + 24 * 3600 * 1000); // 24 horas
+
+      // Guardar token en hash (no texto plano) y en password_reset_token (no pisa invite_token)
+      if (isAccount) {
+        await db.query(
+          `UPDATE accounts 
+           SET password_reset_token = $1, password_reset_expires_at = $2 
+           WHERE LOWER(email) = $3 AND deleted_at IS NULL`,
+          [tokenHash, expiresAt, emailClean]
+        );
+      } else if (isProfessional) {
+        await db.query(
+          `UPDATE professionals 
+           SET password_reset_token = $1, password_reset_expires_at = $2 
+           WHERE LOWER(email) = $3 AND deleted_at IS NULL`,
+          [tokenHash, expiresAt, emailClean]
+        );
+      }
+
+      // Base URL segura (previene Host Header / Origin Poisoning)
+      const baseUrl = getSafeBaseUrl(req);
+      const resetUrl = `${baseUrl}/setup-password.html?token=${encodeURIComponent(rawResetToken)}`;
+
+      // Enviar correo (en segundo plano / no bloqueante)
+      sendPasswordResetLinkEmail({
+        to: emailClean,
+        clientName,
+        resetUrl
+      }).catch(err => {
+        console.error('[Auth] Error al enviar correo de recuperación:', err.message);
       });
     }
 
-    // Generar token criptográfico seguro para restablecimiento
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 24 * 3600 * 1000); // Válido por 24 horas
-
-    // Guardar token en accounts (unificado para todas las cuentas de este usuario)
-    await db.query(
-      `UPDATE accounts 
-       SET invite_token = $1, invite_expires_at = $2 
-       WHERE LOWER(email) = $3 AND deleted_at IS NULL`,
-      [resetToken, expiresAt, emailClean]
-    );
-
-    const baseUrl = (req.headers.origin || req.headers.referer || process.env.FRONTEND_URL || 'https://magumcreatorstudiopro.vercel.app').split('?')[0].replace(/\/+$/, '');
-    const resetUrl = `${baseUrl}/setup-password.html?token=${encodeURIComponent(resetToken)}`;
-
-    // Enviar correo con enlace seguro
-    const emailResult = await sendPasswordResetLinkEmail({
-      to: emailClean,
-      clientName,
-      resetUrl
-    });
-
+    // Respuesta genérica idéntica exista o no el correo (previene enumeración y NUNCA filtra el token)
     res.json({
       success: true,
-      message: 'Hemos enviado un enlace a tu correo para restablecer tu contraseña. Revisa tu bandeja de entrada o spam.',
-      emailSent: Boolean(emailResult.success),
-      resetUrl
+      message: 'Si el correo está registrado, recibirás un enlace de restablecimiento en tu bandeja de entrada.'
     });
   } catch (error) {
     console.error('Error en POST /forgot-password:', error);

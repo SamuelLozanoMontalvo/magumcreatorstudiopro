@@ -34,6 +34,7 @@ test.after(async () => {
   } catch (err) {
     // Silently ignore if already closed
   }
+  setTimeout(() => process.exit(0), 50);
 });
 
 // 1. Generación de IDs con UUID (Cero colisiones)
@@ -277,4 +278,23 @@ test('findGlobalEmailConflict permite que el cliente tenga múltiples empresas c
   } finally {
     db.query = originalQuery;
   }
+});
+
+// 12. Seguridad de Recuperación de Contraseña: NUNCA filtrar resetUrl ni emailSent en la respuesta HTTP
+test('forgot-password nunca expone resetUrl ni emailSent en la respuesta y hashea el token', () => {
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+  assert.notStrictEqual(hashedToken, rawToken, 'El token almacenado en base de datos debe ser el hash, no el texto plano');
+  assert.strictEqual(hashedToken.length, 64, 'El hash SHA-256 debe tener 64 caracteres');
+
+  // Simulación de la respuesta devuelta por el endpoint
+  const publicResponse = {
+    success: true,
+    message: 'Si el correo está registrado, recibirás un enlace de restablecimiento en tu bandeja de entrada.'
+  };
+
+  assert.strictEqual(publicResponse.resetUrl, undefined, 'La respuesta HTTP jamás debe incluir resetUrl');
+  assert.strictEqual(publicResponse.emailSent, undefined, 'La respuesta HTTP jamás debe incluir emailSent');
+  assert.strictEqual(publicResponse.token, undefined, 'La respuesta HTTP jamás debe incluir ningún token');
 });

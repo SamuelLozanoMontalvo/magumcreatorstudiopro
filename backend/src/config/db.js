@@ -141,14 +141,24 @@ async function initDatabase() {
       ALTER TABLE crm_contacts DROP CONSTRAINT IF EXISTS crm_contacts_account_id_fkey;
       ALTER TABLE crm_contacts ADD CONSTRAINT crm_contacts_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
+      ALTER TABLE billing DROP CONSTRAINT IF EXISTS billing_account_id_fkey;
+      ALTER TABLE billing ADD CONSTRAINT billing_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
       UPDATE accounts SET id = REPLACE(id, 'ACC-', 'MGM-') WHERE id LIKE 'ACC-%';
       UPDATE billing SET account_id = REPLACE(account_id, 'ACC-', 'MGM-') WHERE account_id LIKE 'ACC-%';
 
       -- Columnas para invitación y restablecimiento de contraseña
       ALTER TABLE accounts ADD COLUMN IF NOT EXISTS invite_token VARCHAR(100) DEFAULT NULL;
       ALTER TABLE accounts ADD COLUMN IF NOT EXISTS invite_expires_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
+      ALTER TABLE accounts ADD COLUMN IF NOT EXISTS password_reset_token VARCHAR(100) DEFAULT NULL;
       ALTER TABLE accounts ADD COLUMN IF NOT EXISTS password_reset_code VARCHAR(100) DEFAULT NULL;
       ALTER TABLE accounts ADD COLUMN IF NOT EXISTS password_reset_expires_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
+
+      -- Columnas para invitación y restablecimiento de profesionales
+      ALTER TABLE professionals ADD COLUMN IF NOT EXISTS invite_token VARCHAR(100) DEFAULT NULL;
+      ALTER TABLE professionals ADD COLUMN IF NOT EXISTS invite_expires_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
+      ALTER TABLE professionals ADD COLUMN IF NOT EXISTS password_reset_token VARCHAR(100) DEFAULT NULL;
+      ALTER TABLE professionals ADD COLUMN IF NOT EXISTS password_reset_expires_at TIMESTAMP WITH TIME ZONE DEFAULT NULL;
 
       -- Columnas para marca e identidad independiente por cuenta
       ALTER TABLE accounts ADD COLUMN IF NOT EXISTS logo_url TEXT DEFAULT NULL;
