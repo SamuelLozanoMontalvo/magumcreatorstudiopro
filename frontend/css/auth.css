@@ -1,8 +1,7 @@
 /* ==========================================================================
-   MAGUM CREATOR STUDIO - ESTILOS DE AUTENTICACIÓN (LOGIN)
+   MAGUM CREATOR STUDIO - MODERN ANIMATED SIGN IN (21ST.DEV & MOTION STYLE)
    ========================================================================== */
 
-/* 1. TIPOGRAFÍA OFICIAL SILVERPOON (MARCA MAGUM) */
 @font-face {
   font-family: 'Silverspoon';
   src: local('Silverspoon-BoldItalic'), local('Silverspoon Bold Italic'), local('Silverspoon');
@@ -19,380 +18,560 @@
   font-display: swap;
 }
 
-/* 2. VARIABLES DE MARCA MAGUM */
 :root {
-  --color-bg-deep: #09001a;
-  --color-bg-surface: rgba(20, 4, 48, 0.78);
-  --color-primary-indigo: #210087;
-  --color-neon-magenta: #FF00DB;
-  --color-neon-magenta-glow: rgba(255, 0, 219, 0.35);
-  --color-accent-gold: #FDD344;
-  --color-accent-gold-hover: #ffde6b;
-  --color-text-white: #ffffff;
-  --color-text-muted: #b9b4cf;
-  --color-input-bg: rgba(255, 255, 255, 0.05);
-  --color-input-border: rgba(255, 255, 255, 0.12);
-  --color-danger: #ff4d6d;
-  --color-success: #00f0aa;
-  
-  /* Tipografía de títulos Silverspoon con respaldo Montserrat */
+  --bg-deep: #030712;
+  --bg-input: #18181b;
+  --border-input: #27272a;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --brand-magenta: #FF00DB;
+  --brand-cyan: #06b6d4;
+  --brand-blue: #3b82f6;
+  --brand-indigo: #6366f1;
   --font-brand: 'Silverspoon-BoldItalic', 'Silverspoon', 'Montserrat', sans-serif;
-  --font-body: 'Montserrat', system-ui, -apple-system, sans-serif;
-  
-  --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --font-body: 'Inter', 'Montserrat', system-ui, -apple-system, sans-serif;
 }
 
-/* 3. REINICIO Y BASE */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body {
+body.animated-login-body {
   font-family: var(--font-body);
-  background-color: var(--color-bg-deep);
-  color: var(--color-text-white);
+  background-color: var(--bg-deep);
+  color: var(--text-main);
   min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+/* ==========================================================================
+   SPLIT LAYOUT (HERO IZQUIERDO + FORMULARIO DERECHO)
+   ========================================================================== */
+.login-split-layout {
+  display: flex;
+  width: 100vw;
+  min-height: 100vh;
+}
+
+/* ==========================================================================
+   LADO IZQUIERDO: RIPPLE + ÓRBITAS + BRANDING
+   ========================================================================== */
+.login-hero-side {
+  flex: 1.15;
+  min-height: 100vh;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow-x: hidden;
-  position: relative;
-  padding: 20px;
+  overflow: hidden;
+  background: radial-gradient(circle at center, #0a1128 0%, #030712 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-/* 4. RESPLANDORES DE FONDO (NEON GLOW) */
-.glow-bg {
-  position: fixed;
-  border-radius: 50%;
+/* 1. Ondas Concéntricas (Ripple Effect) */
+.ripple-wrapper {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   pointer-events: none;
-  z-index: 0;
-  filter: blur(120px);
-  opacity: 0.55;
+  mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
+  -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
 }
 
-.glow-purple {
-  width: 450px;
-  height: 450px;
-  background: var(--color-primary-indigo);
-  top: -100px;
-  left: -100px;
+.ripple-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--size, 200px);
+  height: var(--size, 200px);
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.015);
+  transform: translate(-50%, -50%);
+  animation: ripple-pulse 3.5s ease-in-out var(--delay, 0s) infinite;
 }
 
-.glow-magenta {
-  width: 400px;
-  height: 400px;
-  background: var(--color-neon-magenta);
-  bottom: -80px;
-  right: -80px;
-  opacity: 0.35;
+@keyframes ripple-pulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.04);
+    opacity: 0.75;
+    border-color: rgba(255, 0, 219, 0.15);
+  }
 }
 
-/* 5. CONTENEDOR Y TARJETA GLASSMORPHISM */
-.login-container {
-  width: 100%;
-  max-width: 440px;
-  position: relative;
+/* 2. Trazos de Órbita SVG */
+.orbit-svg-paths {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 700px;
+  height: 700px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
   z-index: 1;
 }
 
-.login-card {
-  background: var(--color-bg-surface);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--color-neon-magenta-glow);
-  border-radius: 24px;
-  padding: 40px 32px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6),
-              0 0 30px rgba(255, 0, 219, 0.15);
-  transition: var(--transition-smooth);
+.orbit-path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.07);
+  stroke-width: 1px;
+  stroke-dasharray: 4 5;
 }
 
-.login-card:hover {
-  border-color: rgba(255, 0, 219, 0.45);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7),
-              0 0 40px rgba(255, 0, 219, 0.22);
-}
-
-/* 6. CABECERA Y LOGOTIPO */
-.card-header {
+/* 3. Texto y Logotipo Central */
+.orbit-center-brand {
+  position: relative;
+  z-index: 5;
   text-align: center;
-  margin-bottom: 28px;
+  pointer-events: none;
+  padding: 0 20px;
+  max-width: 420px;
 }
 
-.brand-logo {
-  max-width: 190px;
+.orbit-brand-logo-wrap {
+  margin-bottom: 12px;
+}
+
+.orbit-brand-logo {
+  max-width: 110px;
   height: auto;
-  margin: 0 auto 12px auto;
-  display: block;
-  filter: drop-shadow(0 4px 12px rgba(255, 0, 219, 0.3));
+  filter: drop-shadow(0 0 20px rgba(255, 0, 219, 0.45));
 }
 
-.badge-studio {
-  display: inline-block;
+.orbit-brand-title {
   font-family: var(--font-brand);
+  font-size: 2.3rem;
   font-style: italic;
-  font-size: 0.8rem;
-  letter-spacing: 2px;
-  color: var(--color-accent-gold);
-  background: rgba(253, 211, 68, 0.1);
-  border: 1px solid rgba(253, 211, 68, 0.3);
-  padding: 5px 14px;
-  border-radius: 50px;
-  margin-bottom: 16px;
-  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.15;
+  background: linear-gradient(180deg, #ffffff 10%, rgba(255, 255, 255, 0.35) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 35px rgba(255, 255, 255, 0.15);
 }
 
-.login-title {
-  font-family: var(--font-brand);
+.orbit-brand-subtitle {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+/* 4. Iconos en Órbita */
+.orbit-layer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.orbiting-icon {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  margin-top: -22px;
+  margin-left: -22px;
+  border-radius: 50%;
+  background: rgba(18, 24, 38, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), 0 0 12px rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  animation: orbit-loop var(--duration, 25s) linear infinite;
+}
+
+.orbiting-icon:hover {
+  border-color: var(--brand-magenta);
+  box-shadow: 0 0 20px rgba(255, 0, 219, 0.5), 0 8px 30px rgba(0, 0, 0, 0.7);
+  z-index: 10;
+}
+
+@keyframes orbit-loop {
+  0% {
+    transform: rotate(var(--angle, 0deg)) translateY(calc(-1 * var(--radius, 100px))) rotate(calc(-1 * var(--angle, 0deg)));
+  }
+  100% {
+    transform: rotate(calc(var(--angle, 0deg) + 360deg)) translateY(calc(-1 * var(--radius, 100px))) rotate(calc(-1 * (var(--angle, 0deg) + 360deg)));
+  }
+}
+
+/* ==========================================================================
+   LADO DERECHO: FORMULARIO DE ACCESO (MODERN ANIMATED SIGN IN)
+   ========================================================================== */
+.login-form-side {
+  flex: 0.95;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 30px;
+  background: #030712;
+}
+
+.form-wrapper-box {
+  width: 100%;
+  max-width: 384px;
+}
+
+/* Cabecera del formulario */
+.auth-header {
+  margin-bottom: 24px;
+}
+
+.auth-heading {
   font-size: 2rem;
   font-weight: 700;
-  font-style: italic;
-  color: var(--color-text-white);
-  margin-bottom: 6px;
-  letter-spacing: -0.5px;
+  color: var(--text-main);
+  letter-spacing: -0.025em;
+  margin: 0;
 }
 
-.login-subtitle {
+.auth-subheading {
   font-size: 0.88rem;
-  color: var(--color-text-muted);
-  font-weight: 400;
-  line-height: 1.4;
-}
-
-/* 7. MENSAJE DE ALERTA */
-.alert-box {
-  padding: 12px 16px;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  animation: fadeIn 0.3s ease;
-}
-
-.alert-box.alert-error {
-  background: rgba(255, 77, 109, 0.15);
-  border: 1px solid var(--color-danger);
-  color: #ff859d;
-}
-
-.alert-box.alert-success {
-  background: rgba(0, 240, 170, 0.15);
-  border: 1px solid var(--color-success);
-  color: #5effce;
-}
-
-/* 8. FORMULARIO Y CAMPOS */
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  letter-spacing: 0.3px;
-}
-
-.input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.input-icon {
-  position: absolute;
-  left: 16px;
-  color: var(--color-text-muted);
-  font-size: 0.95rem;
-  pointer-events: none;
-  transition: var(--transition-smooth);
-}
-
-.form-input {
-  width: 100%;
-  padding: 14px 16px 14px 46px;
-  background: var(--color-input-bg);
-  border: 1px solid var(--color-input-border);
-  border-radius: 14px;
-  color: var(--color-text-white);
-  font-size: 0.95rem;
-  font-family: inherit;
-  outline: none;
-  transition: var(--transition-smooth);
-}
-
-.form-input::placeholder {
-  color: rgba(255, 255, 255, 0.25);
-}
-
-.form-input:focus {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--color-neon-magenta);
-  box-shadow: 0 0 15px var(--color-neon-magenta-glow);
-}
-
-.input-wrapper:focus-within .input-icon {
-  color: var(--color-neon-magenta);
-}
-
-.btn-toggle-password {
-  position: absolute;
-  right: 14px;
-  background: none;
-  border: none;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  padding: 6px;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: var(--transition-smooth);
-}
-
-.btn-toggle-password:hover {
-  color: var(--color-text-white);
-}
-
-/* 9. OPCIONES ADICIONALES */
-.form-options {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.82rem;
-  margin-top: -4px;
-}
-
-.checkbox-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  user-select: none;
-}
-
-.checkbox-container input {
-  accent-color: var(--color-neon-magenta);
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-}
-
-.link-support {
-  color: var(--color-text-muted);
-  text-decoration: none;
-  font-weight: 500;
-  transition: var(--transition-smooth);
-}
-
-.link-support:hover {
-  color: var(--color-accent-gold);
-  text-decoration: underline;
-}
-
-/* 10. BOTÓN PRINCIPAL (DORADO CON TIPOGRAFÍA DE MARCA) */
-.btn-submit {
-  width: 100%;
-  padding: 15px 24px;
-  background: var(--color-accent-gold);
-  color: #12002b;
-  border: none;
-  border-radius: 14px;
-  font-family: var(--font-brand);
-  font-size: 1.15rem;
-  font-style: italic;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  box-shadow: 0 8px 25px rgba(253, 211, 68, 0.35);
-  transition: var(--transition-smooth);
+  color: var(--text-muted);
   margin-top: 6px;
 }
 
-.btn-submit:hover {
-  background: var(--color-accent-gold-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(253, 211, 68, 0.45);
+/* Alerta de notificación */
+.alert-box {
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: alertFadeIn 0.25s ease;
 }
 
-.btn-submit:active {
-  transform: translateY(0);
+.alert-box.alert-error {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #f87171;
 }
 
-.btn-icon {
-  font-size: 0.95rem;
-  transition: transform 0.2s ease;
+.alert-box.alert-success {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #34d399;
 }
 
-.btn-submit:hover .btn-icon {
-  transform: translateX(4px);
+@keyframes alertFadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* 11. PIE DE TARJETA */
-.card-footer {
-  margin-top: 28px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+/* Formulario */
+.animated-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: #f1f5f9;
+}
+
+.required-star {
+  color: #ef4444;
+}
+
+/* Contenedor del Input con efecto de resplandor */
+.input-glow-wrapper {
+  position: relative;
+  border-radius: 8px;
+  padding: 2px;
+  background: transparent;
+  transition: background 0.3s ease;
+}
+
+.modern-input {
+  width: 100%;
+  height: 42px;
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
+  border-radius: 6px;
+  color: var(--text-main);
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  box-shadow: 0px 2px 3px -1px rgba(0, 0, 0, 0.1), 0px 1px 0px 0px rgba(25, 28, 33, 0.02);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.modern-input::placeholder {
+  color: #71717a;
+}
+
+.modern-input:focus {
+  border-color: #52525b;
+  box-shadow: 0 0 0 2px rgba(82, 82, 91, 0.5);
+  background: #202024;
+}
+
+/* Toggle Password */
+.password-input-container {
+  position: relative;
+}
+
+.password-input-container .modern-input {
+  padding-right: 42px;
+}
+
+.btn-toggle-eye {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #71717a;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: color 0.2s ease;
+}
+
+.btn-toggle-eye:hover {
+  color: #e4e4e7;
+}
+
+/* Botón Sign In Moderno */
+.btn-modern-submit {
+  position: relative;
+  width: 100%;
+  height: 42px;
+  margin-top: 6px;
+  background: linear-gradient(to bottom right, #27272a 0%, #18181b 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 500;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 1px 0px 0px rgba(255, 255, 255, 0.2) inset, 0px -1px 0px 0px rgba(0, 0, 0, 0.4) inset;
+  transition: all 0.2s ease;
+}
+
+.btn-modern-submit:hover {
+  background: linear-gradient(to bottom right, #3f3f46 0%, #27272a 100%);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.btn-modern-submit:active {
+  transform: scale(0.99);
+}
+
+.btn-submit-label {
+  position: relative;
+  z-index: 2;
+}
+
+/* Efectos de resplandor inferior del botón (BottomGradient) */
+.bottom-gradient-cyan {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #06b6d4, transparent);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 3;
+}
+
+.bottom-gradient-indigo {
+  position: absolute;
+  bottom: 0;
+  left: 25%;
+  right: 25%;
+  height: 2px;
+  background: linear-gradient(to right, transparent, #6366f1, transparent);
+  filter: blur(2px);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 3;
+}
+
+.btn-modern-submit:hover .bottom-gradient-cyan,
+.btn-modern-submit:hover .bottom-gradient-indigo {
+  opacity: 1;
+}
+
+/* Enlace de recuperación */
+.forgot-password-box {
+  margin-top: 4px;
   text-align: center;
 }
 
-.footer-note {
-  font-size: 0.78rem;
-  color: var(--color-text-muted);
-  line-height: 1.4;
+.forgot-link {
+  font-size: 0.85rem;
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
 }
 
-.footer-note strong {
-  color: var(--color-neon-magenta);
+.forgot-link:hover {
+  color: #60a5fa;
+  text-decoration: underline;
 }
 
-/* 12. ANIMACIÓN */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* ==========================================================================
+   MODALES (DISEÑO DARK GLASSMORPHISM SHADCN)
+   ========================================================================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: modalFadeIn 0.2s ease;
 }
 
-/* 13. RESPONSIVE */
-@media (max-width: 480px) {
-  body {
-    padding: 16px;
-  }
+.modal-dark-box {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 30px;
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+}
 
-  .login-card {
-    padding: 30px 20px;
-    border-radius: 20px;
-  }
+.modal-badge-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin: 0 auto 16px;
+}
 
-  .login-title {
-    font-size: 1.6rem;
-  }
+.modal-heading {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 8px;
+}
 
-  .form-options {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+.modal-text {
+  font-size: 0.86rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+
+.modal-close-btn,
+.btn-modal-close {
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  color: #64748b;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.btn-modal-close:hover {
+  color: #f8fafc;
+}
+
+.account-list-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 280px;
+  overflow-y: auto;
+  margin-bottom: 18px;
+}
+
+.btn-modal-cancel {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  font-size: 0.88rem;
+  transition: all 0.2s;
+}
+
+.btn-modal-cancel:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #f8fafc;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (TABLETS Y MÓVILES)
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .login-hero-side {
+    display: none;
+  }
+  
+  .login-form-side {
+    flex: 1;
+    width: 100%;
+    padding: 24px 20px;
   }
 }

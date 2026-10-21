@@ -293,6 +293,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Efecto de resplandor interactivo con el cursor (Modern Animated Sign In)
+  document.querySelectorAll('.input-glow-wrapper').forEach(wrapper => {
+    wrapper.addEventListener('mousemove', (e) => {
+      const rect = wrapper.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      wrapper.style.background = `radial-gradient(100px circle at ${x}px ${y}px, #3b82f6, transparent 80%)`;
+    });
+    wrapper.addEventListener('mouseleave', () => {
+      wrapper.style.background = 'transparent';
+    });
+  });
+
   loadPlatformBranding();
 
 });

@@ -3,174 +3,265 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Acceso | Creator Studio</title>
+  <title>Acceso | Magum Creator Studio</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="css/auth.css">
   <link rel="icon" id="dynamic-favicon" href="https://lirp.cdn-website.com/e4e4cefa/dms3rep/multi/opt/Magum_logo+magenta-1920w.png">
 </head>
-<body>
+<body class="animated-login-body">
 
-  <div class="glow-bg glow-purple"></div>
-  <div class="glow-bg glow-magenta"></div>
-
-  <main class="login-container">
-    <div class="login-card">
+  <div class="login-split-layout">
+    
+    <!-- LADO IZQUIERDO: RIPPLE + ÓRBITAS DE REDES SOCIALES + MAGUM CREATOR STUDIO -->
+    <aside class="login-hero-side">
       
-      <header class="card-header">
-        <img 
-          src="https://lirp.cdn-website.com/e4e4cefa/dms3rep/multi/opt/Magum_logo+magenta-1920w.png" 
-          alt="Logo" 
-          class="brand-logo"
-        >
-        <span class="badge-studio">CREATOR STUDIO</span>
-        <h1 class="login-title">Portal de Clientes</h1>
-        <p class="login-subtitle">Ingresa tus credenciales para administrar tu negocio</p>
-      </header>
+      <!-- Efecto de Ondas Concéntricas (Ripple) -->
+      <div class="ripple-wrapper">
+        <span class="ripple-ring" style="--size: 140px; --delay: 0s;"></span>
+        <span class="ripple-ring" style="--size: 210px; --delay: 0.2s;"></span>
+        <span class="ripple-ring" style="--size: 280px; --delay: 0.4s;"></span>
+        <span class="ripple-ring" style="--size: 350px; --delay: 0.6s;"></span>
+        <span class="ripple-ring" style="--size: 420px; --delay: 0.8s;"></span>
+        <span class="ripple-ring" style="--size: 490px; --delay: 1.0s;"></span>
+        <span class="ripple-ring" style="--size: 560px; --delay: 1.2s;"></span>
+        <span class="ripple-ring" style="--size: 630px; --delay: 1.4s;"></span>
+      </div>
 
-      <div id="alert-box" class="alert-box" style="display: none;"></div>
+      <!-- Trazos de Órbita SVG -->
+      <svg class="orbit-svg-paths" viewBox="0 0 700 700">
+        <circle cx="350" cy="350" r="110" class="orbit-path" />
+        <circle cx="350" cy="350" r="185" class="orbit-path" />
+        <circle cx="350" cy="350" r="260" class="orbit-path" />
+      </svg>
 
-      <form id="login-form" class="login-form" action="javascript:void(0);" method="POST" onsubmit="return false;">
+      <!-- Texto Central de Marca: MAGUM CREATOR STUDIO -->
+      <div class="orbit-center-brand">
+        <div class="orbit-brand-logo-wrap">
+          <img 
+            src="https://lirp.cdn-website.com/e4e4cefa/dms3rep/multi/opt/Magum_logo+magenta-1920w.png" 
+            alt="Magum Logo" 
+            class="orbit-brand-logo"
+          >
+        </div>
+        <h1 class="orbit-brand-title">MAGUM CREATOR STUDIO</h1>
+        <p class="orbit-brand-subtitle">Ecosistema Digital y Redes Sociales</p>
+      </div>
+
+      <!-- ÓRBITA 1 (Radio: 110px): Redes Principales -->
+      <div class="orbit-layer ring-1">
+        <!-- Facebook -->
+        <div class="orbiting-icon" style="--radius: 110px; --angle: 0deg; --duration: 22s;" title="Facebook">
+          <i class="fa-brands fa-facebook-f" style="color: #1877f2;"></i>
+        </div>
+        <!-- Instagram -->
+        <div class="orbiting-icon" style="--radius: 110px; --angle: 120deg; --duration: 22s;" title="Instagram">
+          <i class="fa-brands fa-instagram" style="color: #e1306c;"></i>
+        </div>
+        <!-- X / Twitter -->
+        <div class="orbiting-icon" style="--radius: 110px; --angle: 240deg; --duration: 22s;" title="X (Twitter)">
+          <i class="fa-brands fa-x-twitter" style="color: #ffffff;"></i>
+        </div>
+      </div>
+
+      <!-- ÓRBITA 2 (Radio: 185px - Inversa): Video, Contenido y CRM -->
+      <div class="orbit-layer ring-2">
+        <!-- LinkedIn -->
+        <div class="orbiting-icon" style="--radius: 185px; --angle: 45deg; --duration: 30s; animation-direction: reverse;" title="LinkedIn">
+          <i class="fa-brands fa-linkedin-in" style="color: #0a66c2;"></i>
+        </div>
+        <!-- YouTube -->
+        <div class="orbiting-icon" style="--radius: 185px; --angle: 135deg; --duration: 30s; animation-direction: reverse;" title="YouTube">
+          <i class="fa-brands fa-youtube" style="color: #ff0000;"></i>
+        </div>
+        <!-- TikTok -->
+        <div class="orbiting-icon" style="--radius: 185px; --angle: 225deg; --duration: 30s; animation-direction: reverse;" title="TikTok">
+          <i class="fa-brands fa-tiktok" style="color: #00f2fe;"></i>
+        </div>
+        <!-- Gmail / Email -->
+        <div class="orbiting-icon" style="--radius: 185px; --angle: 315deg; --duration: 30s; animation-direction: reverse;" title="Gmail / Email">
+          <i class="fa-solid fa-envelope" style="color: #ea4335;"></i>
+        </div>
+      </div>
+
+      <!-- ÓRBITA 3 (Radio: 260px): Anuncios y Conversión -->
+      <div class="orbit-layer ring-3">
+        <!-- Meta Ads -->
+        <div class="orbiting-icon" style="--radius: 260px; --angle: 30deg; --duration: 40s;" title="Meta Ads">
+          <i class="fa-brands fa-meta" style="color: #0081fb;"></i>
+        </div>
+        <!-- WhatsApp Business -->
+        <div class="orbiting-icon" style="--radius: 260px; --angle: 120deg; --duration: 40s;" title="WhatsApp Business">
+          <i class="fa-brands fa-whatsapp" style="color: #25d366;"></i>
+        </div>
+        <!-- Google Ads -->
+        <div class="orbiting-icon" style="--radius: 260px; --angle: 210deg; --duration: 40s;" title="Google Ads">
+          <i class="fa-brands fa-google" style="color: #fbbc05;"></i>
+        </div>
+        <!-- Telegram -->
+        <div class="orbiting-icon" style="--radius: 260px; --angle: 300deg; --duration: 40s;" title="Telegram">
+          <i class="fa-brands fa-telegram" style="color: #229ed9;"></i>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- LADO DERECHO: FORMULARIO DE ACCESO (ESTILO MODERN ANIMATED SIGN IN) -->
+    <main class="login-form-side">
+      <div class="form-wrapper-box">
         
-        <div class="form-group">
-          <label for="email" class="form-label">Usuario o Correo electrónico</label>
-          <div class="input-wrapper">
-            <i class="fa-regular fa-user input-icon"></i>
-            <input 
-              type="text" 
-              id="email" 
-              name="email" 
-              class="form-input" 
-              placeholder="Usuario o correo" 
-              required
-              autocomplete="username"
-            >
+        <header class="auth-header">
+          <h2 class="auth-heading">Welcome back</h2>
+          <p class="auth-subheading">Sign in to your account</p>
+        </header>
+
+        <div id="alert-box" class="alert-box" style="display: none;"></div>
+
+        <form id="login-form" class="animated-auth-form" action="javascript:void(0);" method="POST" onsubmit="return false;">
+          
+          <!-- Campo Email -->
+          <div class="form-field-group">
+            <label for="email" class="field-label">
+              Email <span class="required-star">*</span>
+            </label>
+            <div class="input-glow-wrapper">
+              <input 
+                type="text" 
+                id="email" 
+                name="email" 
+                class="modern-input" 
+                placeholder="Enter your email address" 
+                required
+                autocomplete="username"
+              >
+            </div>
           </div>
-        </div>
 
-        <div class="form-group">
-          <label for="password" class="form-label">Contraseña</label>
-          <div class="input-wrapper">
-            <i class="fa-solid fa-lock input-icon"></i>
-            <input 
-              type="password" 
-              id="password" 
-              name="password" 
-              class="form-input" 
-              placeholder="Contraseña" 
-              required
-              autocomplete="current-password"
-            >
-            <button type="button" id="toggle-password" class="btn-toggle-password" title="Mostrar u ocultar contraseña">
-              <i class="fa-regular fa-eye" id="eye-icon"></i>
-            </button>
+          <!-- Campo Password -->
+          <div class="form-field-group">
+            <label for="password" class="field-label">
+              Password <span class="required-star">*</span>
+            </label>
+            <div class="input-glow-wrapper password-input-container">
+              <input 
+                type="password" 
+                id="password" 
+                name="password" 
+                class="modern-input" 
+                placeholder="Enter your password" 
+                required
+                autocomplete="current-password"
+              >
+              <button type="button" id="toggle-password" class="btn-toggle-eye" title="Mostrar u ocultar contraseña" aria-label="Toggle password">
+                <i class="fa-regular fa-eye-slash" id="eye-icon"></i>
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div class="form-options">
-          <label class="checkbox-container">
-            <input type="checkbox" id="remember-me">
-            <span class="checkmark"></span>
-            Recordar mi sesión
-          </label>
-          <a href="javascript:void(0)" id="forgot-password-link" onclick="if(window.openForgotModal){window.openForgotModal();}return false;" class="link-support">¿Problemas de acceso?</a>
-        </div>
+          <!-- Botón de Envío estilo Modern Animated Sign In -->
+          <button type="submit" id="btn-submit" class="btn-modern-submit">
+            <span class="btn-submit-label">Sign in &rarr;</span>
+            <span class="bottom-gradient-cyan"></span>
+            <span class="bottom-gradient-indigo"></span>
+          </button>
 
-        <button type="submit" id="btn-submit" class="btn-submit">
-          <span class="btn-text">Ingresar a mi panel</span>
-          <i class="fa-solid fa-arrow-right btn-icon"></i>
-        </button>
+          <!-- Enlace de Recuperación de Contraseña -->
+          <div class="forgot-password-box">
+            <a href="javascript:void(0)" id="forgot-password-link" onclick="if(window.openForgotModal){window.openForgotModal();}return false;" class="forgot-link">
+              Forgot password?
+            </a>
+          </div>
 
-      </form>
+        </form>
 
-      <footer class="card-footer">
-        <p class="footer-note">
-          <i class="fa-solid fa-shield-halved"></i> Acceso exclusivo para clientes de la plataforma.
-        </p>
-      </footer>
+      </div>
+    </main>
 
-    </div>
-  </main>
+  </div>
 
   <!-- Modal Selector de Empresas (Multi-Cuenta) -->
-  <div id="modal-select-account" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(6px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
-    <div class="modal-box" style="background: #ffffff; width: 100%; max-width: 440px; border-radius: 16px; padding: 28px; box-shadow: 0 20px 45px rgba(0,0,0,0.3); text-align: center; border: 1px solid rgba(0,0,0,0.08);">
-      <div style="width: 54px; height: 54px; border-radius: 14px; background: rgba(33,0,135,0.08); color: #210087; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 1.5rem;">
+  <div id="modal-select-account" class="modal-overlay" style="display: none;">
+    <div class="modal-box modal-dark-box">
+      <div class="modal-badge-icon" style="background: rgba(255, 0, 219, 0.12); color: #ff00db;">
         <i class="fa-solid fa-building"></i>
       </div>
-      <h3 style="margin: 0 0 8px; font-size: 1.3rem; font-weight: 700; color: #1e293b;">Selecciona tu Empresa</h3>
-      <p style="margin: 0 0 20px; font-size: 0.88rem; color: #64748b;">Tu correo tiene acceso a varias empresas. Elige a cuál deseas ingresar:</p>
-      <div id="account-selector-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; margin-bottom: 18px;">
+      <h3 class="modal-heading">Selecciona tu Empresa</h3>
+      <p class="modal-text">Tu correo tiene acceso a varias empresas. Elige a cuál deseas ingresar:</p>
+      <div id="account-selector-list" class="account-list-scroll">
         <!-- Opciones inyectadas dinámicamente -->
       </div>
-      <button type="button" id="btn-cancel-account-select" style="background: transparent; border: 1px solid #cbd5e1; color: #64748b; padding: 10px 18px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; transition: all 0.2s;">
+      <button type="button" id="btn-cancel-account-select" class="btn-modal-cancel">
         Cancelar
       </button>
     </div>
   </div>
 
-  <!-- Modal Recuperación de Contraseña (Problemas de acceso con enlace al correo) -->
-  <div id="modal-forgot-password" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
-    <div class="modal-box" style="background: #ffffff; width: 100%; max-width: 440px; border-radius: 18px; padding: 30px; box-shadow: 0 20px 45px rgba(0,0,0,0.3); text-align: center; border: 1px solid rgba(0,0,0,0.08); position: relative;">
+  <!-- Modal Recuperación de Contraseña -->
+  <div id="modal-forgot-password" class="modal-overlay" style="display: none;">
+    <div class="modal-box modal-dark-box">
       
-      <button type="button" id="btn-close-forgot-modal" style="position: absolute; right: 18px; top: 18px; background: transparent; border: none; font-size: 1.2rem; color: #94a3b8; cursor: pointer;">
+      <button type="button" id="btn-close-forgot-modal" class="btn-modal-close" aria-label="Cerrar modal">
         <i class="fa-solid fa-xmark"></i>
       </button>
 
       <!-- Vista 1: Formulario para ingresar correo -->
       <div id="forgot-form-view">
-        <div style="width: 54px; height: 54px; border-radius: 14px; background: rgba(229,0,125,0.09); color: #e5007d; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 1.5rem;">
+        <div class="modal-badge-icon" style="background: rgba(255, 0, 219, 0.12); color: #ff00db;">
           <i class="fa-solid fa-key"></i>
         </div>
 
-        <h3 style="margin: 0 0 8px; font-size: 1.3rem; font-weight: 700; color: #1e293b;">¿Problemas de acceso?</h3>
-        <p style="margin: 0 0 20px; font-size: 0.88rem; color: #64748b; line-height: 1.5;">
-          Ingresa el correo electrónico de tu cuenta y te enviaremos un enlace seguro para restablecer o definir tu contraseña de acceso.
+        <h3 class="modal-heading">¿Problemas de acceso?</h3>
+        <p class="modal-text">
+          Ingresa el correo electrónico de tu cuenta y te enviaremos un enlace seguro para restablecer tu contraseña.
         </p>
 
         <form id="form-forgot-request">
           <div style="margin-bottom: 18px; text-align: left;">
-            <label for="input-forgot-email" style="display: block; font-size: 0.82rem; font-weight: 600; color: #475569; margin-bottom: 6px;">
+            <label for="input-forgot-email" class="field-label" style="margin-bottom: 6px;">
               Correo Electrónico
             </label>
-            <input 
-              type="email" 
-              id="input-forgot-email" 
-              required 
-              placeholder="tu@empresa.com"
-              style="width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.95rem; box-sizing: border-box; outline: none; transition: border 0.2s;"
-            >
+            <div class="input-glow-wrapper">
+              <input 
+                type="email" 
+                id="input-forgot-email" 
+                class="modern-input"
+                required 
+                placeholder="tu@empresa.com"
+              >
+            </div>
           </div>
 
           <div id="forgot-alert-1" style="display: none; padding: 10px; border-radius: 8px; margin-bottom: 14px; font-size: 0.85rem;"></div>
 
-          <button type="submit" id="btn-submit-forgot-request" class="btn-submit" style="width: 100%; margin: 0; padding: 12px;">
-            <span>Enviar Enlace al Correo</span>
-            <i class="fa-solid fa-paper-plane" style="margin-left: 6px;"></i>
+          <button type="submit" id="btn-submit-forgot-request" class="btn-modern-submit" style="width: 100%; margin-top: 4px;">
+            <span class="btn-submit-label">Enviar Enlace al Correo</span>
+            <span class="bottom-gradient-cyan"></span>
+            <span class="bottom-gradient-indigo"></span>
           </button>
         </form>
       </div>
 
       <!-- Vista 2: Éxito (Enlace enviado) -->
       <div id="forgot-success-view" style="display: none;">
-        <div style="width: 58px; height: 58px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); color: #10b981; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 1.8rem;">
+        <div class="modal-badge-icon" style="background: rgba(16, 185, 129, 0.14); color: #10b981;">
           <i class="fa-solid fa-circle-check"></i>
         </div>
 
-        <h3 style="margin: 0 0 8px; font-size: 1.3rem; font-weight: 700; color: #1e293b;">¡Enlace Enviado!</h3>
-        <p style="margin: 0 0 16px; font-size: 0.88rem; color: #64748b; line-height: 1.6;">
-          Hemos enviado un correo a <strong id="lbl-forgot-target-email" style="color: #210087; word-break: break-all;"></strong> con el enlace para restablecer tu contraseña.
+        <h3 class="modal-heading">¡Enlace Enviado!</h3>
+        <p class="modal-text">
+          Hemos enviado un correo a <strong id="lbl-forgot-target-email" style="color: #38bdf8; word-break: break-all;"></strong> con el enlace para restablecer tu contraseña.
         </p>
 
-        <div style="background: rgba(33, 0, 135, 0.04); border: 1px dashed rgba(33, 0, 135, 0.2); border-radius: 10px; padding: 12px 14px; font-size: 0.82rem; color: #475569; margin-bottom: 22px; text-align: left; line-height: 1.5;">
-          <i class="fa-solid fa-info-circle" style="color: #e5007d;"></i> Revisa tu <strong>bandeja de entrada</strong> o carpeta de <strong>spam</strong> y haz clic en el botón del correo para ingresar tu nueva contraseña.
+        <div style="background: rgba(255, 255, 255, 0.04); border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 12px 14px; font-size: 0.82rem; color: #94a3b8; margin-bottom: 22px; text-align: left; line-height: 1.5;">
+          <i class="fa-solid fa-info-circle" style="color: #ff00db;"></i> Revisa tu <strong>bandeja de entrada</strong> o carpeta de <strong>spam</strong> y haz clic en el botón del correo.
         </div>
 
-        <button type="button" id="btn-close-forgot-success" class="btn-submit" style="width: 100%; margin: 0; padding: 12px; background: #210087;">
-          <span>Entendido</span>
+        <button type="button" id="btn-close-forgot-success" class="btn-modern-submit" style="width: 100%;">
+          <span class="btn-submit-label">Entendido</span>
+          <span class="bottom-gradient-cyan"></span>
         </button>
       </div>
 
