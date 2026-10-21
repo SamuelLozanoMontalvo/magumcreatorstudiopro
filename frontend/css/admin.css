@@ -21,13 +21,14 @@
 
 /* 2. VARIABLES DE COLOR */
 :root {
-  --bg-app: #f4f6fa;
-  --bg-card: #ffffff;
-  --border-color: #e2e8f0;
-  --border-card: #e8ecf4;
+  /* Modo Claro Suave (Blanco rebajado, no cegador) */
+  --bg-app: #eaedf2;
+  --bg-card: #f6f8fb;
+  --border-color: #d1d8e2;
+  --border-card: #d5dce6;
   
   --text-main: #0f172a;
-  --text-muted: #64748b;
+  --text-muted: #526071;
   
   --brand-magenta: #FF00DB;
   --brand-gold: #FDD344;
@@ -37,26 +38,26 @@
   --status-online: #10b981;
   --status-inactive: #94a3b8;
   
-  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-  --card-shadow-hover: 0 10px 30px rgba(255, 0, 219, 0.12);
+  --card-shadow: 0 2px 8px -1px rgba(15, 23, 42, 0.06), 0 1px 3px -1px rgba(15, 23, 42, 0.04);
+  --card-shadow-hover: 0 10px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.05);
   --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   
   --font-brand: 'Silverspoon', 'Montserrat', sans-serif;
   --font-body: 'Montserrat', sans-serif;
 }
 
-/* Modo Oscuro */
+/* Modo Oscuro (Por defecto en toda la plataforma) */
 body.dark-mode {
-  --bg-app: #080017;
-  --bg-card: #12052b;
-  --border-color: rgba(255, 255, 255, 0.09);
-  --border-card: rgba(255, 255, 255, 0.12);
+  --bg-app: #080c14;
+  --bg-card: #0f172a;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-card: rgba(255, 255, 255, 0.08);
   
-  --text-main: #ffffff;
-  --text-muted: #a59fc0;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
   
-  --card-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);
-  --card-shadow-hover: 0 14px 40px rgba(255, 0, 219, 0.2);
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  --card-shadow-hover: 0 14px 35px rgba(0, 0, 0, 0.7), 0 0 18px rgba(255, 0, 219, 0.16);
 }
 
 * {

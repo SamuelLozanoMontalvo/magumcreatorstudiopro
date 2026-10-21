@@ -116,8 +116,8 @@ body.animated-login-body {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 700px;
-  height: 700px;
+  width: 800px;
+  height: 800px;
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 1;
@@ -136,29 +136,35 @@ body.animated-login-body {
   z-index: 5;
   text-align: center;
   pointer-events: none;
-  padding: 0 24px;
-  max-width: 460px;
+  padding: 16px;
+  max-width: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .orbit-brand-title {
   font-family: var(--font-brand);
-  font-size: 2.8rem;
+  font-size: 1.55rem;
   font-style: italic;
-  font-weight: 700;
-  letter-spacing: -0.8px;
-  line-height: 1.08;
-  background: linear-gradient(180deg, #ffffff 15%, rgba(255, 255, 255, 0.38) 100%);
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  line-height: 1.15;
+  background: linear-gradient(180deg, #ffffff 20%, rgba(255, 255, 255, 0.6) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 40px rgba(255, 255, 255, 0.18);
+  text-shadow: 0 0 25px rgba(255, 255, 255, 0.2);
 }
 
 .orbit-brand-subtitle {
-  font-size: 0.92rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
-  letter-spacing: 0.8px;
-  margin-top: 10px;
+  letter-spacing: 0.5px;
+  margin-top: 6px;
   font-weight: 500;
+  max-width: 180px;
+  line-height: 1.25;
 }
 
 /* 4. Iconos en Órbita con Logos Reales y Animación Fluida */
@@ -257,10 +263,18 @@ body.animated-login-body {
 
 @keyframes orbit-loop {
   0% {
-    transform: rotate(var(--angle, 0deg)) translateY(calc(-1 * var(--radius, 100px))) rotate(calc(-1 * var(--angle, 0deg)));
+    transform: rotate(var(--angle, 0deg)) translateY(calc(-1 * var(--radius, 180px))) rotate(calc(-1 * var(--angle, 0deg)));
   }
   100% {
-    transform: rotate(calc(var(--angle, 0deg) + 360deg)) translateY(calc(-1 * var(--radius, 100px))) rotate(calc(-1 * (var(--angle, 0deg) + 360deg)));
+    transform: rotate(calc(var(--angle, 0deg) + 360deg)) translateY(calc(-1 * var(--radius, 180px))) rotate(calc(-1 * (var(--angle, 0deg) + 360deg)));
+  }
+}
+
+@media (max-height: 860px), (max-width: 1280px) {
+  .login-hero-side .ripple-wrapper,
+  .login-hero-side .orbit-svg-paths,
+  .login-hero-side .orbit-layer {
+    zoom: 0.82;
   }
 }
 

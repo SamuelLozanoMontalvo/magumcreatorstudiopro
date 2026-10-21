@@ -24,12 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const themeIcon = document.getElementById('theme-icon');
   const themeText = document.getElementById('theme-text');
 
-  const savedTheme = localStorage.getItem('theme') || 'light';
-  if (savedTheme === 'dark') {
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  if (savedTheme === 'light') {
+    document.body.classList.remove('dark-mode');
+    updateThemeUI(false);
+  } else {
     document.body.classList.add('dark-mode');
     updateThemeUI(true);
-  } else {
-    updateThemeUI(false);
   }
 
   if (themeToggleBtn) {
