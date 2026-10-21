@@ -1,4 +1,7 @@
-/
+/* ==========================================================================
+   MAGUM CREATOR STUDIO - CONTROL DE ACCESO (AUTENTICACIÓN SEGURA VÍA API)
+   ========================================================================== */
+
 document.addEventListener('DOMContentLoaded', () => {
 
   const loginForm = document.getElementById('login-form');
@@ -209,7 +212,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function openForgotModal() {
     if (!modalForgot) return;
-    const prefillEmail = identifierInput ? identifierInput.value.trim() : '';
+    const loginEmailEl = document.getElementById('email');
+    const prefillEmail = loginEmailEl ? loginEmailEl.value.trim() : '';
     if (inputForgotEmail && prefillEmail.includes('@')) {
       inputForgotEmail.value = prefillEmail;
     }
