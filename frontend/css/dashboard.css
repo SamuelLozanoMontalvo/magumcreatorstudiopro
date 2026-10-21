@@ -2438,21 +2438,20 @@ body.dark-mode .recipients-chip-wrap {
   flex-wrap: wrap;
 }
 
-.metricool-brand-mark {
-  font-size: 1.6rem;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-right: 12px;
-}
-
 .metricool-top-nav {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   height: 100%;
-  overflow-x: auto;
+  overflow: visible;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.metricool-top-nav::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .metricool-tab-btn {
@@ -2469,8 +2468,9 @@ body.dark-mode .recipients-chip-wrap {
   align-items: center;
   gap: 8px;
   transition: all 0.2s ease;
-  height: 42px;
+  height: 40px;
   white-space: nowrap;
+  position: relative;
 }
 
 .metricool-tab-btn:hover {
@@ -2481,18 +2481,17 @@ body.dark-mode .recipients-chip-wrap {
 .metricool-tab-btn.active {
   background: #2a1b3d;
   color: #ffffff;
-  position: relative;
 }
 
 .metricool-tab-btn.active::after {
   content: '';
   position: absolute;
-  bottom: -11px;
-  left: 0;
-  right: 0;
+  bottom: 0;
+  left: 12px;
+  right: 12px;
   height: 3px;
   background: #c6f135;
-  border-radius: 2px 2px 0 0;
+  border-radius: 3px 3px 0 0;
 }
 
 .metricool-topbar-actions {
