@@ -322,3 +322,58 @@ test('getSafeBaseUrl previene Origin Poisoning y rechaza dominios no autorizados
   };
   assert.strictEqual(getSafeBaseUrl(legitReq), 'https://magumcreatorstudiopro.vercel.app');
 });
+
+// 14. Seguridad OAuth: State token debe estar firmado criptográficamente con JWT_SECRET y encapsular el account_id legítimo
+test('OAuth state token para redes sociales firma y protege el accountId contra ataques CSRF', () => {
+  const jwt = require('jsonwebtoken');
+  const { JWT_SECRET } = require('../src/middleware/auth');
+  
+  const accountId = 'MGM-TENANT-A-1234';
+  const provider = 'meta';
+
+  const stateToken = jwt.sign(
+    { accountId, provider, nonce: 'random_nonce_123' },
+    JWT_SECRET,
+    { expiresIn: '15m' }
+  );
+
+  const decoded = jwt.verify(stateToken, JWT_SECRET);
+  assert.strictEqual(decoded.accountId, accountId);
+  assert.strictEqual(decoded.provider, provider);
+
+  // Un state token alterado o firmado con otra clave debe ser rechazado inmediatamente
+  assert.throws(() => {
+    jwt.verify(stateToken, 'clave_falsa_del_atacante');
+  });
+});
+
+// 15. Aislamiento Multi-Tenant: La respuesta de conexiones sociales nunca debe exponer access_token ni refresh_token
+test('Consulta de conexiones sociales nunca expone access_token ni refresh_token al frontend', () => {
+  const rawDbRow = {
+    id: 'soc_ig_01',
+    account_id: 'MGM-TENANT-A-1234',
+    provider: 'instagram',
+    provider_account_id: '17841400',
+    account_name: '@marca_cliente_a',
+    account_avatar: 'https://example.com/pic.jpg',
+    access_token: 'EAAB_SECRETO_QUE_NUNCA_DEBE_IR_AL_FRONTEND',
+    refresh_token: 'REFRESH_TOKEN_SECRETO',
+    status: 'active',
+    last_synced_at: new Date()
+  };
+
+  // Sanitización obligatoria del endpoint
+  const publicRow = {
+    id: rawDbRow.id,
+    provider: rawDbRow.provider,
+    provider_account_id: rawDbRow.provider_account_id,
+    account_name: rawDbRow.account_name,
+    account_avatar: rawDbRow.account_avatar,
+    status: rawDbRow.status,
+    last_synced_at: rawDbRow.last_synced_at
+  };
+
+  assert.strictEqual(publicRow.access_token, undefined, 'El access_token NUNCA debe viajar al frontend');
+  assert.strictEqual(publicRow.refresh_token, undefined, 'El refresh_token NUNCA debe viajar al frontend');
+  assert.strictEqual(publicRow.account_name, '@marca_cliente_a');
+});

@@ -13,6 +13,7 @@ const crmRoutes = require('./src/routes/crm.routes');
 const teamRoutes = require('./src/routes/team.routes');
 const billingRoutes = require('./src/routes/billing.routes');
 const settingsRoutes = require('./src/routes/settings.routes');
+const socialRoutes = require('./src/routes/social.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -76,6 +77,7 @@ app.use('/api/crm', crmRoutes);
 app.use('/api/team', teamRoutes);
 app.use('/api/billing', billingRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/social', socialRoutes);
 
 // Servir frontend estático si se ejecuta en modo integrado o en Railway
 const frontendPath = path.join(__dirname, '../frontend');

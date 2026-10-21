@@ -166,6 +166,28 @@ async function initDatabase() {
       ALTER TABLE accounts ADD COLUMN IF NOT EXISTS logo_url TEXT DEFAULT NULL;
       ALTER TABLE accounts ADD COLUMN IF NOT EXISTS favicon_url TEXT DEFAULT NULL;
       ALTER TABLE accounts ADD COLUMN IF NOT EXISTS brand_settings JSONB DEFAULT '{}';
+
+      -- 7. Tabla de Conexiones a Redes Sociales Oficiales (OAuth 2.0 Multi-Tenant Aislado)
+      CREATE TABLE IF NOT EXISTS social_connections (
+        id VARCHAR(60) PRIMARY KEY,
+        account_id VARCHAR(60) NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+        provider VARCHAR(30) NOT NULL,
+        provider_account_id VARCHAR(120),
+        account_name VARCHAR(150) NOT NULL,
+        account_avatar TEXT,
+        access_token TEXT NOT NULL,
+        refresh_token TEXT,
+        token_expires_at TIMESTAMP WITH TIME ZONE,
+        permissions JSONB DEFAULT '[]',
+        metrics_cache JSONB DEFAULT '{}',
+        last_synced_at TIMESTAMP WITH TIME ZONE,
+        status VARCHAR(20) DEFAULT 'active',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT unique_account_provider UNIQUE (account_id, provider)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_social_account_provider ON social_connections(account_id, provider);
     `);
 
     // Actualizar inmediatamente las credenciales de los administradores en PostgreSQL con la nueva clave segura

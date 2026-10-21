@@ -282,6 +282,32 @@ class MagumApiClient {
       body: JSON.stringify(data)
     });
   }
+
+  // Canales de Redes Sociales y Analíticas (Multi-Tenant Independiente)
+  async getSocialConnections() {
+    return this.request('/social/connections');
+  }
+
+  async getSocialAuthUrl(provider) {
+    return this.request(`/social/oauth/url/${encodeURIComponent(provider)}`);
+  }
+
+  async connectSocialManual(provider, accountName) {
+    return this.request('/social/connect-manual', {
+      method: 'POST',
+      body: JSON.stringify({ provider, accountName })
+    });
+  }
+
+  async disconnectSocial(provider) {
+    return this.request(`/social/disconnect/${encodeURIComponent(provider)}`, {
+      method: 'DELETE'
+    });
+  }
+
+  async getSocialMetrics() {
+    return this.request('/social/metrics');
+  }
 }
 
 // Clases e instancias globales disponibles en todos los scripts del frontend
