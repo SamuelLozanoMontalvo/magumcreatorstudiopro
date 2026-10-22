@@ -12,6 +12,25 @@
   <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="css/metricool-suite.css">
   <link rel="icon" id="dynamic-favicon" href="https://lirp.cdn-website.com/e4e4cefa/dms3rep/multi/opt/Magum_logo+magenta-1920w.png">
+  <script>
+    (function() {
+      var raw = localStorage.getItem('magum_session');
+      if (!raw) {
+        window.location.replace('index.html');
+        return;
+      }
+      try {
+        var s = JSON.parse(raw);
+        if (!s || !s.role) {
+          window.location.replace('index.html');
+        } else if (s.role === 'admin' && !s.impersonatedByAdmin) {
+          window.location.replace('admin.html');
+        }
+      } catch (e) {
+        window.location.replace('index.html');
+      }
+    })();
+  </script>
 </head>
 <body class="dashboard-body dark-mode">
 
