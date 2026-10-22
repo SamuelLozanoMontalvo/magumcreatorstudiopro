@@ -1638,26 +1638,37 @@ document.addEventListener('DOMContentLoaded', () => {
       placeholder: '@tu_cuenta'
     };
 
-    if (socialChannelInput) socialChannelInput.value = channelKey;
-    if (socialModalTitle) socialModalTitle.textContent = `Conectar ${meta.name}`;
-    if (socialHandleInput) {
-      socialHandleInput.value = '';
-      socialHandleInput.placeholder = meta.placeholder;
+    const modal = document.getElementById('modal-connect-social');
+    const modalTitle = document.getElementById('modal-social-title');
+    const modalBubble = document.getElementById('modal-social-icon-bubble');
+    const handleInput = document.getElementById('connect-social-handle');
+    const channelInput = document.getElementById('connect-social-channel');
+    const submitBtn = document.getElementById('btn-simulate-oauth');
+    const submitText = document.getElementById('btn-social-submit-text');
+
+    if (channelInput) channelInput.value = channelKey;
+    if (modalTitle) modalTitle.textContent = `Conectar ${meta.name}`;
+    if (handleInput) {
+      handleInput.value = '';
+      handleInput.placeholder = meta.placeholder;
     }
-    if (socialModalBubble) {
-      socialModalBubble.innerHTML = `<i class="${meta.icon}"></i>`;
-      socialModalBubble.style.background = meta.color;
-      socialModalBubble.style.color = '#ffffff';
+    if (modalBubble) {
+      modalBubble.innerHTML = `<i class="${meta.icon}"></i>`;
+      modalBubble.style.background = meta.color;
+      modalBubble.style.color = '#ffffff';
     }
-    if (socialSubmitBtn) {
-      socialSubmitBtn.style.background = meta.color;
+    if (submitBtn) {
+      submitBtn.style.background = meta.color;
     }
-    if (socialSubmitText) {
-      socialSubmitText.textContent = (channelKey === 'instagram' || channelKey === 'facebook')
+    if (submitText) {
+      submitText.textContent = (channelKey === 'instagram' || channelKey === 'facebook')
         ? 'Conectar con Meta (OAuth 2.0)'
         : 'Autorizar y Sincronizar API';
     }
-    if (socialModal) socialModal.style.display = 'flex';
+    if (modal) {
+      modal.style.display = 'flex';
+      modal.style.zIndex = '9999';
+    }
   };
 
   window.configureSocialChannel = function(channelKey) {
