@@ -3287,9 +3287,49 @@ body.dark-mode .feature-icon-bubble {
   transform: scale(1.15);
 }
 
-/* 3. SUB-VISTAS DE METRICOOL (TRANSICIONES) */
+/* 3. SUB-VISTAS DE METRICOOL (TRANSICIONES Y ESPACIADO GENEROSO ENTRE SECCIONES) */
 .metricool-subview {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
   animation: fadeIn 0.25s ease;
+  width: 100%;
+}
+
+.metricool-subview.active {
+  display: flex !important;
+}
+
+.metricool-header-row {
+  margin-bottom: 6px;
+}
+
+.metricool-hero-banner {
+  margin-top: 4px;
+  margin-bottom: 8px;
+  padding: 26px 32px;
+}
+
+.metricool-features-grid {
+  margin-top: 6px;
+  margin-bottom: 12px;
+  gap: 26px;
+}
+
+.metricool-status-board {
+  margin-top: 18px;
+  padding-top: 10px;
+}
+
+.metricool-status-board .status-board-header {
+  margin-bottom: 22px;
+}
+
+.metricool-accounts-table-wrap {
+  margin-top: 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border-radius: 14px;
+  overflow: hidden;
 }
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }

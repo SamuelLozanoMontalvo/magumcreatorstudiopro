@@ -1912,7 +1912,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     metricoolSubviews.forEach(sub => {
       if (sub.id === `metricool-subview-${tabName}`) {
-        sub.style.display = 'block';
+        sub.style.display = 'flex';
         sub.classList.add('active');
       } else {
         sub.style.display = 'none';
