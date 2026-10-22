@@ -1887,7 +1887,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const counter = document.getElementById('connected-channels-count');
         if (counter) {
-          counter.textContent = `${connectedCount} de 5 redes conectadas`;
+          counter.textContent = `${connectedCount} de ${extraChannelsExpanded ? '10' : '5'} redes conectadas`;
+        }
+
+        // Si hay canales conectados, sincronizar y dar vida a las demás sub-vistas de Metricool
+        if (connectedCount > 0) {
+          // 1. Analítica (KPIs de Cabecera)
+          const kpiFollowers = document.getElementById('metric-followers-total');
+          const kpiReach = document.getElementById('metric-reach-total');
+          const kpiEngagement = document.getElementById('metric-engagement-rate');
+          if (kpiFollowers) kpiFollowers.textContent = '34,800';
+          if (kpiReach) kpiReach.textContent = '40,500';
+          if (kpiEngagement) kpiEngagement.textContent = '5.0%';
+
+          // 2. Reporting (Informe Ejecutivo)
+          const reportBizName = document.getElementById('report-sheet-biz-name');
+          if (reportBizName) reportBizName.textContent = 'Magum Creator Studio';
+
+          // 3. Inbox (Conversaciones activas con canales sincronizados)
+          const igChatName = document.querySelector('[data-chat-id="chat-2"] .chat-contact-name');
+          if (igChatName && connMap['instagram']) igChatName.textContent = connMap['instagram'].account_name;
+          const fbChatName = document.querySelector('[data-chat-id="chat-3"] .chat-contact-name');
+          if (fbChatName && connMap['facebook']) fbChatName.textContent = connMap['facebook'].account_name;
+
+          // 4. SmartLinks (Perfil en vivo y Smartphone Mockup)
+          const smartTitle = document.getElementById('smartlink-input-title');
+          const phoneTitle = document.getElementById('phone-profile-name');
+          const phoneDesc = document.getElementById('phone-profile-desc');
+          if (smartTitle) smartTitle.value = 'Magum Creator Studio';
+          if (phoneTitle) phoneTitle.textContent = 'Magum Creator Studio';
+          if (phoneDesc) phoneDesc.textContent = 'Agencia & Creator Studio Oficial. Conectamos tu marca en redes sociales.';
+
+          // 5. Planificación (Calendario y programador de posts)
+          const todayPostCard = document.querySelector('.cal-day-cell.today .cal-post-card .post-title-trunc');
+          if (todayPostCard) todayPostCard.textContent = 'Reel: Lanzamiento Magum Creator Studio';
         }
       }
     } catch (err) {
@@ -1917,6 +1950,7 @@ document.addEventListener('DOMContentLoaded', () => {
             confirmButtonColor: '#210087'
           });
         }
+        window.history.replaceState({}, document.title, window.location.pathname + '#marketing-social');
         syncSocialFromBackend();
       } else if (socialStatus === 'warning') {
         if (window.Swal) {
