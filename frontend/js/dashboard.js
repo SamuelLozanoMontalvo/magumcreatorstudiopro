@@ -2341,7 +2341,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnCopySmartlink) {
     btnCopySmartlink.addEventListener('click', () => {
-      navigator.clipboard.writeText('https://magum.link/automotorcartagena').then(() => {
+      navigator.clipboard.writeText('https://magum.link/samy_lozano').then(() => {
         if (window.MagumAlert) {
           MagumAlert.success('Enlace Copiado', 'El enlace de tu SmartLink se ha copiado al portapapeles.');
         }
@@ -2350,7 +2350,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================================================
-  // 16. MODAL CREAR PUBLICACIÓN & REPORTING
+  // 16. MOTOR DE PROGRAMACIÓN DE PUBLICACIONES MULTICANAL & REPORTING
   // ==========================================================================
   const btnNewPost = document.getElementById('btn-metricool-new-post');
   const btnNewPostCal = document.getElementById('btn-open-create-post-from-calendar');
@@ -2359,23 +2359,84 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCancelCreatePost = document.getElementById('btn-cancel-create-post');
   const postCaptionInput = document.getElementById('post-caption-input');
   const previewCaptionText = document.getElementById('preview-caption-text');
+  const previewAuthorName = document.getElementById('preview-author-name');
+  const previewImageBox = document.getElementById('preview-image-box');
   const postCaptionCounter = document.getElementById('post-caption-counter');
   const btnSubmitCreatePost = document.getElementById('btn-submit-create-post');
+  const postDropzone = document.getElementById('post-dropzone');
+  const postFileInput = document.getElementById('post-file-input');
+  const postScheduleDate = document.getElementById('post-schedule-date');
+  const postScheduleTime = document.getElementById('post-schedule-time');
+  const btnCaptionAi = document.getElementById('btn-caption-ai-optimize');
   const postChips = document.querySelectorAll('.post-channel-chip');
 
-  function openPostModal() {
-    if (modalCreatePost) modalCreatePost.style.display = 'flex';
+  let currentPostImage = null;
+
+  function getScheduledPostsStorageKey() {
+    const raw = localStorage.getItem('magum_session');
+    let accId = 'default';
+    try { accId = JSON.parse(raw).accountId || 'default'; } catch {}
+    return `magum_scheduled_posts_${accId}`;
   }
+
+  function getScheduledPosts() {
+    try {
+      const raw = localStorage.getItem(getScheduledPostsStorageKey());
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveScheduledPosts(posts) {
+    localStorage.setItem(getScheduledPostsStorageKey(), JSON.stringify(posts));
+    renderScheduledPosts();
+  }
+
+  function openPostModal() {
+    if (modalCreatePost) {
+      modalCreatePost.style.display = 'flex';
+      if (postScheduleDate && !postScheduleDate.value) {
+        postScheduleDate.value = new Date().toISOString().split('T')[0];
+      }
+      if (previewAuthorName) {
+        previewAuthorName.textContent = 'samy_lozano';
+      }
+    }
+  }
+  window.openPostModal = openPostModal;
+
   if (btnNewPost) btnNewPost.addEventListener('click', openPostModal);
   if (btnNewPostCal) btnNewPostCal.addEventListener('click', openPostModal);
   if (btnCloseCreatePost) btnCloseCreatePost.addEventListener('click', () => modalCreatePost.style.display = 'none');
   if (btnCancelCreatePost) btnCancelCreatePost.addEventListener('click', () => modalCreatePost.style.display = 'none');
 
+  // Subida de imagen o video en el dropzone con preview
+  if (postDropzone && postFileInput) {
+    postDropzone.addEventListener('click', () => postFileInput.click());
+    postFileInput.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (loadEvent) => {
+          currentPostImage = loadEvent.target.result;
+          if (previewImageBox) {
+            previewImageBox.innerHTML = `<img src="${currentPostImage}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">`;
+          }
+          const hint = postDropzone.querySelector('.dropzone-hint');
+          if (hint) hint.innerHTML = `<strong style="color: #10b981;"><i class="fa-solid fa-check"></i> ${escapeHtml(file.name)} listo</strong>`;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  // Contador de caracteres y preview en tiempo real del caption
   if (postCaptionInput) {
     postCaptionInput.addEventListener('input', (e) => {
       const val = e.target.value;
       if (previewCaptionText) {
-        previewCaptionText.innerHTML = `<strong>automotorcartagena</strong> ${escapeHtml(val) || '¡Tu texto se previsualizará en tiempo real aquí!'}`;
+        previewCaptionText.innerHTML = `<strong>samy_lozano</strong> ${escapeHtml(val) || '¡Tu texto se previsualizará en tiempo real aquí!'}`;
       }
       if (postCaptionCounter) {
         postCaptionCounter.textContent = `${val.length} / 2,200 caracteres`;
@@ -2383,19 +2444,78 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Optimización de copia con IA
+  if (btnCaptionAi && postCaptionInput) {
+    btnCaptionAi.addEventListener('click', () => {
+      const current = postCaptionInput.value.trim() || 'Lanzamiento de nueva campaña';
+      const aiOptimized = `${current}\n\n✨ ¡Haz que tu marca destaque con contenido de alto impacto!\n\n🚀 Comenta "INFO" o envíanos un DM para empezar hoy.\n\n#MagumCreatorStudio #MarketingDigital #EstrategiaDeContenidos #Branding`;
+      postCaptionInput.value = aiOptimized;
+      postCaptionInput.dispatchEvent(new Event('input'));
+    });
+  }
+
+  // Selección interactiva de canales
   postChips.forEach(chip => {
     chip.addEventListener('click', () => {
       chip.classList.toggle('active');
     });
   });
 
+  // Guardar y Programar Publicación
   if (btnSubmitCreatePost) {
     btnSubmitCreatePost.addEventListener('click', () => {
+      const caption = (postCaptionInput ? postCaptionInput.value : '').trim();
+      if (!caption) {
+        if (window.Swal) {
+          Swal.fire({
+            title: 'Texto Requerido',
+            text: 'Por favor escribe el texto o pie de foto de tu publicación.',
+            icon: 'warning',
+            confirmButtonColor: '#ff00db'
+          });
+        } else {
+          alert('Por favor escribe el texto de tu publicación.');
+        }
+        return;
+      }
+
+      const activeChannels = [];
+      postChips.forEach(chip => {
+        if (chip.classList.contains('active')) {
+          activeChannels.push(chip.getAttribute('data-chip') || 'instagram');
+        }
+      });
+
+      const dateVal = (postScheduleDate && postScheduleDate.value) || new Date().toISOString().split('T')[0];
+      const timeVal = (postScheduleTime && postScheduleTime.value) || '18:00';
+
+      const newPost = {
+        id: 'post_' + Date.now(),
+        caption,
+        channels: activeChannels.length > 0 ? activeChannels : ['instagram'],
+        date: dateVal,
+        time: timeVal,
+        image: currentPostImage,
+        createdAt: new Date().toISOString()
+      };
+
+      const posts = getScheduledPosts();
+      posts.push(newPost);
+      saveScheduledPosts(posts);
+
+      // Limpiar y cerrar modal
+      if (postCaptionInput) postCaptionInput.value = '';
+      if (postCaptionInput) postCaptionInput.dispatchEvent(new Event('input'));
+      currentPostImage = null;
+      if (previewImageBox) {
+        previewImageBox.innerHTML = '<i class="fa-regular fa-image placeholder-preview-icon"></i>';
+      }
       if (modalCreatePost) modalCreatePost.style.display = 'none';
+
       if (window.Swal) {
         Swal.fire({
           title: '¡Publicación Programada!',
-          text: 'Tu publicación se ha puesto en cola para emitirse automáticamente en los canales seleccionados.',
+          html: `Tu post se ha programado para el <strong>${dateVal}</strong> a las <strong>${timeVal}</strong> en tus canales oficiales.`,
           icon: 'success',
           confirmButtonColor: '#ff00db'
         });
@@ -2403,6 +2523,63 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Renderizar publicaciones en el calendario de planificación
+  function renderScheduledPosts() {
+    const calendarBody = document.getElementById('calendar-grid-body');
+    if (!calendarBody) return;
+
+    const posts = getScheduledPosts();
+    const cells = calendarBody.querySelectorAll('.cal-day-cell');
+
+    cells.forEach((cell, idx) => {
+      cell.innerHTML = '';
+      const dayPosts = posts.filter((p, pIdx) => (pIdx % 7) === idx);
+
+      if (dayPosts.length === 0) {
+        const emptyBtn = document.createElement('div');
+        emptyBtn.className = 'cal-empty-slot';
+        emptyBtn.style.cssText = 'height: 100%; min-height: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: var(--text-muted); cursor: pointer; border: 1px dashed var(--border-color); border-radius: 10px; transition: all 0.2s;';
+        emptyBtn.innerHTML = '<i class="fa-solid fa-plus" style="font-size: 0.95rem; color: #ff00db;"></i><span style="font-size: 0.72rem; font-weight: 600;">Programar</span>';
+        emptyBtn.onmouseover = () => { emptyBtn.style.borderColor = '#ff00db'; emptyBtn.style.background = 'rgba(255, 0, 219, 0.05)'; };
+        emptyBtn.onmouseout = () => { emptyBtn.style.borderColor = 'var(--border-color)'; emptyBtn.style.background = 'transparent'; };
+        emptyBtn.onclick = () => openPostModal();
+        cell.appendChild(emptyBtn);
+      } else {
+        dayPosts.forEach(post => {
+          const card = document.createElement('div');
+          card.className = 'cal-post-card scheduled';
+          card.style.cssText = 'position: relative; margin-bottom: 8px;';
+          const netIcon = post.channels.includes('instagram') ? 'fa-brands fa-instagram' : 'fa-brands fa-facebook';
+          const netPillClass = post.channels.includes('instagram') ? 'net-ig' : 'net-fb';
+
+          card.innerHTML = `
+            <span class="post-pill-net ${netPillClass}">
+              <i class="${netIcon}"></i> ${escapeHtml(post.time)}
+            </span>
+            <div class="post-title-trunc">${escapeHtml(post.caption.slice(0, 42))}...</div>
+            <button type="button" class="btn-delete-post" style="position: absolute; top: 4px; right: 4px; background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.75rem;" title="Eliminar publicación">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          `;
+
+          const btnDel = card.querySelector('.btn-delete-post');
+          if (btnDel) {
+            btnDel.onclick = (e) => {
+              e.stopPropagation();
+              const updated = posts.filter(p => p.id !== post.id);
+              saveScheduledPosts(updated);
+            };
+          }
+
+          cell.appendChild(card);
+        });
+      }
+    });
+  }
+
+  // Inicializar renderizado del calendario
+  renderScheduledPosts();
+  
   // Reporting botones
   const btnExportPdf = document.getElementById('btn-export-pdf');
   const btnExportExcel = document.getElementById('btn-export-excel');
