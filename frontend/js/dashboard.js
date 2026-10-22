@@ -2541,7 +2541,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================================================
-  // 16. METRICOOL POST COMPOSER EXACTO (Screenshot 3 Replica)
+  // 16. METRICOOL POST COMPOSER EXACTO (EMOJIS, ADVERTENCIAS, PRIMER COMENTARIO, UBICACIÓN, MENÚ PUBLICAR)
   // ==========================================================================
   const modalCreatePost = document.getElementById('modal-create-post');
   const btnNewPost = document.getElementById('btn-metricool-new-post');
@@ -2558,8 +2558,256 @@ document.addEventListener('DOMContentLoaded', () => {
   const postScheduleDate = document.getElementById('post-schedule-date');
   const postScheduleTime = document.getElementById('post-schedule-time');
   const btnSubmitCreatePost = document.getElementById('btn-submit-create-post');
+  const btnPublishLabel = document.getElementById('btn-publish-label');
   const btnCaptionAi = document.getElementById('btn-caption-ai-optimize');
   const btnInsertEmoji = document.getElementById('btn-insert-emoji');
+
+  // Emojis Popover y Grid Completo
+  const emojiPopover = document.getElementById('metricool-emoji-popover');
+  const btnCloseEmojiPopover = document.getElementById('btn-close-emoji-popover');
+  const emojiGridScroll = document.getElementById('emoji-grid-scroll');
+
+  const ALL_EMOJIS = [
+    '😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚',
+    '😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥',
+    '😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓',
+    '🧐','😕','😟','🙁','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞',
+    '😓','😩','😫','🥱','😤','😡','😠','🤬','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖','😺','😸',
+    '👋','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍',
+    '👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂',
+    '✨','🚀','🔥','📸','📍','👇','💡','📈','🎯','🏆','💎','🎁','💼','💰','⏳','📅','📊','🌟','🎉','❤️',
+    '📱','💻','🎥','🎬','🎤','🎧','🎨','📢','🔔','📣','🏷️','🔗','💬','👀','💯','🔑','⭐','⚡','🌈','☀️'
+  ];
+
+  if (emojiGridScroll) {
+    emojiGridScroll.innerHTML = '';
+    ALL_EMOJIS.forEach(em => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'emoji-btn-item';
+      b.textContent = em;
+      b.onclick = (e) => {
+        e.stopPropagation();
+        if (postCaptionInput) {
+          const start = postCaptionInput.selectionStart || postCaptionInput.value.length;
+          const end = postCaptionInput.selectionEnd || postCaptionInput.value.length;
+          const val = postCaptionInput.value;
+          postCaptionInput.value = val.substring(0, start) + em + val.substring(end);
+          postCaptionInput.selectionStart = postCaptionInput.selectionEnd = start + em.length;
+          postCaptionInput.focus();
+          postCaptionInput.dispatchEvent(new Event('input'));
+        }
+      };
+      emojiGridScroll.appendChild(b);
+    });
+  }
+
+  if (btnInsertEmoji && emojiPopover) {
+    btnInsertEmoji.addEventListener('click', (e) => {
+      e.stopPropagation();
+      emojiPopover.style.display = emojiPopover.style.display === 'none' ? 'flex' : 'none';
+    });
+  }
+  if (btnCloseEmojiPopover && emojiPopover) {
+    btnCloseEmojiPopover.addEventListener('click', () => {
+      emojiPopover.style.display = 'none';
+    });
+  }
+  document.addEventListener('click', (e) => {
+    if (emojiPopover && !emojiPopover.contains(e.target) && e.target !== btnInsertEmoji) {
+      emojiPopover.style.display = 'none';
+    }
+  });
+
+  // Subpanel: Primer Comentario (💬)
+  const btnToolComment = document.getElementById('btn-tool-comment');
+  const firstCommentWrap = document.getElementById('metricool-first-comment-wrap');
+  const btnCloseFirstComment = document.getElementById('btn-close-first-comment');
+  const postFirstCommentInput = document.getElementById('post-first-comment-input');
+
+  if (btnToolComment && firstCommentWrap) {
+    btnToolComment.addEventListener('click', () => {
+      const isVisible = firstCommentWrap.style.display !== 'none';
+      firstCommentWrap.style.display = isVisible ? 'none' : 'block';
+      btnToolComment.classList.toggle('active', !isVisible);
+      if (!isVisible && postFirstCommentInput) postFirstCommentInput.focus();
+    });
+  }
+  if (btnCloseFirstComment && firstCommentWrap) {
+    btnCloseFirstComment.addEventListener('click', () => {
+      firstCommentWrap.style.display = 'none';
+      if (btnToolComment) btnToolComment.classList.remove('active');
+    });
+  }
+
+  // Subpanel: Ubicación (📍)
+  const btnToolLocation = document.getElementById('btn-tool-location');
+  const locationWrap = document.getElementById('metricool-location-wrap');
+  const btnCloseLocation = document.getElementById('btn-close-location');
+  const postLocationInput = document.getElementById('post-location-input');
+  const mockupAuthorInfo = document.querySelector('.mockup-author-info');
+
+  let mockupLocationEl = null;
+
+  if (btnToolLocation && locationWrap) {
+    btnToolLocation.addEventListener('click', () => {
+      const isVisible = locationWrap.style.display !== 'none';
+      locationWrap.style.display = isVisible ? 'none' : 'block';
+      btnToolLocation.classList.toggle('active', !isVisible);
+      if (!isVisible && postLocationInput) postLocationInput.focus();
+    });
+  }
+  if (btnCloseLocation && locationWrap) {
+    btnCloseLocation.addEventListener('click', () => {
+      locationWrap.style.display = 'none';
+      if (btnToolLocation) btnToolLocation.classList.remove('active');
+      if (postLocationInput) {
+        postLocationInput.value = '';
+        updateMockupLocation('');
+      }
+    });
+  }
+
+  function updateMockupLocation(locText) {
+    if (!mockupAuthorInfo) return;
+    if (!mockupLocationEl) {
+      mockupLocationEl = document.createElement('div');
+      mockupLocationEl.className = 'mockup-location-line';
+      mockupLocationEl.style.cssText = 'font-size: 0.7rem; color: #0284c7; font-weight: 600; margin-top: 1px;';
+      mockupAuthorInfo.appendChild(mockupLocationEl);
+    }
+    if (locText.trim()) {
+      mockupLocationEl.innerHTML = `<i class="fa-solid fa-location-dot"></i> ${escapeHtml(locText.trim())}`;
+      mockupLocationEl.style.display = 'block';
+    } else {
+      mockupLocationEl.style.display = 'none';
+    }
+  }
+
+  if (postLocationInput) {
+    postLocationInput.addEventListener('input', (e) => {
+      updateMockupLocation(e.target.value);
+    });
+  }
+
+  // Cuadro de Advertencias y Errores (Screenshot 1 Exact Replica)
+  const warningsBox = document.getElementById('metricool-warnings-box');
+  const warningsCountText = document.getElementById('warnings-count-text');
+  const warningsToggleHeader = document.getElementById('warnings-toggle-header');
+  const warningsList = document.getElementById('warnings-list');
+  const warningsChevron = document.getElementById('warnings-chevron');
+  const warningPastDate = document.getElementById('warning-past-date');
+  const warningEmptyContent = document.getElementById('warning-empty-content');
+
+  function validatePostForm() {
+    let errorCount = 0;
+
+    // 1. Validar fecha pasada
+    const dVal = postScheduleDate ? postScheduleDate.value : '';
+    const tVal = postScheduleTime ? postScheduleTime.value : '00:00';
+    if (dVal) {
+      const targetTime = new Date(`${dVal}T${tVal}:00`);
+      const now = new Date();
+      if (targetTime < now) {
+        errorCount++;
+        if (warningPastDate) warningPastDate.style.display = 'flex';
+      } else {
+        if (warningPastDate) warningPastDate.style.display = 'none';
+      }
+    } else {
+      if (warningPastDate) warningPastDate.style.display = 'none';
+    }
+
+    // 2. Validar contenido vacío (texto o recurso visual)
+    const captionText = postCaptionInput ? postCaptionInput.value.trim() : '';
+    const hasMedia = !!currentPostImage;
+    if (!captionText && !hasMedia) {
+      errorCount++;
+      if (warningEmptyContent) warningEmptyContent.style.display = 'flex';
+    } else {
+      if (warningEmptyContent) warningEmptyContent.style.display = 'none';
+    }
+
+    // Actualizar caja de advertencias
+    if (warningsBox) {
+      if (errorCount > 0) {
+        warningsBox.style.display = 'block';
+        if (warningsCountText) {
+          warningsCountText.textContent = `${errorCount} error${errorCount > 1 ? 'es' : ''}`;
+        }
+      } else {
+        warningsBox.style.display = 'none';
+      }
+    }
+
+    return errorCount === 0;
+  }
+
+  if (warningsToggleHeader && warningsList && warningsChevron) {
+    warningsToggleHeader.addEventListener('click', () => {
+      const isCollapsed = warningsList.style.display === 'none';
+      warningsList.style.display = isCollapsed ? 'flex' : 'none';
+      warningsChevron.className = isCollapsed ? 'fa-solid fa-chevron-up warnings-chevron' : 'fa-solid fa-chevron-down warnings-chevron';
+    });
+  }
+
+  if (postScheduleDate) postScheduleDate.addEventListener('change', validatePostForm);
+  if (postScheduleTime) postScheduleTime.addEventListener('change', validatePostForm);
+
+  // Menú Desplegable de Publicación: Programar, Publicar Ahora, Guardar Borrador (Screenshot 2 Exact Replica)
+  const btnTogglePublishOptions = document.getElementById('btn-toggle-publish-options');
+  const publishDropdownMenu = document.getElementById('metricool-publish-dropdown-menu');
+  const publishArrowIcon = document.getElementById('publish-arrow-icon');
+  let currentPublishAction = 'schedule'; // 'schedule', 'now', 'draft'
+
+  if (btnTogglePublishOptions && publishDropdownMenu) {
+    btnTogglePublishOptions.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isVisible = publishDropdownMenu.style.display !== 'none';
+      publishDropdownMenu.style.display = isVisible ? 'none' : 'block';
+      if (publishArrowIcon) {
+        publishArrowIcon.className = isVisible ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down';
+      }
+    });
+
+    document.addEventListener('click', () => {
+      if (publishDropdownMenu) publishDropdownMenu.style.display = 'none';
+      if (publishArrowIcon) publishArrowIcon.className = 'fa-solid fa-chevron-up';
+    });
+
+    document.querySelectorAll('.publish-menu-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const act = item.getAttribute('data-action');
+        if (act === 'schedule' || act === 'now' || act === 'draft') {
+          currentPublishAction = act;
+
+          document.querySelectorAll('.publish-menu-item').forEach(mi => {
+            mi.classList.remove('active');
+            const check = mi.querySelector('.check-active');
+            if (check) check.remove();
+          });
+
+          item.classList.add('active');
+          const checkIcon = document.createElement('i');
+          checkIcon.className = 'fa-solid fa-check check-active';
+          item.appendChild(checkIcon);
+
+          if (btnPublishLabel) {
+            if (act === 'draft') btnPublishLabel.textContent = 'Guardar borrador';
+            else if (act === 'now') btnPublishLabel.textContent = 'Publicar ahora';
+            else btnPublishLabel.textContent = 'Programar';
+          }
+        } else {
+          if (window.MagumAlert) {
+            MagumAlert.info('Función Pro', 'Esta función avanzada estará disponible en la versión Scale.');
+          }
+        }
+        publishDropdownMenu.style.display = 'none';
+        if (publishArrowIcon) publishArrowIcon.className = 'fa-solid fa-chevron-up';
+      });
+    });
+  }
 
   // Selector de Formato (Post, Reel, Historia)
   const btnFormatDropdown = document.getElementById('btn-post-format-dropdown');
@@ -2661,6 +2909,7 @@ document.addEventListener('DOMContentLoaded', () => {
             metricoolFileName.textContent = file.name;
             metricoolFileBadge.style.display = 'flex';
           }
+          validatePostForm();
         };
         reader.readAsDataURL(file);
       }
@@ -2673,6 +2922,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (postFileInput) postFileInput.value = '';
       if (metricoolFileBadge) metricoolFileBadge.style.display = 'none';
       if (mockupMediaContainer) mockupMediaContainer.style.display = 'none';
+      validatePostForm();
     });
   }
 
@@ -2686,16 +2936,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (postCaptionCounter) {
         postCaptionCounter.textContent = `${txt.length} / 2,200`;
       }
-    });
-  }
-
-  // Insertar emojis rápidos
-  if (btnInsertEmoji && postCaptionInput) {
-    btnInsertEmoji.addEventListener('click', () => {
-      const emojis = ['✨ ', '🚀 ', '🔥 ', '📸 ', '📍 ', '👇 '];
-      const randEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-      postCaptionInput.value += randEmoji;
-      postCaptionInput.dispatchEvent(new Event('input'));
+      validatePostForm();
     });
   }
 
@@ -2724,6 +2965,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (postScheduleDate) postScheduleDate.value = postToEdit.date || '';
       if (postScheduleTime) postScheduleTime.value = postToEdit.time || '18:00';
+      if (postFirstCommentInput) postFirstCommentInput.value = postToEdit.firstComment || '';
+      if (postLocationInput) {
+        postLocationInput.value = postToEdit.location || '';
+        updateMockupLocation(postToEdit.location || '');
+      }
       currentPostImage = postToEdit.image || null;
       if (currentPostImage) {
         if (mockupMediaImg) mockupMediaImg.src = currentPostImage;
@@ -2746,10 +2992,17 @@ document.addEventListener('DOMContentLoaded', () => {
         postScheduleDate.value = new Date().toISOString().split('T')[0];
       }
       if (postScheduleTime) postScheduleTime.value = '18:00';
+      if (postFirstCommentInput) postFirstCommentInput.value = '';
+      if (postLocationInput) {
+        postLocationInput.value = '';
+        updateMockupLocation('');
+      }
       currentPostImage = null;
       if (mockupMediaContainer) mockupMediaContainer.style.display = 'none';
       if (metricoolFileBadge) metricoolFileBadge.style.display = 'none';
     }
+
+    validatePostForm();
   }
   window.openPostModal = openPostModal;
 
@@ -2779,20 +3032,25 @@ document.addEventListener('DOMContentLoaded', () => {
     renderScheduledPosts();
   }
 
-  // Guardar y Programar
+  // Guardar y Ejecutar Acción Seleccionada (Programar, Publicar Ahora, Guardar Borrador)
   if (btnSubmitCreatePost) {
     btnSubmitCreatePost.addEventListener('click', () => {
       const caption = (postCaptionInput ? postCaptionInput.value : '').trim();
-      if (!caption && !currentPostImage) {
+      const firstComment = (postFirstCommentInput ? postFirstCommentInput.value : '').trim();
+      const location = (postLocationInput ? postLocationInput.value : '').trim();
+
+      // Si es borrador, no requiere obligatoriamente contenido
+      if (currentPublishAction !== 'draft' && !caption && !currentPostImage) {
+        validatePostForm();
         if (window.Swal) {
           Swal.fire({
-            title: 'Contenido Requerido',
-            text: 'Por favor escribe un texto o sube una imagen para tu publicación.',
+            title: 'Se requiere contenido',
+            text: 'Post → Se requiere al menos un carácter de texto o un recurso visual.',
             icon: 'warning',
             confirmButtonColor: '#ff00db'
           });
         } else {
-          alert('Por favor escribe un texto o sube una imagen para tu publicación.');
+          alert('Post → Se requiere al menos un carácter de texto o un recurso visual.');
         }
         return;
       }
@@ -2802,21 +3060,30 @@ document.addEventListener('DOMContentLoaded', () => {
       if (toggleChIg && toggleChIg.classList.contains('active')) activeChannels.push('instagram');
       if (activeChannels.length === 0) activeChannels.push('facebook');
 
-      const dateVal = (postScheduleDate && postScheduleDate.value) || new Date().toISOString().split('T')[0];
-      const timeVal = (postScheduleTime && postScheduleTime.value) || '18:00';
-      const dayIdx = new Date(dateVal).getDay() === 0 ? 6 : new Date(dateVal).getDay() - 1;
+      let dateVal = (postScheduleDate && postScheduleDate.value) || new Date().toISOString().split('T')[0];
+      let timeVal = (postScheduleTime && postScheduleTime.value) || '18:00';
 
+      if (currentPublishAction === 'now') {
+        const nowObj = new Date();
+        dateVal = nowObj.toISOString().split('T')[0];
+        timeVal = nowObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+
+      const dayIdx = new Date(dateVal).getDay() === 0 ? 6 : new Date(dateVal).getDay() - 1;
       const posts = getScheduledPosts();
 
       if (editingPostId) {
         const idx = posts.findIndex(p => p.id === editingPostId);
         if (idx !== -1) {
           posts[idx].caption = caption;
+          posts[idx].firstComment = firstComment;
+          posts[idx].location = location;
           posts[idx].channels = activeChannels;
           posts[idx].date = dateVal;
           posts[idx].dayIndex = dayIdx;
           posts[idx].time = timeVal;
           posts[idx].format = currentFormat;
+          posts[idx].status = currentPublishAction === 'draft' ? 'draft' : 'scheduled';
           if (currentPostImage) posts[idx].image = currentPostImage;
           posts[idx].updatedAt = new Date().toISOString();
         }
@@ -2827,12 +3094,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const newPost = {
           id: 'post_' + Date.now(),
           caption,
+          firstComment,
+          location,
           channels: activeChannels,
           date: dateVal,
           dayIndex: dayIdx,
           time: timeVal,
           image: currentPostImage,
           format: currentFormat,
+          status: currentPublishAction === 'draft' ? 'draft' : (currentPublishAction === 'now' ? 'published' : 'scheduled'),
           createdAt: new Date().toISOString()
         };
         posts.push(newPost);
@@ -2840,12 +3110,28 @@ document.addEventListener('DOMContentLoaded', () => {
         modalCreatePost.style.display = 'none';
 
         if (window.Swal) {
-          Swal.fire({
-            title: '¡Publicación Programada!',
-            html: `Tu ${currentFormat.toUpperCase()} se ha programado para el <strong>${dateVal}</strong> a las <strong>${timeVal}</strong> en <strong>${activeChannels.join(', ')}</strong>.`,
-            icon: 'success',
-            confirmButtonColor: '#ff00db'
-          });
+          if (currentPublishAction === 'draft') {
+            Swal.fire({
+              title: '¡Borrador Guardado!',
+              text: 'Tu publicación se ha guardado como borrador para publicar en otro momento.',
+              icon: 'success',
+              confirmButtonColor: '#ff00db'
+            });
+          } else if (currentPublishAction === 'now') {
+            Swal.fire({
+              title: '¡Publicado con Éxito!',
+              html: `Tu publicación se ha enviado a tus canales: <strong>${activeChannels.join(', ')}</strong>.`,
+              icon: 'success',
+              confirmButtonColor: '#ff00db'
+            });
+          } else {
+            Swal.fire({
+              title: '¡Publicación Programada!',
+              html: `Tu ${currentFormat.toUpperCase()} se ha programado para el <strong>${dateVal}</strong> a las <strong>${timeVal}</strong> en <strong>${activeChannels.join(', ')}</strong>.`,
+              icon: 'success',
+              confirmButtonColor: '#ff00db'
+            });
+          }
         }
       }
     });
@@ -2919,14 +3205,15 @@ document.addEventListener('DOMContentLoaded', () => {
           });
 
           const imgHtml = post.image ? `<img src="${post.image}" class="cal-post-thumb" alt="Media">` : '';
+          const statusBadge = post.status === 'draft' ? '<span style="font-size: 0.65rem; background: #64748b; color: #fff; padding: 1px 4px; border-radius: 4px; margin-left: 4px;">Borrador</span>' : '';
 
           card.innerHTML = `
             ${imgHtml}
             <div class="cal-post-top-row">
-              <div class="cal-post-channels">${chHtml}</div>
+              <div class="cal-post-channels">${chHtml} ${statusBadge}</div>
               <span class="cal-post-time"><i class="fa-regular fa-clock"></i> ${escapeHtml(post.time || '18:00')}</span>
             </div>
-            <div class="post-title-trunc" title="${escapeHtml(post.caption)}">${escapeHtml(post.caption || 'Publicación sin texto')}</div>
+            <div class="post-title-trunc" title="${escapeHtml(post.caption)}">${escapeHtml(post.caption || 'Publicación')}</div>
             <div class="cal-card-actions">
               <button type="button" class="btn-card-action btn-action-edit" title="Editar"><i class="fa-solid fa-pen"></i></button>
               <button type="button" class="btn-card-action btn-action-copy" title="Copiar"><i class="fa-solid fa-copy"></i></button>
@@ -2971,6 +3258,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   renderScheduledPosts();
+  
 // Reporting botones
   const btnExportPdf = document.getElementById('btn-export-pdf');
   const btnExportExcel = document.getElementById('btn-export-excel');

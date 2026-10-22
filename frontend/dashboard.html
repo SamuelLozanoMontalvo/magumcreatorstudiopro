@@ -2663,7 +2663,7 @@
           </div>
 
           <!-- Área de Redacción de la Publicación -->
-          <div class="metricool-textarea-box">
+          <div class="metricool-textarea-box" style="position: relative;">
             <textarea id="post-caption-input" class="metricool-textarea" placeholder="Escribe el texto de tu publicación aquí..." rows="8"></textarea>
             
             <!-- Toolbar inferior dentro del textarea estilo Metricool -->
@@ -2671,25 +2671,81 @@
               <div class="toolbar-left-tools">
                 <button type="button" class="tool-btn" id="btn-trigger-media-upload" title="Añadir imagen o video"><i class="fa-regular fa-image"></i></button>
                 <button type="button" class="tool-btn" id="btn-insert-emoji" title="Insertar emojis"><i class="fa-regular fa-face-smile"></i></button>
-                <button type="button" class="tool-btn" title="Comentarios"><i class="fa-regular fa-comment"></i></button>
-                <button type="button" class="tool-btn" title="Ubicación"><i class="fa-solid fa-location-dot"></i></button>
-                <button type="button" class="tool-btn" title="Enlaces"><i class="fa-solid fa-link"></i></button>
+                <button type="button" class="tool-btn" id="btn-tool-comment" title="Añadir primer comentario"><i class="fa-regular fa-comment"></i></button>
+                <button type="button" class="tool-btn" id="btn-tool-location" title="Añadir ubicación"><i class="fa-solid fa-location-dot"></i></button>
+                <button type="button" class="tool-btn" id="btn-tool-link" title="Enlaces"><i class="fa-solid fa-link"></i></button>
                 <button type="button" class="tool-btn tool-ai" id="btn-caption-ai-optimize" title="Optimizar texto con IA"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
-                <button type="button" class="tool-btn" title="Guardar plantilla"><i class="fa-regular fa-bookmark"></i></button>
+                <button type="button" class="tool-btn" id="btn-tool-template" title="Guardar plantilla"><i class="fa-regular fa-bookmark"></i></button>
               </div>
               <div class="toolbar-right-counter">
                 <span id="post-caption-counter">0 / 2,200</span>
                 <i class="fa-brands fa-facebook text-fb" id="counter-network-icon"></i>
               </div>
             </div>
+
+            <!-- Popover de Emojis Completo -->
+            <div class="metricool-emoji-popover" id="metricool-emoji-popover" style="display: none;">
+              <div class="emoji-popover-header">
+                <span>Seleccionar Emoji</span>
+                <button type="button" id="btn-close-emoji-popover" style="background:none; border:none; cursor:pointer; color:#94a3b8;"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+              <div class="emoji-grid-scroll" id="emoji-grid-scroll">
+                <!-- Emojis generados dinámicamente -->
+              </div>
+            </div>
           </div>
 
-          <!-- Input de archivo oculto -->
+          <!-- Subpanel: Primer Comentario (💬) -->
+          <div class="metricool-subpanel-wrap" id="metricool-first-comment-wrap" style="display: none;">
+            <div class="subpanel-header">
+              <div class="subpanel-title-wrap">
+                <i class="fa-regular fa-comment" style="color: #ff00db;"></i>
+                <span>Primer comentario (se publicará automáticamente con el post)</span>
+              </div>
+              <button type="button" class="btn-close-subpanel" id="btn-close-first-comment"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <textarea id="post-first-comment-input" class="metricool-sub-textarea" placeholder="Escribe hashtags adicionales o llamada a la acción en el primer comentario..." rows="2"></textarea>
+          </div>
+
+          <!-- Subpanel: Ubicación (📍) -->
+          <div class="metricool-subpanel-wrap" id="metricool-location-wrap" style="display: none;">
+            <div class="subpanel-header">
+              <div class="subpanel-title-wrap">
+                <i class="fa-solid fa-location-dot" style="color: #0284c7;"></i>
+                <span>Ubicación</span>
+              </div>
+              <button type="button" class="btn-close-subpanel" id="btn-close-location"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <input type="text" id="post-location-input" class="metricool-sub-input" placeholder="Ej. Cartagena de Indias, Colombia">
+          </div>
+
+          <!-- Input de archivo oculto y badge de archivo subido -->
           <input type="file" id="post-file-input" accept="image/*,video/*" style="display: none;">
           <div class="metricool-file-badge" id="metricool-file-badge" style="display: none;">
             <i class="fa-solid fa-paperclip"></i>
             <span id="metricool-file-name">archivo.png</span>
             <button type="button" class="btn-remove-media" id="btn-remove-media"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+
+          <!-- Cuadro de Advertencias / Errores (Screenshot 1 Exact Replica) -->
+          <div class="metricool-warnings-box" id="metricool-warnings-box" style="display: none;">
+            <div class="warnings-header" id="warnings-toggle-header">
+              <div class="warnings-title-wrap">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <strong id="warnings-count-text">2 errores</strong>
+              </div>
+              <i class="fa-solid fa-chevron-up warnings-chevron" id="warnings-chevron"></i>
+            </div>
+            <div class="warnings-list" id="warnings-list">
+              <div class="warning-item" id="warning-past-date" style="display: none;">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>La fecha de publicación está en el pasado.</span>
+              </div>
+              <div class="warning-item" id="warning-empty-content" style="display: none;">
+                <i class="fa-brands fa-facebook"></i>
+                <span>Post → Se requiere al menos un carácter de texto o un recurso visual.</span>
+              </div>
+            </div>
           </div>
 
           <!-- Pie del Editor: Configuración Global + Programación -->
@@ -2702,18 +2758,66 @@
 
             <div class="metricool-schedule-bar">
               <button type="button" class="btn-metricool-cancel" id="btn-cancel-create-post">Cancelar</button>
-              <div class="schedule-pill-box">
+              
+              <!-- Píldora de Fecha y Hora interactiva -->
+              <div class="schedule-pill-box" id="schedule-pill-box" title="Elegir fecha y hora">
                 <i class="fa-regular fa-calendar"></i>
                 <input type="date" id="post-schedule-date" class="metricool-date-input">
                 <input type="time" id="post-schedule-time" class="metricool-time-input" value="18:00">
               </div>
-              <div class="split-publish-button-group">
+
+              <!-- Botón Split con Menú Desplegable (Screenshot 2 Exact Replica) -->
+              <div class="split-publish-button-group" style="position: relative;">
                 <button type="button" class="btn-metricool-publish-main" id="btn-submit-create-post">
-                  <span>Programar</span>
+                  <span id="btn-publish-label">Programar</span>
                 </button>
-                <button type="button" class="btn-metricool-publish-arrow" id="btn-toggle-publish-options">
-                  <i class="fa-solid fa-chevron-down"></i>
+                <button type="button" class="btn-metricool-publish-arrow" id="btn-toggle-publish-options" title="Opciones de publicación">
+                  <i class="fa-solid fa-chevron-up" id="publish-arrow-icon"></i>
                 </button>
+
+                <!-- Menú Desplegable (Screenshot 2 Exact Replica) -->
+                <div class="metricool-publish-dropdown-menu" id="metricool-publish-dropdown-menu" style="display: none;">
+                  <div class="publish-menu-item" data-action="draft" id="menu-action-draft">
+                    <div class="menu-item-text">
+                      <strong>Guardar borrador</strong>
+                      <span>Guarda y publica en otro momento</span>
+                    </div>
+                  </div>
+                  <div class="publish-menu-item pro-feature" data-action="library">
+                    <div class="menu-item-text">
+                      <strong>Guardar en la biblioteca</strong>
+                      <span>Guarda este post en la biblioteca de publicaciones</span>
+                    </div>
+                    <span class="pro-diamond-badge"><i class="fa-solid fa-gem"></i></span>
+                  </div>
+                  <div class="publish-menu-item pro-feature" data-action="review">
+                    <div class="menu-item-text">
+                      <strong>Enviar a revisión</strong>
+                      <span>Selecciona usuarios revisores</span>
+                    </div>
+                    <span class="pro-diamond-badge"><i class="fa-solid fa-gem"></i></span>
+                  </div>
+                  <div class="publish-menu-item active" data-action="schedule" id="menu-action-schedule">
+                    <div class="menu-item-text">
+                      <strong>Programar</strong>
+                      <span>Publicar en la fecha seleccionada</span>
+                    </div>
+                    <i class="fa-solid fa-check check-active"></i>
+                  </div>
+                  <div class="publish-menu-item" data-action="now" id="menu-action-now">
+                    <div class="menu-item-text">
+                      <strong>Publicar ahora</strong>
+                      <span>Guarda y publica con la fecha y hora actual</span>
+                    </div>
+                  </div>
+                  <div class="publish-menu-item pro-feature" data-action="recurrence">
+                    <div class="menu-item-text">
+                      <strong>Programar recurrencia</strong>
+                      <span>Programa recurrencia o duplica en otras marcas de forma personalizada</span>
+                    </div>
+                    <span class="pro-diamond-badge"><i class="fa-solid fa-gem"></i></span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

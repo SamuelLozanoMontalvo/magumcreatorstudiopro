@@ -722,3 +722,281 @@ body.dark-mode .empty-state-bubble-circle {
   max-width: 300px;
   line-height: 1.45;
 }
+
+/* ==========================================================================
+   WARNINGS / ERRORS BOX (Screenshot 1 Exact Replica)
+   ========================================================================== */
+.metricool-warnings-box {
+  background: #fff5f5;
+  border: 1px solid #fecdd3;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  color: #9f1239;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+body.dark-mode .metricool-warnings-box {
+  background: rgba(225, 29, 72, 0.1);
+  border-color: rgba(225, 29, 72, 0.3);
+  color: #fda4af;
+}
+.warnings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.warnings-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.warnings-title-wrap i {
+  color: #e11d48;
+}
+.warnings-chevron {
+  font-size: 0.75rem;
+  transition: transform 0.2s;
+}
+.warnings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 24px;
+}
+.warning-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+.warning-item i {
+  font-size: 0.85rem;
+}
+.warning-item .fa-facebook {
+  color: #1877f2;
+}
+
+/* ==========================================================================
+   PUBLISH SPLIT DROPDOWN MENU (Screenshot 2 Exact Replica)
+   ========================================================================== */
+.metricool-schedule-bar {
+  position: relative;
+}
+.metricool-publish-dropdown-menu {
+  position: absolute;
+  bottom: 110%;
+  right: 0;
+  width: 320px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.18);
+  border: 1px solid #e2e8f0;
+  z-index: 1000;
+  overflow: hidden;
+  padding: 6px 0;
+}
+body.dark-mode .metricool-publish-dropdown-menu {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
+}
+.publish-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.publish-menu-item:hover {
+  background: #f8fafc;
+}
+body.dark-mode .publish-menu-item:hover {
+  background: #334155;
+}
+.publish-menu-item.active {
+  background: #f1f5f9;
+}
+body.dark-mode .publish-menu-item.active {
+  background: #27354a;
+}
+.menu-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.menu-item-text strong {
+  font-size: 0.85rem;
+  color: #1e293b;
+  font-weight: 700;
+}
+body.dark-mode .menu-item-text strong {
+  color: #f1f5f9;
+}
+.menu-item-text span {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+body.dark-mode .menu-item-text span {
+  color: #94a3b8;
+}
+.check-active {
+  color: #0f172a;
+  font-size: 0.9rem;
+}
+body.dark-mode .check-active {
+  color: #ff00db;
+}
+.pro-diamond-badge {
+  background: #fef08a;
+  color: #854d0e;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+}
+
+/* ==========================================================================
+   EMOJI PICKER POPOVER
+   ========================================================================== */
+.metricool-emoji-popover {
+  position: absolute;
+  bottom: 50px;
+  left: 20px;
+  width: 320px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+body.dark-mode .metricool-emoji-popover {
+  background: #1e293b;
+  border-color: #334155;
+}
+.emoji-popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+body.dark-mode .emoji-popover-header {
+  border-bottom-color: #334155;
+}
+.emoji-grid-scroll {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.emoji-btn-item {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.emoji-btn-item:hover {
+  background: #f1f5f9;
+  transform: scale(1.2);
+}
+body.dark-mode .emoji-btn-item:hover {
+  background: #334155;
+}
+
+/* ==========================================================================
+   EXPANDABLE SUBPANELS (Primer Comentario & Ubicación)
+   ========================================================================== */
+.metricool-subpanel-wrap {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+body.dark-mode .metricool-subpanel-wrap {
+  background: #1e293b;
+  border-color: #334155;
+}
+.subpanel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #334155;
+}
+body.dark-mode .subpanel-header {
+  color: #cbd5e1;
+}
+.subpanel-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-close-subpanel {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.metricool-sub-textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  font-family: inherit;
+  resize: vertical;
+  background: #fff;
+  color: inherit;
+  outline: none;
+}
+body.dark-mode .metricool-sub-textarea {
+  background: #0f172a;
+  border-color: #334155;
+}
+.metricool-sub-input {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  font-family: inherit;
+  background: #fff;
+  color: inherit;
+  outline: none;
+}
+body.dark-mode .metricool-sub-input {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+/* Tool active state */
+.tool-btn.active {
+  color: #ff00db !important;
+  background: rgba(255, 0, 219, 0.1);
+}
