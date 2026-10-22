@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/metricool-suite.css">
   <link rel="icon" id="dynamic-favicon" href="https://lirp.cdn-website.com/e4e4cefa/dms3rep/multi/opt/Magum_logo+magenta-1920w.png">
 </head>
 <body class="dashboard-body dark-mode">
@@ -1568,24 +1569,52 @@
               <!-- Sub-vista 3: Inbox Omnicanal Unificado (WhatsApp + Instagram + Messenger) -->
               <div id="metricool-subview-inbox" class="metricool-subview" style="display: none;">
                 <div class="inbox-layout-wrapper">
-                  <!-- Columna Izquierda: Lista de Conversaciones Oficiales -->
+                  <!-- Columna Izquierda: Metricool Inbox Sidebar (Screenshot 4) -->
                   <aside class="inbox-sidebar">
-                    <div class="inbox-search-box">
-                      <div class="inbox-search-input-wrap">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" placeholder="Buscar por cliente o mensaje..." id="inbox-search-input">
+                    <div class="inbox-top-filter-bar">
+                      <div class="metricool-channel-toggle-group">
+                        <button type="button" class="btn-channel-icon-pill active" data-channel="facebook" id="inbox-filter-fb" title="Facebook Messenger">
+                          <i class="fa-brands fa-facebook"></i>
+                        </button>
+                        <button type="button" class="btn-channel-icon-pill active" data-channel="instagram" id="inbox-filter-ig" title="Instagram Direct">
+                          <i class="fa-brands fa-instagram"></i>
+                        </button>
+                        <button type="button" class="btn-add-more-networks" title="Conectar más redes"><i class="fa-solid fa-plus"></i></button>
                       </div>
                     </div>
 
-                    <div class="inbox-channel-tabs">
-                      <button type="button" class="inbox-tab active" data-inbox-channel="all">Todos (5)</button>
-                      <button type="button" class="inbox-tab" data-inbox-channel="instagram"><i class="fa-brands fa-instagram"></i> Instagram (3)</button>
-                      <button type="button" class="inbox-tab" data-inbox-channel="facebook"><i class="fa-brands fa-facebook-messenger"></i> Facebook (2)</button>
+                    <div class="inbox-search-box">
+                      <div class="inbox-search-input-wrap">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" placeholder="Escribe al menos 3 caracteres..." id="inbox-search-input">
+                        <button type="button" class="btn-filter-icon" style="background:none; border:none; color:#64748b; cursor:pointer;" title="Filtrar"><i class="fa-solid fa-filter"></i></button>
+                      </div>
+                    </div>
+
+                    <div class="inbox-status-tabs">
+                      <button type="button" class="inbox-status-tab active" data-status="unresolved">No resueltos</button>
+                      <button type="button" class="inbox-status-tab" data-status="unread">No leídos</button>
+                      <button type="button" class="inbox-status-tab" data-status="all">Todos</button>
                     </div>
 
                     <div class="inbox-conversations-list" id="inbox-chats-container">
-                      <!-- Chat 1: Instagram DM - Mariana Restrepo -->
-                      <div class="inbox-chat-item active" data-chat-id="chat-ig-1" data-channel="instagram">
+                      <!-- Conversación 1: Jhonattan Prince (Facebook) -->
+                      <div class="inbox-chat-item active" data-chat-id="chat-fb-1" data-channel="facebook">
+                        <div class="chat-avatar-wrap">
+                          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&q=80" alt="Jhonattan">
+                          <span class="chat-channel-badge badge-fb"><i class="fa-brands fa-facebook"></i></span>
+                        </div>
+                        <div class="chat-item-body">
+                          <div class="chat-item-header">
+                            <span class="chat-contact-name">Jhonattan Prince</span>
+                            <span class="chat-timestamp">24 ago 21:48</span>
+                          </div>
+                          <p class="chat-preview-msg">💬 BUEN TRIUNFO...</p>
+                        </div>
+                      </div>
+
+                      <!-- Conversación 2: Mariana Restrepo (Instagram) -->
+                      <div class="inbox-chat-item" data-chat-id="chat-ig-1" data-channel="instagram">
                         <div class="chat-avatar-wrap">
                           <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80" alt="Mariana">
                           <span class="chat-channel-badge badge-ig"><i class="fa-brands fa-instagram"></i></span>
@@ -1595,27 +1624,11 @@
                             <span class="chat-contact-name">Mariana Restrepo</span>
                             <span class="chat-timestamp">10:42 AM</span>
                           </div>
-                          <p class="chat-preview-msg">Me encantaría la llamada, ¿tienen disponibilidad el jueves por la tarde?</p>
-                        </div>
-                        <span class="chat-unread-badge">1</span>
-                      </div>
-
-                      <!-- Chat 2: Facebook Messenger - Restaurante Bocagrande -->
-                      <div class="inbox-chat-item" data-chat-id="chat-fb-1" data-channel="facebook">
-                        <div class="chat-avatar-wrap">
-                          <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=80&q=80" alt="Felipe">
-                          <span class="chat-channel-badge badge-fb"><i class="fa-brands fa-facebook-messenger"></i></span>
-                        </div>
-                        <div class="chat-item-body">
-                          <div class="chat-item-header">
-                            <span class="chat-contact-name">Restaurante Bocagrande (Felipe)</span>
-                            <span class="chat-timestamp">Ayer</span>
-                          </div>
-                          <p class="chat-preview-msg">¿Tienen paquetes que incluyan pauta en Meta Ads y producción de videos?</p>
+                          <p class="chat-preview-msg">Me encantaría la llamada, ¿tienen disponibilidad?</p>
                         </div>
                       </div>
 
-                      <!-- Chat 3: Instagram DM - David Ortiz -->
+                      <!-- Conversación 3: David Ortiz (Instagram) -->
                       <div class="inbox-chat-item" data-chat-id="chat-ig-2" data-channel="instagram">
                         <div class="chat-avatar-wrap">
                           <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&q=80" alt="David">
@@ -1626,92 +1639,66 @@
                             <span class="chat-contact-name">David Ortiz (@davidortiz.fit)</span>
                             <span class="chat-timestamp">Ayer</span>
                           </div>
-                          <p class="chat-preview-msg">¿Ustedes se encargan de los guiones y edición o solo la producción de los reels?</p>
-                        </div>
-                      </div>
-
-                      <!-- Chat 4: Facebook Messenger - Laura Jiménez -->
-                      <div class="inbox-chat-item" data-chat-id="chat-fb-2" data-channel="facebook">
-                        <div class="chat-avatar-wrap">
-                          <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=80&q=80" alt="Laura">
-                          <span class="chat-channel-badge badge-fb"><i class="fa-brands fa-facebook-messenger"></i></span>
-                        </div>
-                        <div class="chat-item-body">
-                          <div class="chat-item-header">
-                            <span class="chat-contact-name">Laura Jiménez (Consultoría)</span>
-                            <span class="chat-timestamp">Hace 2 días</span>
-                          </div>
-                          <p class="chat-preview-msg">Hola equipo, quisiéramos cotizar el servicio de branding digital para nuestra firma.</p>
-                        </div>
-                      </div>
-
-                      <!-- Chat 5: Instagram DM - Camila Peña -->
-                      <div class="inbox-chat-item" data-chat-id="chat-ig-3" data-channel="instagram">
-                        <div class="chat-avatar-wrap">
-                          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80" alt="Camila">
-                          <span class="chat-channel-badge badge-ig"><i class="fa-brands fa-instagram"></i></span>
-                        </div>
-                        <div class="chat-item-body">
-                          <div class="chat-item-header">
-                            <span class="chat-contact-name">Camila Peña (@camila.boutique)</span>
-                            <span class="chat-timestamp">Hace 3 días</span>
-                          </div>
-                          <p class="chat-preview-msg">Hola Samy, ¿cuándo inician el próximo ciclo de creación de contenido para marcas?</p>
+                          <p class="chat-preview-msg">¿Ustedes se encargan de los guiones y edición?</p>
                         </div>
                       </div>
                     </div>
                   </aside>
 
-                  <!-- Columna Derecha: Hilo de Conversación Activa -->
-                  <section class="inbox-thread-area">
-                    <header class="inbox-thread-header">
-                      <div class="thread-user-info">
-                        <div class="chat-avatar-wrap">
-                          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80" alt="Mariana" id="thread-avatar">
-                          <span class="chat-channel-badge badge-ig" id="thread-channel-badge"><i class="fa-brands fa-instagram"></i></span>
-                        </div>
-                        <div>
-                          <h4 class="thread-contact-name" id="thread-contact-name">Mariana Restrepo</h4>
-                          <span class="thread-contact-meta" id="thread-contact-meta"><i class="fa-solid fa-circle text-success" style="font-size: 0.55rem;"></i> Instagram DM • @samy_lozano • Activa ahora</span>
-                        </div>
+                  <!-- Columna Derecha: Hilo o Estado Vacío (Screenshot 4) -->
+                  <section class="inbox-thread-area" id="inbox-thread-area">
+                    <!-- Estado vacío réplica Metricool -->
+                    <div class="inbox-empty-state-wrap" id="inbox-empty-state" style="display: none;">
+                      <div class="empty-state-bubble-circle">
+                        <i class="fa-solid fa-circle-exclamation"></i>
                       </div>
-                      <div class="thread-actions">
-                        <button type="button" class="btn-thread-action" title="Marcar como Resuelto"><i class="fa-solid fa-circle-check"></i></button>
-                      </div>
-                    </header>
-
-                    <div class="inbox-messages-scroll" id="inbox-messages-scroll">
-                      <div class="msg-bubble-group incoming">
-                        <div class="msg-bubble">
-                          ¡Hola Samy! Vi sus reels y el trabajo que hacen en Magum con marcas personales. ¿Cómo es el proceso para que me asesoren con mi estrategia de contenido para este mes?
-                        </div>
-                        <span class="msg-time">10:40 AM</span>
-                      </div>
-
-                      <div class="msg-bubble-group outgoing">
-                        <div class="msg-bubble">
-                          ¡Hola Mariana! Qué gusto saludarte. Hacemos un diagnóstico de tu perfil actual, definimos los 4 pilares de tu marca y armamos el calendario de grabación. Te paso la propuesta por aquí o agendamos una videollamada de 15 min.
-                        </div>
-                        <span class="msg-time">10:41 AM • Leído <i class="fa-solid fa-check-double" style="color: #00d2ff;"></i></span>
-                      </div>
-
-                      <div class="msg-bubble-group incoming">
-                        <div class="msg-bubble">
-                          Me encantaría la llamada, ¿tienen disponibilidad el jueves por la tarde?
-                        </div>
-                        <span class="msg-time">10:42 AM</span>
-                      </div>
+                      <p class="empty-state-text">Por favor, para empezar selecciona una conversación a la izquierda</p>
                     </div>
 
-                    <footer class="inbox-composer-area">
-                      <button type="button" class="btn-composer-tool" title="Adjuntar archivo"><i class="fa-solid fa-paperclip"></i></button>
-                      <button type="button" class="btn-composer-tool" title="Plantillas rápidas"><i class="fa-solid fa-bolt"></i></button>
-                      <input type="text" class="composer-input" id="inbox-reply-input" placeholder="Escribe un mensaje para Mariana Restrepo...">
-                      <button type="button" class="btn-send-message" id="btn-send-inbox-msg">
-                        <i class="fa-solid fa-paper-plane"></i>
-                        <span>Enviar</span>
-                      </button>
-                    </footer>
+                    <!-- Hilo de Mensajes Activo -->
+                    <div class="inbox-active-thread-wrap" id="inbox-active-thread" style="display: flex; flex-direction: column; flex: 1;">
+                      <header class="inbox-thread-header">
+                        <div class="thread-user-info">
+                          <div class="chat-avatar-wrap">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&q=80" alt="Jhonattan" id="thread-avatar">
+                            <span class="chat-channel-badge badge-fb" id="thread-channel-badge"><i class="fa-brands fa-facebook"></i></span>
+                          </div>
+                          <div>
+                            <h4 class="thread-contact-name" id="thread-contact-name">Jhonattan Prince</h4>
+                            <span class="thread-contact-meta" id="thread-contact-meta"><i class="fa-solid fa-circle text-success" style="font-size: 0.55rem;"></i> Facebook Messenger • Activo</span>
+                          </div>
+                        </div>
+                        <div class="thread-actions">
+                          <button type="button" class="btn-thread-action" title="Marcar como Resuelto"><i class="fa-solid fa-circle-check"></i></button>
+                        </div>
+                      </header>
+
+                      <div class="inbox-messages-scroll" id="inbox-messages-scroll">
+                        <div class="msg-bubble-group incoming">
+                          <div class="msg-bubble">
+                            ¡Buenas tardes! Vi la publicación de la victoria y el evento de fútbol. ¡BUEN TRIUNFO! ¿Cuándo es el próximo partido?
+                          </div>
+                          <span class="msg-time">24 ago 21:48</span>
+                        </div>
+
+                        <div class="msg-bubble-group outgoing">
+                          <div class="msg-bubble">
+                            ¡Muchas gracias Jhonattan! El próximo encuentro será este domingo a las 4:00 PM. Estaremos transmitiendo los detalles en nuestra página oficial.
+                          </div>
+                          <span class="msg-time">24 ago 21:50 • Leído <i class="fa-solid fa-check-double" style="color: #00d2ff;"></i></span>
+                        </div>
+                      </div>
+
+                      <footer class="inbox-composer-area">
+                        <button type="button" class="btn-composer-tool" title="Adjuntar archivo"><i class="fa-solid fa-paperclip"></i></button>
+                        <button type="button" class="btn-composer-tool" title="Plantillas rápidas"><i class="fa-solid fa-bolt"></i></button>
+                        <input type="text" class="composer-input" id="inbox-reply-input" placeholder="Escribe un mensaje para Jhonattan Prince...">
+                        <button type="button" class="btn-send-message" id="btn-send-inbox-msg">
+                          <i class="fa-solid fa-paper-plane"></i>
+                          <span>Enviar</span>
+                        </button>
+                      </footer>
+                    </div>
                   </section>
                 </div>
               </div> <!-- Fin subview-inbox -->
@@ -2610,115 +2597,173 @@
   </div>
 
   <!-- Modal para Crear Publicación Multicanal -->
-  <div class="modal-backdrop" id="modal-create-post" style="display: none;">
-    <div class="modal-card modal-post-composer">
-      <header class="modal-header">
-        <div class="modal-title-wrap">
-          <div class="modal-icon-bubble" style="background: linear-gradient(135deg, #ff00db, #210087); color: #fff;">
-            <i class="fa-solid fa-plus"></i>
-          </div>
-          <div>
-            <h3 class="modal-title">Crear Publicación</h3>
-            <p class="modal-desc">Redacta y programa en todos tus canales simultáneamente</p>
+  <!-- Modal Metricool Post Composer (Screenshot 3 Exact Replica) -->
+  <div class="modal-backdrop modal-metricool-backdrop" id="modal-create-post" style="display: none;">
+    <div class="metricool-composer-modal">
+      <!-- Header Superior -->
+      <header class="metricool-composer-header">
+        <div class="composer-header-left">
+          <h3 class="composer-header-title">Crear nueva publicación</h3>
+          <div class="composer-profile-bubble">
+            <img src="https://scontent-sea5-1.xx.fbcdn.net/v/t1.30497-1/84628273_176159830277856_972693363922829312_n.jpg?stp=c379.0.1290.1290a_dst-jpg_s200x200_tt6&_nc_cat=1&ccb=1-7&_nc_sid=7565cd&_nc_eui2=AeHI8cpLohiVmRnY1tCBUuSxik--Qfnh2B6KT75B-eHYHi5jpZ1gBwHacL0W2k_RMl873OCt0BbVkICzZseoFmr-&_nc_ohc=4cG-EK6rxTAQ7kNvwGoqzsr&_nc_oc=AdrsliyXVNwEg0Hvrz2WdCtPqdXEML_3pAsh7wmXBosEVdCDS5mQGPeqZ6FSUMnaHPs&_nc_zt=24&_nc_ht=scontent-sea5-1.xx&edm=AP4hL3IEAAAA&oh=00_AQPtV4cWC7xvhUka0BpfJYFmbaEBqJKYtvO10MvOudzcFQ&oe=6B01D219" alt="Avatar" class="composer-profile-avatar" id="composer-account-avatar">
           </div>
         </div>
-        <button id="btn-close-create-post" class="btn-close-modal" type="button"><i class="fa-solid fa-xmark"></i></button>
+        <button type="button" class="btn-metricool-close" id="btn-close-create-post"><i class="fa-solid fa-xmark"></i> Cerrar</button>
       </header>
 
-      <div class="modal-body post-composer-body">
-        <div class="composer-left-editor">
-          <!-- Selector de Redes Sociales -->
-          <div class="form-group">
-            <label class="form-label">Publicar en:</label>
-            <div class="post-channels-selector">
-              <label class="post-channel-chip active" data-chip="instagram">
-                <input type="checkbox" checked hidden>
-                <i class="fa-brands fa-instagram"></i> Instagram
-              </label>
-              <label class="post-channel-chip active" data-chip="facebook">
-                <input type="checkbox" checked hidden>
-                <i class="fa-brands fa-facebook"></i> Facebook
-              </label>
-              <label class="post-channel-chip" data-chip="tiktok">
-                <input type="checkbox" hidden>
-                <i class="fa-brands fa-tiktok"></i> TikTok
-              </label>
-              <label class="post-channel-chip" data-chip="youtube">
-                <input type="checkbox" hidden>
-                <i class="fa-brands fa-youtube"></i> YouTube
-              </label>
+      <!-- Cuerpo a 2 Columnas Estilo Metricool -->
+      <div class="metricool-composer-body">
+        <!-- Columna Izquierda: Editor y Configuración -->
+        <div class="metricool-editor-column">
+          <!-- Barra de selector de canal y formato de post -->
+          <div class="metricool-post-types-bar">
+            <div class="metricool-channel-toggle-group">
+              <button type="button" class="btn-channel-icon-pill active" data-channel="facebook" id="toggle-ch-fb" title="Facebook">
+                <i class="fa-brands fa-facebook"></i>
+              </button>
+              <button type="button" class="btn-channel-icon-pill active" data-channel="instagram" id="toggle-ch-ig" title="Instagram">
+                <i class="fa-brands fa-instagram"></i>
+              </button>
+              
+              <div class="post-format-dropdown-wrap">
+                <button type="button" class="btn-post-format-dropdown" id="btn-post-format-dropdown">
+                  <i class="fa-solid fa-table-cells" id="selected-format-icon"></i>
+                  <span id="selected-format-text">POST</span>
+                  <i class="fa-solid fa-chevron-down chevron-format"></i>
+                </button>
+                <div class="post-format-menu" id="post-format-menu" style="display: none;">
+                  <div class="format-menu-item active" data-format="post">
+                    <i class="fa-solid fa-table-cells"></i>
+                    <div>
+                      <strong>Post</strong>
+                      <span>Publicación estándar de Facebook e Instagram</span>
+                    </div>
+                  </div>
+                  <div class="format-menu-item" data-format="reel">
+                    <i class="fa-solid fa-film"></i>
+                    <div>
+                      <strong>Reel</strong>
+                      <span>Publicación automática de video corto</span>
+                    </div>
+                  </div>
+                  <div class="format-menu-item" data-format="story">
+                    <i class="fa-solid fa-circle-notch"></i>
+                    <div>
+                      <strong>Historia</strong>
+                      <span>Publicación automática temporal</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" class="btn-add-more-networks" title="Añadir más redes"><i class="fa-solid fa-plus"></i></button>
+            </div>
+
+            <button type="button" class="btn-editor-notes"><i class="fa-regular fa-note-sticky"></i> Notas</button>
+          </div>
+
+          <!-- Área de Redacción de la Publicación -->
+          <div class="metricool-textarea-box">
+            <textarea id="post-caption-input" class="metricool-textarea" placeholder="Escribe el texto de tu publicación aquí..." rows="8"></textarea>
+            
+            <!-- Toolbar inferior dentro del textarea estilo Metricool -->
+            <div class="metricool-textarea-toolbar">
+              <div class="toolbar-left-tools">
+                <button type="button" class="tool-btn" id="btn-trigger-media-upload" title="Añadir imagen o video"><i class="fa-regular fa-image"></i></button>
+                <button type="button" class="tool-btn" id="btn-insert-emoji" title="Insertar emojis"><i class="fa-regular fa-face-smile"></i></button>
+                <button type="button" class="tool-btn" title="Comentarios"><i class="fa-regular fa-comment"></i></button>
+                <button type="button" class="tool-btn" title="Ubicación"><i class="fa-solid fa-location-dot"></i></button>
+                <button type="button" class="tool-btn" title="Enlaces"><i class="fa-solid fa-link"></i></button>
+                <button type="button" class="tool-btn tool-ai" id="btn-caption-ai-optimize" title="Optimizar texto con IA"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+                <button type="button" class="tool-btn" title="Guardar plantilla"><i class="fa-regular fa-bookmark"></i></button>
+              </div>
+              <div class="toolbar-right-counter">
+                <span id="post-caption-counter">0 / 2,200</span>
+                <i class="fa-brands fa-facebook text-fb" id="counter-network-icon"></i>
+              </div>
             </div>
           </div>
 
-          <!-- Texto de la publicación -->
-          <div class="form-group">
-            <label class="form-label">Texto / Copia de la publicación</label>
-            <textarea class="form-input" id="post-caption-input" rows="4" placeholder="¿De qué trata tu publicación? Agrega hashtags y emojis..."></textarea>
-            <div class="caption-counter-row">
-              <span class="caption-count" id="post-caption-counter">0 / 2,200 caracteres</span>
-              <button type="button" class="btn-caption-tool" id="btn-caption-ai-optimize"><i class="fa-solid fa-wand-magic-sparkles"></i> Optimizar con IA</button>
-            </div>
+          <!-- Input de archivo oculto -->
+          <input type="file" id="post-file-input" accept="image/*,video/*" style="display: none;">
+          <div class="metricool-file-badge" id="metricool-file-badge" style="display: none;">
+            <i class="fa-solid fa-paperclip"></i>
+            <span id="metricool-file-name">archivo.png</span>
+            <button type="button" class="btn-remove-media" id="btn-remove-media"><i class="fa-solid fa-xmark"></i></button>
           </div>
 
-          <!-- Zona de Subida de Imagen / Video -->
-          <div class="form-group">
-            <label class="form-label">Multimedia (Foto o Video)</label>
-            <div class="upload-dropzone" id="post-dropzone">
-              <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
-              <p class="dropzone-text">Arrastra una imagen o video aquí o haz clic para subir</p>
-              <span class="dropzone-hint">Formatos: JPG, PNG, MP4, MOV (hasta 50 MB)</span>
-              <input type="file" id="post-file-input" accept="image/*,video/*" style="display: none;">
+          <!-- Pie del Editor: Configuración Global + Programación -->
+          <div class="metricool-editor-footer">
+            <div class="global-config-accordion">
+              <i class="fa-solid fa-gear"></i>
+              <span>Configuración global</span>
+              <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; margin-left: auto;"></i>
             </div>
-          </div>
 
-          <!-- Programación de Fecha y Hora -->
-          <div class="form-group">
-            <label class="form-label">Programación</label>
-            <div class="schedule-inputs-row">
-              <input type="date" class="form-input" id="post-schedule-date">
-              <input type="time" class="form-input" id="post-schedule-time" value="18:00">
+            <div class="metricool-schedule-bar">
+              <button type="button" class="btn-metricool-cancel" id="btn-cancel-create-post">Cancelar</button>
+              <div class="schedule-pill-box">
+                <i class="fa-regular fa-calendar"></i>
+                <input type="date" id="post-schedule-date" class="metricool-date-input">
+                <input type="time" id="post-schedule-time" class="metricool-time-input" value="18:00">
+              </div>
+              <div class="split-publish-button-group">
+                <button type="button" class="btn-metricool-publish-main" id="btn-submit-create-post">
+                  <span>Programar</span>
+                </button>
+                <button type="button" class="btn-metricool-publish-arrow" id="btn-toggle-publish-options">
+                  <i class="fa-solid fa-chevron-down"></i>
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Preview Mockup en Vivo (Instagram Feed / Reel) -->
-        <div class="composer-right-preview">
-          <div class="preview-header-label">Vista Previa (Instagram Feed)</div>
-          <div class="social-preview-mockup">
-            <div class="preview-post-top">
-              <img src="https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=80&q=80" alt="Avatar" class="preview-author-avatar">
-              <div class="preview-author-info">
-                <strong id="preview-author-name">samy_lozano</strong>
-                <span>Original Audio</span>
+        <!-- Columna Derecha: Vista Previa en Vivo como Metricool (Screenshot 3) -->
+        <div class="metricool-preview-column">
+          <div class="preview-column-top">
+            <span class="preview-channel-indicator" id="preview-channel-indicator"><i class="fa-brands fa-facebook"></i></span>
+            <div class="preview-device-toggle">
+              <button type="button" class="btn-device-toggle" id="btn-device-mobile" title="Vista Móvil"><i class="fa-solid fa-mobile-screen"></i></button>
+              <button type="button" class="btn-device-toggle active" id="btn-device-desktop" title="Vista Escritorio"><i class="fa-solid fa-display"></i></button>
+            </div>
+          </div>
+
+          <!-- Mockup Post de Facebook / Instagram -->
+          <div class="metricool-mockup-card" id="metricool-mockup-card">
+            <div class="mockup-header">
+              <img src="https://scontent-sea5-1.xx.fbcdn.net/v/t1.30497-1/84628273_176159830277856_972693363922829312_n.jpg?stp=c379.0.1290.1290a_dst-jpg_s200x200_tt6&_nc_cat=1&ccb=1-7&_nc_sid=7565cd&_nc_eui2=AeHI8cpLohiVmRnY1tCBUuSxik--Qfnh2B6KT75B-eHYHi5jpZ1gBwHacL0W2k_RMl873OCt0BbVkICzZseoFmr-&_nc_ohc=4cG-EK6rxTAQ7kNvwGoqzsr&_nc_oc=AdrsliyXVNwEg0Hvrz2WdCtPqdXEML_3pAsh7wmXBosEVdCDS5mQGPeqZ6FSUMnaHPs&_nc_zt=24&_nc_ht=scontent-sea5-1.xx&edm=AP4hL3IEAAAA&oh=00_AQPtV4cWC7xvhUka0BpfJYFmbaEBqJKYtvO10MvOudzcFQ&oe=6B01D219" alt="Avatar" class="mockup-author-avatar" id="mockup-author-avatar">
+              <div class="mockup-author-info">
+                <strong id="mockup-author-name">Samy Lozano</strong>
+                <div class="mockup-meta-line">
+                  <span id="mockup-post-date">22 October</span> • <i class="fa-solid fa-earth-americas"></i>
+                </div>
               </div>
-              <i class="fa-solid fa-ellipsis"></i>
+              <button type="button" class="btn-mockup-dots"><i class="fa-solid fa-ellipsis"></i></button>
             </div>
-            <div class="preview-image-box" id="preview-image-box">
-              <i class="fa-regular fa-image placeholder-preview-icon"></i>
+
+            <div class="mockup-text-body" id="mockup-text-body">
+              Escribe el texto en el editor para previsualizar tu publicación en tiempo real.
             </div>
-            <div class="preview-actions-bar">
-              <div class="actions-left">
-                <i class="fa-regular fa-heart"></i>
-                <i class="fa-regular fa-comment"></i>
-                <i class="fa-regular fa-paper-plane"></i>
-              </div>
-              <i class="fa-regular fa-bookmark"></i>
+
+            <div class="mockup-media-container" id="mockup-media-container" style="display: none;">
+              <img src="" alt="Media" id="mockup-media-img">
             </div>
-            <div class="preview-caption-box">
-              <span class="preview-likes">142 Me gusta</span>
-              <p class="preview-caption-text" id="preview-caption-text"><strong>samy_lozano</strong> ¡Tu texto se previsualizará en tiempo real aquí!</p>
+
+            <div class="mockup-actions-bar">
+              <button type="button" class="mockup-action-btn"><i class="fa-regular fa-thumbs-up"></i> Me gusta</button>
+              <button type="button" class="mockup-action-btn"><i class="fa-regular fa-comment"></i> Comentar</button>
+              <button type="button" class="mockup-action-btn"><i class="fa-solid fa-share"></i> Compartir</button>
             </div>
+          </div>
+
+          <!-- Banner de aviso oficial estilo Metricool -->
+          <div class="metricool-preview-disclaimer">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>Las previsualizaciones son una aproximación de cómo se verá la publicación. El resultado final puede ser diferente.</span>
           </div>
         </div>
       </div>
-
-      <footer class="modal-footer">
-        <button type="button" class="btn-cancel" id="btn-cancel-create-post">Cancelar</button>
-        <button type="button" class="btn-submit-account" id="btn-submit-create-post" style="background: linear-gradient(135deg, #ff00db, #210087);">
-          <i class="fa-solid fa-paper-plane"></i>
-          <span>Programar Publicación</span>
-        </button>
-      </footer>
     </div>
   </div>
 

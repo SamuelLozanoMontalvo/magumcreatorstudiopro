@@ -1917,9 +1917,9 @@ document.addEventListener('DOMContentLoaded', () => {
           const kpiFollowers = document.getElementById('metric-followers-total');
           const kpiReach = document.getElementById('metric-reach-total');
           const kpiEngagement = document.getElementById('metric-engagement-rate');
-          if (kpiFollowers) kpiFollowers.textContent = totalFollowers > 0 ? totalFollowers.toLocaleString() : '2,340';
-          if (kpiReach) kpiReach.textContent = totalReach > 0 ? totalReach.toLocaleString() : '5,460';
-          if (kpiEngagement) kpiEngagement.textContent = countEng > 0 ? `${(sumEng / countEng).toFixed(1)}%` : '4.4%';
+          if (kpiFollowers) kpiFollowers.textContent = totalFollowers > 0 ? totalFollowers.toLocaleString() : '0';
+          if (kpiReach) kpiReach.textContent = totalReach > 0 ? totalReach.toLocaleString() : '0';
+          if (kpiEngagement) kpiEngagement.textContent = countEng > 0 ? `${(sumEng / countEng).toFixed(1)}%` : '0.0%';
 
           // 2. Reporting (Informe Ejecutivo)
           const reportBizName = document.getElementById('report-sheet-biz-name');
@@ -2251,274 +2251,202 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================================================
-  // 14. INBOX MULTICANAL OFICIAL (INSTAGRAM DIRECT & FACEBOOK MESSENGER)
+  // 14. INBOX MULTICANAL EXACTO ESTILO METRICOOL (Screenshot 4)
   // ==========================================================================
   const DEFAULT_INBOX_CHATS = {
+    'chat-fb-1': {
+      id: 'chat-fb-1',
+      name: 'Jhonattan Prince',
+      channel: 'facebook',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&q=80',
+      messages: [
+        { sender: 'incoming', text: '¡Buenas tardes! Vi la publicación y el flyer del evento. ¡BUEN TRIUNFO! ¿Tienen cupos o entradas disponibles?', time: '24 ago 21:48' },
+        { sender: 'outgoing', text: '¡Hola Jhonattan! Sí, tenemos disponibilidad en preventa y etapa 2. Te comparto el detalle por aquí o a tu WhatsApp.', time: '24 ago 21:50' }
+      ]
+    },
     'chat-ig-1': {
       id: 'chat-ig-1',
       name: 'Mariana Restrepo',
-      handle: '@mariana_art',
       channel: 'instagram',
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80',
       messages: [
-        { sender: 'incoming', text: '¡Hola Samy! Vi sus reels y el trabajo que hacen en Magum con marcas personales. ¿Cómo es el proceso para que me asesoren con mi estrategia de contenido para este mes?', time: '10:40 AM' },
-        { sender: 'outgoing', text: '¡Hola Mariana! Qué gusto saludarte. Hacemos un diagnóstico de tu perfil actual, definimos los 4 pilares de tu marca y armamos el calendario de grabación. Te paso la propuesta por aquí o agendamos una videollamada de 15 min.', time: '10:41 AM' },
-        { sender: 'incoming', text: 'Me encantaría la llamada, ¿tienen disponibilidad el jueves por la tarde?', time: '10:42 AM' }
-      ]
-    },
-    'chat-fb-1': {
-      id: 'chat-fb-1',
-      name: 'Restaurante Bocagrande (Felipe)',
-      handle: 'Restaurante & Bar Bocagrande',
-      channel: 'facebook',
-      avatar: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=80&q=80',
-      messages: [
-        { sender: 'incoming', text: 'Buenas tardes Magum Creator Studio. Vimos sus campañas en Facebook y queremos renovar la presencia digital del restaurante. ¿Tienen paquetes que incluyan pauta en Meta Ads y producción de videos?', time: 'Ayer' },
-        { sender: 'outgoing', text: '¡Buenas tardes Felipe! Sí, contamos con producción mensual de reels, fotografía gastronómica y gestión de pauta en Meta Ads orientada a reservas. ¿Te compartimos el dossier?', time: 'Ayer' },
-        { sender: 'incoming', text: 'Excelente, por favor envíamelo a este chat o al correo oficial.', time: 'Ayer' }
+        { sender: 'incoming', text: '¡Hola Samy! Vi sus reels y el trabajo que hacen con marcas personales. ¿Cómo es el proceso para que me asesoren?', time: '10:40 AM' },
+        { sender: 'outgoing', text: '¡Hola Mariana! Qué gusto. Hacemos un diagnóstico de tu perfil actual y armamos el calendario de grabación.', time: '10:41 AM' },
+        { sender: 'incoming', text: 'Me encantaría la llamada, ¿tienen disponibilidad?', time: '10:42 AM' }
       ]
     },
     'chat-ig-2': {
       id: 'chat-ig-2',
       name: 'David Ortiz (@davidortiz.fit)',
-      handle: '@davidortiz.fit',
       channel: 'instagram',
       avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&q=80',
       messages: [
-        { sender: 'incoming', text: 'Bro, una pregunta sobre los paquetes de grabación de reels en estudio. ¿Ustedes se encargan de los guiones y edición o solo la producción?', time: 'Ayer' },
-        { sender: 'outgoing', text: '¡Hola David! Nos encargamos de la investigación de tendencias, armado de guiones con ganchos virales, grabación en set y postproducción dinámica.', time: 'Ayer' }
-      ]
-    },
-    'chat-fb-2': {
-      id: 'chat-fb-2',
-      name: 'Laura Jiménez (Consultoría)',
-      handle: 'Laura Jiménez Asociados',
-      channel: 'facebook',
-      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=80&q=80',
-      messages: [
-        { sender: 'incoming', text: 'Hola equipo, quisiéramos cotizar el servicio de branding digital para nuestra firma de consultores.', time: 'Hace 2 días' },
-        { sender: 'outgoing', text: 'Hola Laura, un gusto. Manejamos diseño de identidad corporativa, manual de marca y plantillas para redes. ¿Para qué fecha lo proyectan?', time: 'Hace 2 días' }
-      ]
-    },
-    'chat-ig-3': {
-      id: 'chat-ig-3',
-      name: 'Camila Peña (@camila.boutique)',
-      handle: '@camila.boutique',
-      channel: 'instagram',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80',
-      messages: [
-        { sender: 'incoming', text: 'Hola Samy, ¿cuándo inician el próximo ciclo de creación de contenido para marcas de moda?', time: 'Hace 3 días' },
-        { sender: 'outgoing', text: '¡Hola Camila! Iniciamos cupos el primer lunes de cada mes. Te reservamos un cupo prioritario si gustas.', time: 'Hace 3 días' }
+        { sender: 'incoming', text: 'Bro, una pregunta sobre los paquetes de grabación de reels en estudio. ¿Ustedes se encargan de los guiones y edición?', time: 'Ayer' },
+        { sender: 'outgoing', text: '¡Hola David! Nos encargamos de guiones con ganchos virales, grabación en set y postproducción dinámica.', time: 'Ayer' }
       ]
     }
   };
 
-  function getInboxStorageKey() {
-    const raw = localStorage.getItem('magum_session');
-    let accId = 'default';
-    try { accId = JSON.parse(raw).accountId || 'default'; } catch {}
-    return `magum_inbox_chats_${accId}`;
-  }
-
-  function getInboxChats() {
-    try {
-      const raw = localStorage.getItem(getInboxStorageKey());
-      return raw ? JSON.parse(raw) : DEFAULT_INBOX_CHATS;
-    } catch {
-      return DEFAULT_INBOX_CHATS;
-    }
-  }
-
-  function saveInboxChats(chats) {
-    try {
-      localStorage.setItem(getInboxStorageKey(), JSON.stringify(chats));
-    } catch {}
-  }
-
-  let activeChatId = 'chat-ig-1';
-  const inboxChatItems = document.querySelectorAll('.inbox-chat-item');
-  const threadContactName = document.getElementById('thread-contact-name');
-  const threadAvatar = document.getElementById('thread-avatar');
-  const threadMeta = document.getElementById('thread-contact-meta');
-  const threadChannelBadge = document.getElementById('thread-channel-badge');
+  let currentActiveChatId = 'chat-fb-1';
+  const inboxEmptyState = document.getElementById('inbox-empty-state');
+  const inboxActiveThread = document.getElementById('inbox-active-thread');
+  const inboxThreadAvatar = document.getElementById('thread-avatar');
+  const inboxThreadName = document.getElementById('thread-contact-name');
+  const inboxThreadMeta = document.getElementById('thread-contact-meta');
+  const inboxThreadBadge = document.getElementById('thread-channel-badge');
   const inboxMessagesScroll = document.getElementById('inbox-messages-scroll');
   const inboxReplyInput = document.getElementById('inbox-reply-input');
   const btnSendInboxMsg = document.getElementById('btn-send-inbox-msg');
-  const inboxTabButtons = document.querySelectorAll('.inbox-channel-tabs .inbox-tab');
   const inboxSearchInput = document.getElementById('inbox-search-input');
+  const inboxStatusTabs = document.querySelectorAll('.inbox-status-tab');
+  const inboxFilterFb = document.getElementById('inbox-filter-fb');
+  const inboxFilterIg = document.getElementById('inbox-filter-ig');
 
-  function renderThreadMessages(chatId) {
-    if (!inboxMessagesScroll) return;
-    const allChats = getInboxChats();
-    const chat = allChats[chatId] || DEFAULT_INBOX_CHATS[chatId];
-    if (!chat) return;
+  function renderThread(chatId) {
+    const chat = DEFAULT_INBOX_CHATS[chatId];
+    if (!chat) {
+      if (inboxEmptyState) inboxEmptyState.style.display = 'flex';
+      if (inboxActiveThread) inboxActiveThread.style.display = 'none';
+      return;
+    }
 
-    inboxMessagesScroll.innerHTML = '';
-    (chat.messages || []).forEach(msg => {
-      const bubbleGroup = document.createElement('div');
-      bubbleGroup.className = `msg-bubble-group ${msg.sender}`;
-      const timeHtml = msg.sender === 'outgoing'
-        ? `${escapeHtml(msg.time)} • Leído <i class="fa-solid fa-check-double" style="color: #00d2ff;"></i>`
-        : escapeHtml(msg.time);
-      bubbleGroup.innerHTML = `
-        <div class="msg-bubble">${escapeHtml(msg.text)}</div>
-        <span class="msg-time">${timeHtml}</span>
-      `;
-      inboxMessagesScroll.appendChild(bubbleGroup);
-    });
-    inboxMessagesScroll.scrollTop = inboxMessagesScroll.scrollHeight;
-  }
+    if (inboxEmptyState) inboxEmptyState.style.display = 'none';
+    if (inboxActiveThread) inboxActiveThread.style.display = 'flex';
 
-  function selectInboxChat(chatId) {
-    activeChatId = chatId;
-    const allChats = getInboxChats();
-    const chat = allChats[chatId] || DEFAULT_INBOX_CHATS[chatId];
+    if (inboxThreadName) inboxThreadName.textContent = chat.name;
+    if (inboxThreadAvatar) inboxThreadAvatar.src = chat.avatar;
+    if (inboxReplyInput) inboxReplyInput.placeholder = `Escribe un mensaje para ${chat.name}...`;
 
-    document.querySelectorAll('.inbox-chat-item').forEach(c => {
-      if (c.getAttribute('data-chat-id') === chatId) {
-        c.classList.add('active');
-        const unread = c.querySelector('.chat-unread-badge');
-        if (unread) unread.remove();
+    if (inboxThreadBadge) {
+      if (chat.channel === 'facebook') {
+        inboxThreadBadge.className = 'chat-channel-badge badge-fb';
+        inboxThreadBadge.innerHTML = '<i class="fa-brands fa-facebook"></i>';
+        if (inboxThreadMeta) inboxThreadMeta.innerHTML = '<i class="fa-solid fa-circle text-success" style="font-size: 0.55rem;"></i> Facebook Messenger • Activo';
       } else {
-        c.classList.remove('active');
+        inboxThreadBadge.className = 'chat-channel-badge badge-ig';
+        inboxThreadBadge.innerHTML = '<i class="fa-brands fa-instagram"></i>';
+        if (inboxThreadMeta) inboxThreadMeta.innerHTML = '<i class="fa-solid fa-circle text-success" style="font-size: 0.55rem;"></i> Instagram Direct • @samy_lozano • Activo';
       }
-    });
+    }
 
-    if (chat) {
-      if (threadContactName) threadContactName.textContent = chat.name;
-      if (threadAvatar && chat.avatar) threadAvatar.src = chat.avatar;
-      if (inboxReplyInput) {
-        inboxReplyInput.placeholder = chat.channel === 'instagram'
-          ? `Responder a ${chat.name} como @samy_lozano...`
-          : `Responder a ${chat.name} como Magum Creator Studio...`;
-      }
-      if (threadChannelBadge) {
-        if (chat.channel === 'instagram') {
-          threadChannelBadge.className = 'chat-channel-badge badge-ig';
-          threadChannelBadge.innerHTML = '<i class="fa-brands fa-instagram"></i>';
-          if (threadMeta) threadMeta.innerHTML = '<i class="fa-solid fa-circle text-success" style="font-size: 0.55rem;"></i> Instagram DM • @samy_lozano • En línea';
-        } else {
-          threadChannelBadge.className = 'chat-channel-badge badge-fb';
-          threadChannelBadge.innerHTML = '<i class="fa-brands fa-facebook-messenger"></i>';
-          if (threadMeta) threadMeta.innerHTML = '<i class="fa-solid fa-circle text-success" style="font-size: 0.55rem;"></i> Messenger • Magum Creator Studio • Activo';
-        }
-      }
-      renderThreadMessages(chatId);
+    if (inboxMessagesScroll) {
+      inboxMessagesScroll.innerHTML = '';
+      (chat.messages || []).forEach(m => {
+        const bubble = document.createElement('div');
+        bubble.className = `msg-bubble-group ${m.sender}`;
+        const timeStr = m.sender === 'outgoing'
+          ? `${escapeHtml(m.time)} • Leído <i class="fa-solid fa-check-double" style="color: #00d2ff;"></i>`
+          : escapeHtml(m.time);
+        bubble.innerHTML = `
+          <div class="msg-bubble">${escapeHtml(m.text)}</div>
+          <span class="msg-time">${timeStr}</span>
+        `;
+        inboxMessagesScroll.appendChild(bubble);
+      });
+      inboxMessagesScroll.scrollTop = inboxMessagesScroll.scrollHeight;
     }
   }
 
-  inboxChatItems.forEach(chatEl => {
-    chatEl.addEventListener('click', () => {
-      const cId = chatEl.getAttribute('data-chat-id');
-      if (cId) selectInboxChat(cId);
+  // Clicks en conversaciones
+  document.querySelectorAll('.inbox-chat-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.inbox-chat-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      const cId = item.getAttribute('data-chat-id');
+      currentActiveChatId = cId;
+      renderThread(cId);
     });
   });
 
-  // Filtrado de pestañas del Inbox
-  inboxTabButtons.forEach(tab => {
-    tab.addEventListener('click', () => {
-      inboxTabButtons.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      const channel = tab.getAttribute('data-inbox-channel');
-
-      document.querySelectorAll('.inbox-chat-item').forEach(item => {
-        const itemChan = item.getAttribute('data-channel');
-        if (channel === 'all' || itemChan === channel) {
-          item.style.display = 'flex';
-        } else {
-          item.style.display = 'none';
-        }
-      });
-    });
-  });
-
-  // Búsqueda en el Inbox
-  if (inboxSearchInput) {
-    inboxSearchInput.addEventListener('input', (e) => {
-      const q = e.target.value.toLowerCase().trim();
-      document.querySelectorAll('.inbox-chat-item').forEach(item => {
-        const name = (item.querySelector('.chat-contact-name')?.textContent || '').toLowerCase();
-        const preview = (item.querySelector('.chat-preview-msg')?.textContent || '').toLowerCase();
-        if (!q || name.includes(q) || preview.includes(q)) {
-          item.style.display = 'flex';
-        } else {
-          item.style.display = 'none';
-        }
-      });
-    });
-  }
-
-  // Enviar mensaje en el chat activo
-  function sendActiveChatMessage() {
+  // Envío de mensajes
+  function sendMessage() {
     if (!inboxReplyInput) return;
-    const text = inboxReplyInput.value.trim();
-    if (!text) return;
+    const txt = inboxReplyInput.value.trim();
+    if (!txt) return;
 
-    const allChats = getInboxChats();
-    if (!allChats[activeChatId]) {
-      allChats[activeChatId] = DEFAULT_INBOX_CHATS[activeChatId] || { messages: [] };
+    const chat = DEFAULT_INBOX_CHATS[currentActiveChatId];
+    if (chat) {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      chat.messages.push({ sender: 'outgoing', text: txt, time: timeStr });
+      renderThread(currentActiveChatId);
+
+      const activeEl = document.querySelector(`.inbox-chat-item[data-chat-id="${currentActiveChatId}"]`);
+      if (activeEl) {
+        const p = activeEl.querySelector('.chat-preview-msg');
+        if (p) p.textContent = `Tú: ${txt}`;
+      }
     }
-
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-    const newMsg = {
-      sender: 'outgoing',
-      text,
-      time: timeStr
-    };
-
-    allChats[activeChatId].messages = allChats[activeChatId].messages || [];
-    allChats[activeChatId].messages.push(newMsg);
-    saveInboxChats(allChats);
-
-    // Actualizar vista del hilo
-    renderThreadMessages(activeChatId);
-
-    // Actualizar snippet en la lista lateral
-    const activeItem = document.querySelector(`.inbox-chat-item[data-chat-id="${activeChatId}"]`);
-    if (activeItem) {
-      const previewEl = activeItem.querySelector('.chat-preview-msg');
-      if (previewEl) previewEl.textContent = `Tú: ${text}`;
-      const timeEl = activeItem.querySelector('.chat-timestamp');
-      if (timeEl) timeEl.textContent = timeStr;
-    }
-
     inboxReplyInput.value = '';
   }
 
-  if (btnSendInboxMsg) btnSendInboxMsg.addEventListener('click', sendActiveChatMessage);
+  if (btnSendInboxMsg) btnSendInboxMsg.addEventListener('click', sendMessage);
   if (inboxReplyInput) {
     inboxReplyInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
-        sendActiveChatMessage();
+        sendMessage();
       }
     });
   }
 
-  // Interacción de los botones del sidebar lateral de Metricool (Instagram / Facebook -> Inbox)
-  const sidebarChannels = document.querySelectorAll('.metricool-channels-sidebar .metricool-channel-item');
-  sidebarChannels.forEach(item => {
-    item.addEventListener('click', (e) => {
-      if (e.target.closest('.btn-channel-connect')) return;
-      const ch = item.getAttribute('data-channel');
-      if (ch === 'instagram' || ch === 'facebook') {
-        const inboxSubNav = document.querySelector('[data-metricool-subview="metricool-subview-inbox"]');
-        if (inboxSubNav) inboxSubNav.click();
-        const targetTab = document.querySelector(`.inbox-channel-tabs [data-inbox-channel="${ch}"]`);
-        if (targetTab) targetTab.click();
-        const firstChat = document.querySelector(`.inbox-chat-item[data-channel="${ch}"]`);
-        if (firstChat) {
-          const cId = firstChat.getAttribute('data-chat-id');
-          if (cId) selectInboxChat(cId);
-        }
+  // Filtrado de canales en el top del Inbox
+  if (inboxFilterFb) {
+    inboxFilterFb.addEventListener('click', () => {
+      inboxFilterFb.classList.toggle('active');
+      filterInboxChats();
+    });
+  }
+  if (inboxFilterIg) {
+    inboxFilterIg.addEventListener('click', () => {
+      inboxFilterIg.classList.toggle('active');
+      filterInboxChats();
+    });
+  }
+
+  function filterInboxChats() {
+    const showFb = inboxFilterFb ? inboxFilterFb.classList.contains('active') : true;
+    const showIg = inboxFilterIg ? inboxFilterIg.classList.contains('active') : true;
+
+    document.querySelectorAll('.inbox-chat-item').forEach(el => {
+      const ch = el.getAttribute('data-channel');
+      if ((ch === 'facebook' && showFb) || (ch === 'instagram' && showIg)) {
+        el.style.display = 'flex';
+      } else {
+        el.style.display = 'none';
       }
+    });
+  }
+
+  // Pestañas de estado (No resueltos, No leídos, Todos)
+  inboxStatusTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      inboxStatusTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
     });
   });
 
+  // Búsqueda en Inbox
+  if (inboxSearchInput) {
+    inboxSearchInput.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      document.querySelectorAll('.inbox-chat-item').forEach(el => {
+        const name = (el.querySelector('.chat-contact-name')?.textContent || '').toLowerCase();
+        const msg = (el.querySelector('.chat-preview-msg')?.textContent || '').toLowerCase();
+        if (!q || name.includes(q) || msg.includes(q)) {
+          el.style.display = 'flex';
+        } else {
+          el.style.display = 'none';
+        }
+      });
+    });
+  }
+
+  // Inicializar thread inicial
+  renderThread('chat-fb-1');
+
   // ==========================================================================
-  // 15. MODAL CALIBRAR MÉTRICAS REALES MULTICANAL
+  // 15. MODAL CALIBRAR MÉTRICAS REALES
   // ==========================================================================
   const modalCalibrate = document.getElementById('modal-calibrate-metrics');
   const btnOpenCalibrate = document.getElementById('btn-open-calibrate-metrics');
@@ -2542,16 +2470,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnSaveCalibrate) {
     btnSaveCalibrate.addEventListener('click', async () => {
-      const igF = calIgFollowers ? calIgFollowers.value.trim() : '1,450';
-      const igR = calIgReach ? calIgReach.value.trim() : '3,820';
-      const fbF = calFbFollowers ? calFbFollowers.value.trim() : '890';
-      const fbR = calFbReach ? calFbReach.value.trim() : '1,640';
-      const eng = calEngagement ? calEngagement.value.trim() : '4.4%';
+      const igF = calIgFollowers ? calIgFollowers.value.trim() : '0';
+      const igR = calIgReach ? calIgReach.value.trim() : '0';
+      const fbF = calFbFollowers ? calFbFollowers.value.trim() : '0';
+      const fbR = calFbReach ? calFbReach.value.trim() : '0';
+      const eng = calEngagement ? calEngagement.value.trim() : '0.0%';
 
       btnSaveCalibrate.disabled = true;
       btnSaveCalibrate.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
 
-      // 1. Guardar en Base de Datos mediante API si está disponible
       if (window.MagumApi && typeof MagumApi.updateSocialMetrics === 'function') {
         try {
           await MagumApi.updateSocialMetrics([
@@ -2563,7 +2490,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // 2. Actualizar celdas de la tabla de canales
+      // Actualizar tabla
       const rowIg = document.querySelector('tr[data-channel-row="instagram"]');
       if (rowIg) {
         const cells = rowIg.querySelectorAll('td');
@@ -2581,7 +2508,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // 3. Recalcular KPIs de cabecera
+      // Recalcular KPIs de cabecera con los números reales
       const numIgF = parseInt(igF.replace(/[^0-9]/g, ''), 10) || 0;
       const numFbF = parseInt(fbF.replace(/[^0-9]/g, ''), 10) || 0;
       const numIgR = parseInt(igR.replace(/[^0-9]/g, ''), 10) || 0;
@@ -2594,8 +2521,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const kpiReach = document.getElementById('metric-reach-total');
       const kpiEngagement = document.getElementById('metric-engagement-rate');
 
-      if (kpiFollowers) kpiFollowers.textContent = totalF > 0 ? totalF.toLocaleString() : '2,340';
-      if (kpiReach) kpiReach.textContent = totalR > 0 ? totalR.toLocaleString() : '5,460';
+      if (kpiFollowers) kpiFollowers.textContent = totalF.toLocaleString();
+      if (kpiReach) kpiReach.textContent = totalR.toLocaleString();
       if (kpiEngagement) kpiEngagement.textContent = eng.includes('%') ? eng : `${eng}%`;
 
       btnSaveCalibrate.disabled = false;
@@ -2605,7 +2532,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (window.Swal) {
         Swal.fire({
           title: '¡Métricas Reales Calibradas!',
-          text: 'Las cifras de tus canales sociales han sido actualizadas con datos auténticos.',
+          text: 'Las cifras de tus canales han sido actualizadas con datos auténticos.',
           icon: 'success',
           confirmButtonColor: '#ff00db'
         });
@@ -2614,28 +2541,222 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================================================
-  // 16. MOTOR DE PLANIFICACIÓN INTERACTIVO (EDITAR, COPIAR, ELIMINAR, DRAG & DROP, MULTIRED)
+  // 16. METRICOOL POST COMPOSER EXACTO (Screenshot 3 Replica)
   // ==========================================================================
+  const modalCreatePost = document.getElementById('modal-create-post');
   const btnNewPost = document.getElementById('btn-metricool-new-post');
   const btnNewPostCal = document.getElementById('btn-open-create-post-from-calendar');
-  const modalCreatePost = document.getElementById('modal-create-post');
   const btnCloseCreatePost = document.getElementById('btn-close-create-post');
   const btnCancelCreatePost = document.getElementById('btn-cancel-create-post');
   const postCaptionInput = document.getElementById('post-caption-input');
-  const previewCaptionText = document.getElementById('preview-caption-text');
-  const previewAuthorName = document.getElementById('preview-author-name');
-  const previewImageBox = document.getElementById('preview-image-box');
   const postCaptionCounter = document.getElementById('post-caption-counter');
-  const btnSubmitCreatePost = document.getElementById('btn-submit-create-post');
-  const postDropzone = document.getElementById('post-dropzone');
   const postFileInput = document.getElementById('post-file-input');
+  const btnTriggerMediaUpload = document.getElementById('btn-trigger-media-upload');
+  const metricoolFileBadge = document.getElementById('metricool-file-badge');
+  const metricoolFileName = document.getElementById('metricool-file-name');
+  const btnRemoveMedia = document.getElementById('btn-remove-media');
   const postScheduleDate = document.getElementById('post-schedule-date');
   const postScheduleTime = document.getElementById('post-schedule-time');
+  const btnSubmitCreatePost = document.getElementById('btn-submit-create-post');
   const btnCaptionAi = document.getElementById('btn-caption-ai-optimize');
-  const postChips = document.querySelectorAll('.post-channel-chip');
+  const btnInsertEmoji = document.getElementById('btn-insert-emoji');
 
+  // Selector de Formato (Post, Reel, Historia)
+  const btnFormatDropdown = document.getElementById('btn-post-format-dropdown');
+  const postFormatMenu = document.getElementById('post-format-menu');
+  const selectedFormatText = document.getElementById('selected-format-text');
+  const selectedFormatIcon = document.getElementById('selected-format-icon');
+  let currentFormat = 'post';
+
+  if (btnFormatDropdown && postFormatMenu) {
+    btnFormatDropdown.addEventListener('click', (e) => {
+      e.stopPropagation();
+      postFormatMenu.style.display = postFormatMenu.style.display === 'none' ? 'block' : 'none';
+    });
+
+    document.addEventListener('click', () => {
+      if (postFormatMenu) postFormatMenu.style.display = 'none';
+    });
+
+    document.querySelectorAll('.format-menu-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.format-menu-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        currentFormat = item.getAttribute('data-format') || 'post';
+        if (selectedFormatText) selectedFormatText.textContent = currentFormat.toUpperCase();
+        if (selectedFormatIcon) {
+          if (currentFormat === 'reel') selectedFormatIcon.className = 'fa-solid fa-film';
+          else if (currentFormat === 'story') selectedFormatIcon.className = 'fa-solid fa-circle-notch';
+          else selectedFormatIcon.className = 'fa-solid fa-table-cells';
+        }
+        postFormatMenu.style.display = 'none';
+      });
+    });
+  }
+
+  // Toggle de canales (FB, IG)
+  const toggleChFb = document.getElementById('toggle-ch-fb');
+  const toggleChIg = document.getElementById('toggle-ch-ig');
+  const previewChannelIndicator = document.getElementById('preview-channel-indicator');
+  const counterNetworkIcon = document.getElementById('counter-network-icon');
+
+  function updateActiveChannelsUI() {
+    if (toggleChFb && toggleChFb.classList.contains('active')) {
+      if (previewChannelIndicator) previewChannelIndicator.innerHTML = '<i class="fa-brands fa-facebook" style="color: #1877f2;"></i>';
+      if (counterNetworkIcon) counterNetworkIcon.className = 'fa-brands fa-facebook text-fb';
+    } else if (toggleChIg && toggleChIg.classList.contains('active')) {
+      if (previewChannelIndicator) previewChannelIndicator.innerHTML = '<i class="fa-brands fa-instagram" style="color: #e1306c;"></i>';
+      if (counterNetworkIcon) counterNetworkIcon.className = 'fa-brands fa-instagram';
+    }
+  }
+
+  if (toggleChFb) {
+    toggleChFb.addEventListener('click', () => {
+      toggleChFb.classList.toggle('active');
+      updateActiveChannelsUI();
+    });
+  }
+  if (toggleChIg) {
+    toggleChIg.addEventListener('click', () => {
+      toggleChIg.classList.toggle('active');
+      updateActiveChannelsUI();
+    });
+  }
+
+  // Toggle vista Móvil / Escritorio en Mockup
+  const btnDeviceMobile = document.getElementById('btn-device-mobile');
+  const btnDeviceDesktop = document.getElementById('btn-device-desktop');
+  const metricoolMockupCard = document.getElementById('metricool-mockup-card');
+
+  if (btnDeviceMobile && btnDeviceDesktop && metricoolMockupCard) {
+    btnDeviceMobile.addEventListener('click', () => {
+      btnDeviceMobile.classList.add('active');
+      btnDeviceDesktop.classList.remove('active');
+      metricoolMockupCard.classList.add('mobile-view');
+    });
+    btnDeviceDesktop.addEventListener('click', () => {
+      btnDeviceDesktop.classList.add('active');
+      btnDeviceMobile.classList.remove('active');
+      metricoolMockupCard.classList.remove('mobile-view');
+    });
+  }
+
+  // Subida de archivos (imagen / video)
   let currentPostImage = null;
-  let editingPostId = null; // null si es nuevo post, string id si se está editando
+  const mockupMediaContainer = document.getElementById('mockup-media-container');
+  const mockupMediaImg = document.getElementById('mockup-media-img');
+  const mockupTextBody = document.getElementById('mockup-text-body');
+
+  if (btnTriggerMediaUpload && postFileInput) {
+    btnTriggerMediaUpload.addEventListener('click', () => postFileInput.click());
+    postFileInput.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (loadEv) => {
+          currentPostImage = loadEv.target.result;
+          if (mockupMediaImg) mockupMediaImg.src = currentPostImage;
+          if (mockupMediaContainer) mockupMediaContainer.style.display = 'flex';
+          if (metricoolFileBadge && metricoolFileName) {
+            metricoolFileName.textContent = file.name;
+            metricoolFileBadge.style.display = 'flex';
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  if (btnRemoveMedia) {
+    btnRemoveMedia.addEventListener('click', () => {
+      currentPostImage = null;
+      if (postFileInput) postFileInput.value = '';
+      if (metricoolFileBadge) metricoolFileBadge.style.display = 'none';
+      if (mockupMediaContainer) mockupMediaContainer.style.display = 'none';
+    });
+  }
+
+  // Sincronización en vivo del texto con el mockup
+  if (postCaptionInput) {
+    postCaptionInput.addEventListener('input', (e) => {
+      const txt = e.target.value;
+      if (mockupTextBody) {
+        mockupTextBody.textContent = txt.trim() || 'Escribe el texto en el editor para previsualizar tu publicación en tiempo real.';
+      }
+      if (postCaptionCounter) {
+        postCaptionCounter.textContent = `${txt.length} / 2,200`;
+      }
+    });
+  }
+
+  // Insertar emojis rápidos
+  if (btnInsertEmoji && postCaptionInput) {
+    btnInsertEmoji.addEventListener('click', () => {
+      const emojis = ['✨ ', '🚀 ', '🔥 ', '📸 ', '📍 ', '👇 '];
+      const randEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+      postCaptionInput.value += randEmoji;
+      postCaptionInput.dispatchEvent(new Event('input'));
+    });
+  }
+
+  // Optimización IA
+  if (btnCaptionAi && postCaptionInput) {
+    btnCaptionAi.addEventListener('click', () => {
+      const curr = postCaptionInput.value.trim() || 'Presentamos nuestra nueva propuesta de valor';
+      const aiText = `${curr}\n\n✨ ¡Lleva tu marca al siguiente nivel con contenido de alto impacto!\n\n🚀 Escríbenos por mensaje directo para recibir información exclusiva.\n\n#MagumCreatorStudio #MarketingDigital #Estrategia #Branding`;
+      postCaptionInput.value = aiText;
+      postCaptionInput.dispatchEvent(new Event('input'));
+    });
+  }
+
+  // Abrir Modal
+  let editingPostId = null;
+
+  function openPostModal(postToEdit = null, defaultDayIdx = 2) {
+    if (!modalCreatePost) return;
+    modalCreatePost.style.display = 'flex';
+
+    if (postToEdit) {
+      editingPostId = postToEdit.id;
+      if (postCaptionInput) {
+        postCaptionInput.value = postToEdit.caption || '';
+        postCaptionInput.dispatchEvent(new Event('input'));
+      }
+      if (postScheduleDate) postScheduleDate.value = postToEdit.date || '';
+      if (postScheduleTime) postScheduleTime.value = postToEdit.time || '18:00';
+      currentPostImage = postToEdit.image || null;
+      if (currentPostImage) {
+        if (mockupMediaImg) mockupMediaImg.src = currentPostImage;
+        if (mockupMediaContainer) mockupMediaContainer.style.display = 'flex';
+        if (metricoolFileBadge && metricoolFileName) {
+          metricoolFileName.textContent = 'Archivo multimedia cargado';
+          metricoolFileBadge.style.display = 'flex';
+        }
+      } else {
+        if (mockupMediaContainer) mockupMediaContainer.style.display = 'none';
+        if (metricoolFileBadge) metricoolFileBadge.style.display = 'none';
+      }
+    } else {
+      editingPostId = null;
+      if (postCaptionInput) {
+        postCaptionInput.value = '';
+        postCaptionInput.dispatchEvent(new Event('input'));
+      }
+      if (postScheduleDate && !postScheduleDate.value) {
+        postScheduleDate.value = new Date().toISOString().split('T')[0];
+      }
+      if (postScheduleTime) postScheduleTime.value = '18:00';
+      currentPostImage = null;
+      if (mockupMediaContainer) mockupMediaContainer.style.display = 'none';
+      if (metricoolFileBadge) metricoolFileBadge.style.display = 'none';
+    }
+  }
+  window.openPostModal = openPostModal;
+
+  if (btnNewPost) btnNewPost.addEventListener('click', () => openPostModal());
+  if (btnNewPostCal) btnNewPostCal.addEventListener('click', () => openPostModal());
+  if (btnCloseCreatePost) btnCloseCreatePost.addEventListener('click', () => modalCreatePost.style.display = 'none');
+  if (btnCancelCreatePost) btnCancelCreatePost.addEventListener('click', () => modalCreatePost.style.display = 'none');
 
   function getScheduledPostsStorageKey() {
     const raw = localStorage.getItem('magum_session');
@@ -2658,213 +2779,70 @@ document.addEventListener('DOMContentLoaded', () => {
     renderScheduledPosts();
   }
 
-  function openPostModal(postToEdit = null, defaultDayIdx = 2) {
-    if (!modalCreatePost) return;
-    modalCreatePost.style.display = 'flex';
-
-    const modalTitleEl = modalCreatePost.querySelector('.modal-title');
-    const modalBtnEl = document.getElementById('btn-submit-create-post');
-
-    if (postToEdit) {
-      editingPostId = postToEdit.id;
-      if (modalTitleEl) modalTitleEl.textContent = 'Editar Publicación Programada';
-      if (modalBtnEl) {
-        modalBtnEl.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> <span>Guardar Cambios</span>';
-      }
-      if (postCaptionInput) {
-        postCaptionInput.value = postToEdit.caption || '';
-        postCaptionInput.dispatchEvent(new Event('input'));
-      }
-      if (postScheduleDate) postScheduleDate.value = postToEdit.date || '';
-      if (postScheduleTime) postScheduleTime.value = postToEdit.time || '18:00';
-      currentPostImage = postToEdit.image || null;
-      if (previewImageBox) {
-        if (currentPostImage) {
-          previewImageBox.innerHTML = `<img src="${currentPostImage}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">`;
-        } else {
-          previewImageBox.innerHTML = '<i class="fa-regular fa-image placeholder-preview-icon"></i>';
-        }
-      }
-      // Canales
-      postChips.forEach(chip => {
-        const ch = chip.getAttribute('data-chip');
-        if (postToEdit.channels && postToEdit.channels.includes(ch)) {
-          chip.classList.add('active');
-          const cb = chip.querySelector('input[type="checkbox"]');
-          if (cb) cb.checked = true;
-        } else {
-          chip.classList.remove('active');
-          const cb = chip.querySelector('input[type="checkbox"]');
-          if (cb) cb.checked = false;
-        }
-      });
-    } else {
-      editingPostId = null;
-      if (modalTitleEl) modalTitleEl.textContent = 'Nueva Publicación Multicanal';
-      if (modalBtnEl) {
-        modalBtnEl.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>Programar Publicación</span>';
-      }
-      if (postCaptionInput) {
-        postCaptionInput.value = '';
-        postCaptionInput.dispatchEvent(new Event('input'));
-      }
-      if (postScheduleDate && !postScheduleDate.value) {
-        postScheduleDate.value = new Date().toISOString().split('T')[0];
-      }
-      if (postScheduleTime) postScheduleTime.value = '18:00';
-      currentPostImage = null;
-      if (previewImageBox) {
-        previewImageBox.innerHTML = '<i class="fa-regular fa-image placeholder-preview-icon"></i>';
-      }
-      // Por defecto activar IG y Facebook
-      postChips.forEach(chip => {
-        const ch = chip.getAttribute('data-chip');
-        if (ch === 'instagram' || ch === 'facebook') {
-          chip.classList.add('active');
-          const cb = chip.querySelector('input[type="checkbox"]');
-          if (cb) cb.checked = true;
-        } else {
-          chip.classList.remove('active');
-          const cb = chip.querySelector('input[type="checkbox"]');
-          if (cb) cb.checked = false;
-        }
-      });
-    }
-
-    if (previewAuthorName) {
-      previewAuthorName.textContent = 'samy_lozano';
-    }
-  }
-  window.openPostModal = openPostModal;
-
-  if (btnNewPost) btnNewPost.addEventListener('click', () => openPostModal());
-  if (btnNewPostCal) btnNewPostCal.addEventListener('click', () => openPostModal());
-  if (btnCloseCreatePost) btnCloseCreatePost.addEventListener('click', () => modalCreatePost.style.display = 'none');
-  if (btnCancelCreatePost) btnCancelCreatePost.addEventListener('click', () => modalCreatePost.style.display = 'none');
-
-  // Subida de imagen o video en el dropzone con preview
-  if (postDropzone && postFileInput) {
-    postDropzone.addEventListener('click', () => postFileInput.click());
-    postFileInput.addEventListener('change', (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (loadEvent) => {
-          currentPostImage = loadEvent.target.result;
-          if (previewImageBox) {
-            previewImageBox.innerHTML = `<img src="${currentPostImage}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">`;
-          }
-          const hint = postDropzone.querySelector('.dropzone-hint');
-          if (hint) hint.innerHTML = `<strong style="color: #10b981;"><i class="fa-solid fa-check"></i> ${escapeHtml(file.name)} listo</strong>`;
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-  }
-
-  // Contador de caracteres y preview en tiempo real
-  if (postCaptionInput) {
-    postCaptionInput.addEventListener('input', (e) => {
-      const val = e.target.value;
-      if (previewCaptionText) {
-        previewCaptionText.innerHTML = `<strong>samy_lozano</strong> ${escapeHtml(val) || '¡Tu texto se previsualizará en tiempo real aquí!'}`;
-      }
-      if (postCaptionCounter) {
-        postCaptionCounter.textContent = `${val.length} / 2,200 caracteres`;
-      }
-    });
-  }
-
-  // Optimización de copia con IA
-  if (btnCaptionAi && postCaptionInput) {
-    btnCaptionAi.addEventListener('click', () => {
-      const current = postCaptionInput.value.trim() || 'Estrategia de contenidos y producción audiovisual';
-      const aiOptimized = `${current}\n\n✨ Haz que tu marca destaque con contenido de alto impacto visual y estrategia.\n\n🚀 Escríbenos por DM para agendar tu diagnóstico de marca.\n\n#MagumCreatorStudio #MarketingDigital #ContenidoVisual #Branding`;
-      postCaptionInput.value = aiOptimized;
-      postCaptionInput.dispatchEvent(new Event('input'));
-    });
-  }
-
-  // Selección interactiva de canales
-  postChips.forEach(chip => {
-    chip.addEventListener('click', () => {
-      chip.classList.toggle('active');
-      const cb = chip.querySelector('input[type="checkbox"]');
-      if (cb) cb.checked = chip.classList.contains('active');
-    });
-  });
-
-  // Guardar (Crear o Editar) Publicación
+  // Guardar y Programar
   if (btnSubmitCreatePost) {
     btnSubmitCreatePost.addEventListener('click', () => {
       const caption = (postCaptionInput ? postCaptionInput.value : '').trim();
-      if (!caption) {
+      if (!caption && !currentPostImage) {
         if (window.Swal) {
           Swal.fire({
-            title: 'Texto Requerido',
-            text: 'Por favor escribe el texto o pie de foto de tu publicación.',
+            title: 'Contenido Requerido',
+            text: 'Por favor escribe un texto o sube una imagen para tu publicación.',
             icon: 'warning',
             confirmButtonColor: '#ff00db'
           });
         } else {
-          alert('Por favor escribe el texto de tu publicación.');
+          alert('Por favor escribe un texto o sube una imagen para tu publicación.');
         }
         return;
       }
 
       const activeChannels = [];
-      postChips.forEach(chip => {
-        if (chip.classList.contains('active')) {
-          activeChannels.push(chip.getAttribute('data-chip') || 'instagram');
-        }
-      });
-
-      if (activeChannels.length === 0) {
-        activeChannels.push('instagram');
-      }
+      if (toggleChFb && toggleChFb.classList.contains('active')) activeChannels.push('facebook');
+      if (toggleChIg && toggleChIg.classList.contains('active')) activeChannels.push('instagram');
+      if (activeChannels.length === 0) activeChannels.push('facebook');
 
       const dateVal = (postScheduleDate && postScheduleDate.value) || new Date().toISOString().split('T')[0];
       const timeVal = (postScheduleTime && postScheduleTime.value) || '18:00';
+      const dayIdx = new Date(dateVal).getDay() === 0 ? 6 : new Date(dateVal).getDay() - 1;
 
       const posts = getScheduledPosts();
 
       if (editingPostId) {
-        // Modo Edición
         const idx = posts.findIndex(p => p.id === editingPostId);
         if (idx !== -1) {
           posts[idx].caption = caption;
           posts[idx].channels = activeChannels;
           posts[idx].date = dateVal;
+          posts[idx].dayIndex = dayIdx;
           posts[idx].time = timeVal;
+          posts[idx].format = currentFormat;
           if (currentPostImage) posts[idx].image = currentPostImage;
           posts[idx].updatedAt = new Date().toISOString();
         }
         saveScheduledPosts(posts);
-
-        if (modalCreatePost) modalCreatePost.style.display = 'none';
-        if (window.MagumAlert) {
-          MagumAlert.success('Publicación Actualizada', 'Los cambios en tu publicación se han guardado exitosamente.');
-        }
+        modalCreatePost.style.display = 'none';
+        if (window.MagumAlert) MagumAlert.success('Publicación Actualizada', 'Cambios guardados con éxito.');
       } else {
-        // Modo Nuevo Post
         const newPost = {
           id: 'post_' + Date.now(),
           caption,
           channels: activeChannels,
           date: dateVal,
-          dayIndex: new Date(dateVal).getDay() === 0 ? 6 : new Date(dateVal).getDay() - 1,
+          dayIndex: dayIdx,
           time: timeVal,
           image: currentPostImage,
+          format: currentFormat,
           createdAt: new Date().toISOString()
         };
         posts.push(newPost);
         saveScheduledPosts(posts);
+        modalCreatePost.style.display = 'none';
 
-        if (modalCreatePost) modalCreatePost.style.display = 'none';
         if (window.Swal) {
           Swal.fire({
             title: '¡Publicación Programada!',
-            html: `Tu post se ha programado para el <strong>${dateVal}</strong> a las <strong>${timeVal}</strong> en: <strong>${activeChannels.join(', ')}</strong>.`,
+            html: `Tu ${currentFormat.toUpperCase()} se ha programado para el <strong>${dateVal}</strong> a las <strong>${timeVal}</strong> en <strong>${activeChannels.join(', ')}</strong>.`,
             icon: 'success',
             confirmButtonColor: '#ff00db'
           });
@@ -2873,56 +2851,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Duplicar / Copiar Publicación
-  function duplicatePost(postId) {
-    const posts = getScheduledPosts();
-    const original = posts.find(p => p.id === postId);
-    if (!original) return;
-
-    const nextDayIdx = ((original.dayIndex || 0) + 1) % 7;
-    const duplicated = {
-      ...original,
-      id: 'post_' + Date.now(),
-      dayIndex: nextDayIdx,
-      caption: `${original.caption}`,
-      createdAt: new Date().toISOString()
-    };
-    posts.push(duplicated);
-    saveScheduledPosts(posts);
-
-    if (window.MagumAlert) {
-      MagumAlert.success('Publicación Duplicada', 'Se ha creado una copia de la publicación en tu calendario.');
-    }
-  }
-
-  // Eliminar Publicación
-  function deletePost(postId) {
-    if (window.Swal) {
-      Swal.fire({
-        title: '¿Eliminar publicación?',
-        text: 'Esta publicación programada se removerá de tu calendario.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444',
-        cancelButtonColor: '#334155',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          const posts = getScheduledPosts().filter(p => p.id !== postId);
-          saveScheduledPosts(posts);
-          Swal.fire('Eliminada', 'La publicación ha sido eliminada del calendario.', 'success');
-        }
-      });
-    } else {
-      if (confirm('¿Eliminar esta publicación?')) {
-        const posts = getScheduledPosts().filter(p => p.id !== postId);
-        saveScheduledPosts(posts);
-      }
-    }
-  }
-
-  // Renderizar publicaciones en el calendario semanal con soporte completo de Drag & Drop
+  // Renderizar Calendario Semanal
   function renderScheduledPosts() {
     const calendarBody = document.getElementById('calendar-grid-body');
     if (!calendarBody) return;
@@ -2934,7 +2863,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const dayIdx = parseInt(cell.getAttribute('data-day-index') || '0', 10);
       cell.innerHTML = '';
 
-      // Habilitar Drag & Drop en la celda
       cell.ondragover = (e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
@@ -2959,7 +2887,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       };
 
-      // Filtrar posts que correspondan a este día
       const dayPosts = posts.filter(p => (p.dayIndex !== undefined ? p.dayIndex : 2) === dayIdx);
 
       if (dayPosts.length === 0) {
@@ -2978,54 +2905,35 @@ document.addEventListener('DOMContentLoaded', () => {
           card.setAttribute('draggable', 'true');
           card.setAttribute('data-post-id', post.id);
 
-          // Eventos de arrastre
           card.ondragstart = (e) => {
             e.dataTransfer.setData('text/plain', post.id);
             card.classList.add('dragging');
           };
-          card.ondragend = () => {
-            card.classList.remove('dragging');
-          };
+          card.ondragend = () => card.classList.remove('dragging');
 
-          // Redes activas
-          const channels = Array.isArray(post.channels) && post.channels.length > 0 ? post.channels : ['instagram'];
-          let channelBadgesHtml = '';
+          const channels = Array.isArray(post.channels) && post.channels.length > 0 ? post.channels : ['facebook'];
+          let chHtml = '';
           channels.forEach(ch => {
-            if (ch === 'instagram') {
-              channelBadgesHtml += '<span class="post-pill-net net-ig" title="Instagram"><i class="fa-brands fa-instagram"></i></span>';
-            } else if (ch === 'facebook') {
-              channelBadgesHtml += '<span class="post-pill-net net-fb" title="Facebook"><i class="fa-brands fa-facebook"></i></span>';
-            } else if (ch === 'tiktok') {
-              channelBadgesHtml += '<span class="post-pill-net net-tt" title="TikTok"><i class="fa-brands fa-tiktok"></i></span>';
-            } else {
-              channelBadgesHtml += `<span class="post-pill-net net-ig"><i class="fa-solid fa-share-nodes"></i></span>`;
-            }
+            if (ch === 'instagram') chHtml += '<span class="post-pill-net net-ig"><i class="fa-brands fa-instagram"></i></span>';
+            else chHtml += '<span class="post-pill-net net-fb"><i class="fa-brands fa-facebook"></i></span>';
           });
 
-          // Imagen si tiene
-          const imgHtml = post.image ? `<img src="${post.image}" class="cal-post-thumb" alt="Miniatura">` : '';
+          const imgHtml = post.image ? `<img src="${post.image}" class="cal-post-thumb" alt="Media">` : '';
 
           card.innerHTML = `
             ${imgHtml}
             <div class="cal-post-top-row">
-              <div class="cal-post-channels">${channelBadgesHtml}</div>
+              <div class="cal-post-channels">${chHtml}</div>
               <span class="cal-post-time"><i class="fa-regular fa-clock"></i> ${escapeHtml(post.time || '18:00')}</span>
             </div>
-            <div class="post-title-trunc" title="${escapeHtml(post.caption)}">${escapeHtml(post.caption)}</div>
+            <div class="post-title-trunc" title="${escapeHtml(post.caption)}">${escapeHtml(post.caption || 'Publicación sin texto')}</div>
             <div class="cal-card-actions">
-              <button type="button" class="btn-card-action btn-action-edit" title="Editar publicación">
-                <i class="fa-solid fa-pen"></i>
-              </button>
-              <button type="button" class="btn-card-action btn-action-copy" title="Copiar / Duplicar">
-                <i class="fa-solid fa-copy"></i>
-              </button>
-              <button type="button" class="btn-card-action btn-action-delete" title="Eliminar">
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
+              <button type="button" class="btn-card-action btn-action-edit" title="Editar"><i class="fa-solid fa-pen"></i></button>
+              <button type="button" class="btn-card-action btn-action-copy" title="Copiar"><i class="fa-solid fa-copy"></i></button>
+              <button type="button" class="btn-card-action btn-action-delete" title="Eliminar"><i class="fa-solid fa-trash-can"></i></button>
             </div>
           `;
 
-          // Botones de acción dentro de la tarjeta
           const btnEdit = card.querySelector('.btn-action-edit');
           const btnCopy = card.querySelector('.btn-action-copy');
           const btnDel = card.querySelector('.btn-action-delete');
@@ -3039,13 +2947,20 @@ document.addEventListener('DOMContentLoaded', () => {
           if (btnCopy) {
             btnCopy.onclick = (e) => {
               e.stopPropagation();
-              duplicatePost(post.id);
+              const newP = { ...post, id: 'post_' + Date.now(), dayIndex: (dayIdx + 1) % 7 };
+              const all = getScheduledPosts();
+              all.push(newP);
+              saveScheduledPosts(all);
+              if (window.MagumAlert) MagumAlert.success('Copiada', 'Publicación duplicada en el calendario.');
             };
           }
           if (btnDel) {
             btnDel.onclick = (e) => {
               e.stopPropagation();
-              deletePost(post.id);
+              if (confirm('¿Eliminar esta publicación del calendario?')) {
+                const filtered = getScheduledPosts().filter(p => p.id !== post.id);
+                saveScheduledPosts(filtered);
+              }
             };
           }
 
@@ -3055,10 +2970,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Inicializar renderizado del calendario y selección inicial del inbox
   renderScheduledPosts();
-  selectInboxChat('chat-ig-1');
-  
 // Reporting botones
   const btnExportPdf = document.getElementById('btn-export-pdf');
   const btnExportExcel = document.getElementById('btn-export-excel');

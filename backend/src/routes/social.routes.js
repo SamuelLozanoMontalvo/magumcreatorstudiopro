@@ -271,7 +271,7 @@ router.get('/callback/meta', async (req, res) => {
               updated_at = CURRENT_TIMESTAMP;
           `, [
             fbConnId, accountId, pageId, pageName, pageToken,
-            JSON.stringify({ followers: '16,400', reach: '16,400', engagement: '4.8%', posts: 98 })
+            JSON.stringify({ followers: '0', reach: '0', engagement: '0.0%', posts: 0 })
           ]);
           savedAny = true;
 
@@ -295,7 +295,7 @@ router.get('/callback/meta', async (req, res) => {
             `, [
               igConnId, accountId, ig.id, `@${ig.username || pageName}`, ig.profile_picture_url || avatarUrl,
               pageToken,
-              JSON.stringify({ followers: '18,400', reach: '24,100', engagement: '5.2%', posts: 142 })
+              JSON.stringify({ followers: '0', reach: '0', engagement: '0.0%', posts: 0 })
             ]);
           }
         }
@@ -311,9 +311,7 @@ router.get('/callback/meta', async (req, res) => {
 
       for (const prov of providersToSync) {
         const cId = `soc_${prov.slice(0, 2)}_${crypto.randomBytes(8).toString('hex')}`;
-        const provMetrics = prov === 'instagram'
-          ? { followers: '18,400', reach: '24,100', engagement: '5.2%', posts: 142 }
-          : { followers: '16,400', reach: '16,400', engagement: '4.8%', posts: 98 };
+        const provMetrics = { followers: '0', reach: '0', engagement: '0.0%', posts: 0 };
 
         await db.query(`
           INSERT INTO social_connections (
@@ -325,7 +323,7 @@ router.get('/callback/meta', async (req, res) => {
             account_name = EXCLUDED.account_name,
             account_avatar = EXCLUDED.account_avatar,
             access_token = EXCLUDED.access_token,
-            metrics_cache = EXCLUDED.metrics_cache,
+            metrics_cache = COALESCE(social_connections.metrics_cache, EXCLUDED.metrics_cache),
             status = 'active',
             last_synced_at = CURRENT_TIMESTAMP,
             updated_at = CURRENT_TIMESTAMP;
@@ -376,8 +374,8 @@ router.post('/connect-manual', verifyToken, async (req, res) => {
 
     // Muestra base de analíticas iniciales por red
     const sampleMetrics = {
-      instagram: { followers: '18,400', reach: '24,100', engagement: '5.2%', posts: 142 },
-      facebook: { followers: '16,400', reach: '16,400', engagement: '4.8%', posts: 98 },
+      instagram: { followers: '0', reach: '0', engagement: '0.0%', posts: 0 },
+      facebook: { followers: '0', reach: '0', engagement: '0.0%', posts: 0 },
       tiktok: { followers: '8,420', reach: '38,200', engagement: '7.4%', posts: 46 },
       youtube: { followers: '12,300', reach: '45,600', engagement: '6.1%', posts: 32 },
       linkedin: { followers: '5,140', reach: '12,800', engagement: '4.2%', posts: 28 },
@@ -494,8 +492,8 @@ router.get('/metrics', verifyToken, async (req, res) => {
       accountId,
       connectedCount: result.rows.length,
       summary: {
-        totalFollowers: totalFollowers > 0 ? totalFollowers.toLocaleString() : '43,240',
-        totalReach: totalReach > 0 ? totalReach.toLocaleString() : '48,920',
+        totalFollowers: totalFollowers > 0 ? totalFollowers.toLocaleString() : '0',
+        totalReach: totalReach > 0 ? totalReach.toLocaleString() : '0',
         avgEngagement: `${avgEngagement}%`
       },
       channels: result.rows
