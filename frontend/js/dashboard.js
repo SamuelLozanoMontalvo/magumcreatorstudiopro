@@ -1783,6 +1783,25 @@ document.addEventListener('DOMContentLoaded', () => {
         res.connections.forEach(c => {
           connMap[c.provider] = c;
         });
+        activeSocialConnectionsMap = connMap;
+
+        // Actualizar textos de los botones en el sub-sidebar
+        document.querySelectorAll('.btn-channel-connect').forEach(btn => {
+          const chKey = btn.getAttribute('data-connect-channel');
+          const isConn = connMap[chKey] && connMap[chKey].status === 'active';
+          if (isConn) {
+            btn.classList.add('connected');
+            btn.textContent = 'CONECTADO';
+          } else {
+            btn.classList.remove('connected');
+            btn.textContent = 'CONECTAR';
+          }
+        });
+
+        // Refrescar la vista activa actual
+        if (currentSelectedChannel) {
+          renderSelectedChannelView(currentSelectedChannel);
+        }
 
         ['instagram', 'facebook', 'tiktok', 'youtube', 'linkedin', 'twitter', 'pinterest', 'google_business', 'threads', 'twitch'].forEach(channelKey => {
           const conn = connMap[channelKey];
@@ -1984,6 +2003,81 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Almacén reactivo de conexiones sociales activas por cuenta
+  let activeSocialConnectionsMap = {};
+  let currentSelectedChannel = 'resumen';
+
+  function renderSelectedChannelView(channelKey) {
+    currentSelectedChannel = channelKey;
+    const meta = channelData[channelKey] || { name: channelKey, icon: 'fa-solid fa-share-nodes', color: '#ff00db' };
+    const viewResumen = document.getElementById('analitica-view-resumen');
+    const viewChannel = document.getElementById('analitica-view-channel');
+    const stateDisconnected = document.getElementById('channel-state-disconnected');
+    const stateConnected = document.getElementById('channel-state-connected');
+
+    if (metricoolViewTitle) {
+      metricoolViewTitle.textContent = channelKey === 'resumen' ? 'Analíticas Generales' : `Métricas de ${meta.name}`;
+    }
+
+    if (channelKey === 'resumen') {
+      if (viewResumen) viewResumen.style.display = 'block';
+      if (viewChannel) viewChannel.style.display = 'none';
+      return;
+    }
+
+    if (viewResumen) viewResumen.style.display = 'none';
+    if (viewChannel) viewChannel.style.display = 'block';
+
+    const conn = activeSocialConnectionsMap[channelKey];
+    const isConnected = conn && conn.status === 'active';
+
+    if (isConnected) {
+      if (stateDisconnected) stateDisconnected.style.display = 'none';
+      if (stateConnected) stateConnected.style.display = 'block';
+
+      const avatarEl = document.getElementById('channel-connected-avatar');
+      const nameEl = document.getElementById('channel-connected-name');
+      const kpiFollowers = document.getElementById('kpi-spec-followers');
+      const kpiReach = document.getElementById('kpi-spec-reach');
+      const kpiEngagement = document.getElementById('kpi-spec-engagement');
+      const kpiPosts = document.getElementById('kpi-spec-posts');
+      const btnAction = document.getElementById('btn-channel-reconnect-action');
+
+      if (nameEl) nameEl.textContent = conn.account_name || `@${channelKey}_user`;
+      if (avatarEl) avatarEl.src = conn.account_avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces';
+      
+      const cache = conn.metrics_cache || {};
+      if (kpiFollowers) kpiFollowers.textContent = cache.followers || '0';
+      if (kpiReach) kpiReach.textContent = cache.reach || '0';
+      if (kpiEngagement) kpiEngagement.textContent = cache.engagement || '0.0%';
+      if (kpiPosts) kpiPosts.textContent = cache.posts !== undefined ? cache.posts : 0;
+
+      if (btnAction) {
+        btnAction.onclick = () => window.configureSocialChannel(channelKey);
+      }
+    } else {
+      if (stateConnected) stateConnected.style.display = 'none';
+      if (stateDisconnected) stateDisconnected.style.display = 'block';
+
+      const heroBubble = document.getElementById('channel-hero-bubble');
+      const heroIcon = document.getElementById('channel-hero-icon');
+      const heroTitle = document.getElementById('channel-hero-title');
+      const heroDesc = document.getElementById('channel-hero-desc');
+      const btnHeroConnect = document.getElementById('btn-hero-connect-network');
+      const btnHeroLabel = document.getElementById('btn-hero-connect-label');
+
+      if (heroBubble) heroBubble.style.background = meta.color || '#ff00db';
+      if (heroIcon) heroIcon.className = meta.icon || 'fa-solid fa-share-nodes';
+      if (heroTitle) heroTitle.textContent = `${meta.name} no está conectado`;
+      if (heroDesc) heroDesc.textContent = `Conecta tu cuenta oficial de ${meta.name} para visualizar seguidores en tiempo real, alcance de tus publicaciones, engagement e impresiones.`;
+      if (btnHeroLabel) btnHeroLabel.textContent = `CONECTAR ${meta.name.toUpperCase()}`;
+
+      if (btnHeroConnect) {
+        btnHeroConnect.onclick = () => window.openConnectModal(channelKey);
+      }
+    }
+  }
+
   // Interacción de canales en el sub-sidebar
   const metricoolChannelItems = document.querySelectorAll('.metricool-channel-item');
   metricoolChannelItems.forEach(item => {
@@ -1991,11 +2085,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.target.closest('.btn-channel-connect')) return;
       metricoolChannelItems.forEach(i => i.classList.remove('active'));
       item.classList.add('active');
-      const channel = item.getAttribute('data-channel');
-      const name = item.querySelector('.channel-title-text')?.textContent || 'Canal';
-      if (metricoolViewTitle) {
-        metricoolViewTitle.textContent = channel === 'resumen' ? 'Analíticas Generales' : `Métricas de ${name}`;
-      }
+      const channel = item.getAttribute('data-channel') || 'resumen';
+      renderSelectedChannelView(channel);
     });
   });
 

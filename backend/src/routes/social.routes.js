@@ -591,19 +591,17 @@ router.get('/callback/linkedin', async (req, res) => {
     const linkedinSecret = (process.env.LINKEDIN_CLIENT_SECRET || '').trim();
     const redirectUri = `${getBaseServerUrl()}/api/social/callback/linkedin`;
 
-    const basicAuth = Buffer.from(`${linkedinId}:${linkedinSecret}`).toString('base64');
     const tokenRes = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${basicAuth}`
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code: code.trim(),
-        client_id: linkedinId,
-        client_secret: linkedinSecret,
-        redirect_uri: redirectUri
+        client_id: linkedinId.trim(),
+        client_secret: linkedinSecret.trim(),
+        redirect_uri: redirectUri.trim()
       }).toString()
     });
 

@@ -4799,3 +4799,183 @@ body.dark-mode .avatar-modal-footer {
 .btn-save-avatar-primary:active {
   transform: translateY(0);
 }
+
+
+/* ==========================================================================
+   BOTONES DE VINCULACIÓN 'CONECTAR' EN EL SUB-SIDEBAR
+   ========================================================================== */
+.btn-channel-connect {
+  width: auto !important;
+  height: 24px !important;
+  padding: 0 9px !important;
+  border-radius: 999px !important;
+  border: 1px solid #ff00db !important;
+  background: rgba(255, 0, 219, 0.08) !important;
+  color: #ff00db !important;
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  white-space: nowrap !important;
+}
+.btn-channel-connect:hover {
+  background: #ff00db !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(255, 0, 219, 0.4) !important;
+  transform: translateY(-1px) !important;
+}
+.btn-channel-connect.connected {
+  border-color: #10b981 !important;
+  background: rgba(16, 185, 129, 0.1) !important;
+  color: #10b981 !important;
+}
+.btn-channel-connect.connected:hover {
+  background: #10b981 !important;
+  color: #ffffff !important;
+}
+
+/* ==========================================================================
+   VISTA ESPECÍFICA POR RED SOCIAL (ESTADOS CONECTADO Y DESCONECTADO)
+   ========================================================================== */
+.channel-disconnected-card {
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 20px;
+  padding: 50px 32px;
+  text-align: center;
+  margin-top: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+}
+body.dark-mode .channel-disconnected-card {
+  background: #0f111a;
+  border-color: #232738;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+.channel-big-icon-bubble {
+  width: 76px;
+  height: 76px;
+  border-radius: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.3rem;
+  color: #fff;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+.channel-disconnected-title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--text-main, #0f172a);
+  margin-bottom: 8px;
+}
+body.dark-mode .channel-disconnected-title {
+  color: #f8fafc;
+}
+.channel-disconnected-desc {
+  font-size: 0.92rem;
+  color: var(--text-muted, #64748b);
+  max-width: 520px;
+  margin: 0 auto 28px;
+  line-height: 1.6;
+}
+body.dark-mode .channel-disconnected-desc {
+  color: #94a3b8;
+}
+.btn-hero-connect-network {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 32px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, #210087 0%, #ff00db 100%);
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(255, 0, 219, 0.35);
+  transition: all 0.2s ease;
+}
+.btn-hero-connect-network:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(255, 0, 219, 0.5);
+  filter: brightness(1.08);
+}
+.channel-features-checklist {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 32px;
+  flex-wrap: wrap;
+}
+.channel-check-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+}
+body.dark-mode .channel-check-item {
+  color: #94a3b8;
+}
+.channel-check-item i {
+  color: #10b981;
+}
+
+/* Tarjeta de Red Conectada */
+.channel-connected-panel {
+  margin-top: 18px;
+}
+.channel-connected-header-card {
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 20px;
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+body.dark-mode .channel-connected-header-card {
+  background: #0f111a;
+  border-color: #232738;
+}
+.channel-user-profile-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.channel-user-avatar {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ff00db;
+}
+.channel-user-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main, #0f172a);
+  margin-bottom: 4px;
+}
+body.dark-mode .channel-user-name {
+  color: #f8fafc;
+}
+.channel-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
