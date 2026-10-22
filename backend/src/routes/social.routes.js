@@ -9,7 +9,9 @@ require('dotenv').config();
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://magumcreatorstudiopro.vercel.app';
 const META_APP_ID = process.env.META_APP_ID || process.env.FACEBOOK_APP_ID;
 const META_APP_SECRET = process.env.META_APP_SECRET || process.env.FACEBOOK_APP_SECRET;
-const SERVER_BASE_URL = process.env.SERVER_BASE_URL || 'https://magumcreatorstudiopro-production.up.railway.app';
+const getBaseServerUrl = () => {
+  return (process.env.SERVER_BASE_URL || process.env.RENDER_EXTERNAL_URL || 'https://magum-api.onrender.com').replace(/\/$/, '');
+};
 
 // ============================================================================
 // 1. OBTENER ESTADO DE CANALES CONECTADOS POR EMPRESA (MULTI-TENANT AISLADO)
@@ -85,9 +87,10 @@ router.get('/oauth/url/:provider', verifyToken, async (req, res) => {
 
     const appId = (process.env.META_APP_ID || process.env.FACEBOOK_APP_ID || '').trim();
     const isMeta = (provider === 'meta' || provider === 'facebook' || provider === 'instagram');
+    const serverBase = getBaseServerUrl();
     const redirectUri = isMeta 
-      ? `${SERVER_BASE_URL}/api/social/callback/meta` 
-      : `${SERVER_BASE_URL}/api/social/callback/${provider}`;
+      ? `${serverBase}/api/social/callback/meta` 
+      : `${serverBase}/api/social/callback/${provider}`;
 
     let authUrl = '';
 
@@ -156,7 +159,7 @@ router.get('/callback/meta', async (req, res) => {
       throw new Error('Las credenciales de Meta (META_APP_ID / META_APP_SECRET) no están disponibles en el servidor.');
     }
 
-    const redirectUri = `${SERVER_BASE_URL}/api/social/callback/meta`;
+    const redirectUri = `${getBaseServerUrl()}/api/social/callback/meta`;
 
     // 1. Intercambiar code por User Access Token corto
     const tokenParams = new URLSearchParams({

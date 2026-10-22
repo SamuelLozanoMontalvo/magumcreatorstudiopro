@@ -4,7 +4,8 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 require('dotenv').config();
 
-const { initDatabase } = require('./src/config/db');
+const db = require('./src/config/db');
+const { initDatabase } = db;
 
 // Importar rutas
 const authRoutes = require('./src/routes/auth.routes');

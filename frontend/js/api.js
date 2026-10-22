@@ -8,9 +8,9 @@ const API_BASE_URL = (function determineApiBase() {
     return '/api';
   }
 
-  // 2. Si se ejecuta en producción (ej. Vercel u otro dominio web)
+  // 2. Si se ejecuta en producción (Render como backend activo)
   if (window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return 'https://magumcreatorstudiopro-production.up.railway.app/api';
+    return 'https://magum-api.onrender.com/api';
   }
 
   // 3. Entorno de desarrollo local
