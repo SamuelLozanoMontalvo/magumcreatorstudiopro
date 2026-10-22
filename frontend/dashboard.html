@@ -1288,7 +1288,6 @@
                       <tr>
                         <th>Red Social</th>
                         <th>Cuenta Vinculada</th>
-                        <th>Estado de la API</th>
                         <th>Seguidores</th>
                         <th>Alcance Mensual</th>
                         <th>Acción</th>
@@ -1304,7 +1303,6 @@
                           </div>
                         </td>
                         <td><span class="account-handle text-muted" id="handle-ig">Sin vincular</span></td>
-                        <td><span class="badge-api-disconnected" id="status-badge-fb"><i class="fa-solid fa-circle-xmark"></i> Desconectado</span></td>
                         <td>—</td>
                         <td>—</td>
                         <td>
@@ -1321,7 +1319,6 @@
                           </div>
                         </td>
                         <td><span class="account-handle text-muted" id="handle-fb">Sin vincular</span></td>
-                        <td><span class="badge-api-disconnected" id="status-badge-fb"><i class="fa-solid fa-circle-xmark"></i> Desconectado</span></td>
                         <td>—</td>
                         <td>—</td>
                         <td>
@@ -1338,7 +1335,6 @@
                           </div>
                         </td>
                         <td><span class="account-handle text-muted" id="handle-tt">Sin vincular</span></td>
-                        <td><span class="badge-api-disconnected" id="status-badge-fb"><i class="fa-solid fa-circle-xmark"></i> Desconectado</span></td>
                         <td>—</td>
                         <td>—</td>
                         <td>
@@ -1355,7 +1351,6 @@
                           </div>
                         </td>
                         <td><span class="account-handle text-muted">Sin vincular</span></td>
-                        <td><span class="badge-api-disconnected"><i class="fa-solid fa-circle-xmark"></i> Desconectado</span></td>
                         <td>—</td>
                         <td>—</td>
                         <td>
@@ -1372,7 +1367,6 @@
                           </div>
                         </td>
                         <td><span class="account-handle text-muted">Sin vincular</span></td>
-                        <td><span class="badge-api-disconnected"><i class="fa-solid fa-circle-xmark"></i> Desconectado</span></td>
                         <td>—</td>
                         <td>—</td>
                         <td>
@@ -1389,7 +1383,6 @@
                           </div>
                         </td>
                         <td><span class="account-handle text-muted">Sin vincular</span></td>
-                        <td><span class="badge-api-disconnected"><i class="fa-solid fa-circle-xmark"></i> Desconectado</span></td>
                         <td>—</td>
                         <td>—</td>
                         <td>
@@ -1406,7 +1399,6 @@
                           </div>
                         </td>
                         <td><span class="account-handle text-muted">Sin vincular</span></td>
-                        <td><span class="badge-api-disconnected"><i class="fa-solid fa-circle-xmark"></i> Desconectado</span></td>
                         <td>—</td>
                         <td>—</td>
                         <td>
@@ -1423,7 +1415,6 @@
                           </div>
                         </td>
                         <td><span class="account-handle text-muted">Sin vincular</span></td>
-                        <td><span class="badge-api-disconnected"><i class="fa-solid fa-circle-xmark"></i> Desconectado</span></td>
                         <td>—</td>
                         <td>—</td>
                         <td>
@@ -1440,7 +1431,6 @@
                           </div>
                         </td>
                         <td><span class="account-handle text-muted">Sin vincular</span></td>
-                        <td><span class="badge-api-disconnected"><i class="fa-solid fa-circle-xmark"></i> Desconectado</span></td>
                         <td>—</td>
                         <td>—</td>
                         <td>
@@ -1457,7 +1447,6 @@
                           </div>
                         </td>
                         <td><span class="account-handle text-muted">Sin vincular</span></td>
-                        <td><span class="badge-api-disconnected"><i class="fa-solid fa-circle-xmark"></i> Desconectado</span></td>
                         <td>—</td>
                         <td>—</td>
                         <td>
@@ -2570,23 +2559,12 @@
             <i class="fa-solid fa-shield-halved"></i>
           </div>
           <p class="oauth-info-text">
-            Conexión segura vía protocolo <strong>OAuth 2.0 Oficial</strong>. Magum Creator Studio solo solicita permisos de lectura de analíticas y programación de contenido sin acceder a contraseñas personales.
+            Conexión oficial con Magum Creator Studio. Solo sincroniza métricas y analíticas de tu cuenta de forma segura y privada.
           </p>
         </div>
 
         <form id="form-connect-social" class="modal-form" onsubmit="return false;">
           <input type="hidden" id="connect-social-channel" value="instagram">
-
-          <div class="form-group">
-            <label for="connect-social-handle" class="form-label">Nombre de usuario o Identificador de Página *</label>
-            <input 
-              type="text" 
-              id="connect-social-handle" 
-              class="form-input" 
-              placeholder="@tu_marca_oficial" 
-              required
-            >
-          </div>
 
           <div class="social-permissions-checklist">
             <div class="perm-check-item">
@@ -2607,7 +2585,7 @@
             <button type="button" id="btn-cancel-social-modal" class="btn-cancel">Cancelar</button>
             <button type="button" id="btn-simulate-oauth" class="btn-submit-account" style="background: linear-gradient(135deg, #1877f2, #e1306c);">
               <i class="fa-solid fa-link"></i>
-              <span id="btn-social-submit-text">Autorizar y Sincronizar API</span>
+              <span id="btn-social-submit-text">Conectar</span>
             </button>
           </footer>
         </form>

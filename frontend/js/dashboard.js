@@ -1661,9 +1661,7 @@ document.addEventListener('DOMContentLoaded', () => {
       submitBtn.style.background = meta.color;
     }
     if (submitText) {
-      submitText.textContent = (channelKey === 'instagram' || channelKey === 'facebook')
-        ? 'Conectar con Meta (OAuth 2.0)'
-        : 'Autorizar y Sincronizar API';
+      submitText.textContent = 'Conectar';
     }
     if (modal) {
       modal.style.display = 'flex';
@@ -1697,12 +1695,11 @@ document.addEventListener('DOMContentLoaded', () => {
           const row = document.querySelector(`tr[data-channel-row="${channelKey}"]`);
           if (row) {
             const cells = row.querySelectorAll('td');
-            if (cells.length >= 6) {
+            if (cells.length >= 5) {
               cells[1].innerHTML = `<span class="account-handle text-muted">Sin vincular</span>`;
-              cells[2].innerHTML = `<span class="badge-api-disconnected"><i class="fa-solid fa-circle-xmark"></i> Desconectado</span>`;
+              cells[2].textContent = '—';
               cells[3].textContent = '—';
-              cells[4].textContent = '—';
-              cells[5].innerHTML = `<button type="button" class="btn-connect-sm" onclick="openConnectModal('${channelKey}')">Conectar</button>`;
+              cells[4].innerHTML = `<button type="button" class="btn-connect-sm" onclick="openConnectModal('${channelKey}')">Conectar</button>`;
             }
           }
           const sideBtn = document.querySelector(`.btn-channel-connect[data-connect-channel="${channelKey}"]`);
@@ -1730,14 +1727,14 @@ document.addEventListener('DOMContentLoaded', () => {
   if (socialSubmitBtn) {
     socialSubmitBtn.addEventListener('click', async () => {
       const channelKey = socialChannelInput ? socialChannelInput.value : 'instagram';
-      const handle = (socialHandleInput && socialHandleInput.value.trim()) || `@empresa_${channelKey}`;
+      const handle = (socialHandleInput && socialHandleInput.value.trim()) || `@${channelKey}_pro`;
       const meta = channelData[channelKey] || { name: channelKey };
 
-      const originalText = socialSubmitText ? socialSubmitText.textContent : 'Conectar';
+      const originalText = 'Conectar';
 
       // Si es Meta (Instagram o Facebook), iniciar flujo OAuth oficial en vivo
       if (channelKey === 'instagram' || channelKey === 'facebook') {
-        if (socialSubmitText) socialSubmitText.textContent = 'Conectando con Meta...';
+        if (socialSubmitText) socialSubmitText.textContent = 'Conectando...';
         socialSubmitBtn.disabled = true;
 
         try {
@@ -1745,7 +1742,7 @@ document.addEventListener('DOMContentLoaded', () => {
             throw new Error('Cliente API no inicializado.');
           }
 
-          const authRes = await MagumApi.getSocialAuthUrl('meta');
+          const authRes = await MagumApi.getSocialAuthUrl(channelKey);
           if (authRes && authRes.success && authRes.authUrl) {
             localStorage.setItem('magum_social_pending', channelKey);
             window.location.href = authRes.authUrl;
@@ -1858,12 +1855,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (row) {
               const cells = row.querySelectorAll('td');
-              if (cells.length >= 6) {
-                cells[1].innerHTML = `<span class="account-handle">${escapeHtml(handle)}</span>`;
-                cells[2].innerHTML = `<span class="badge-api-connected"><i class="fa-solid fa-circle-check"></i> Sincronizado</span>`;
-                cells[3].textContent = cache.followers || meta.followers || '—';
-                cells[4].textContent = cache.reach || meta.reach || '—';
-                cells[5].innerHTML = `<button type="button" class="btn-disconnect-sm" onclick="configureSocialChannel('${channelKey}')">Configurar</button>`;
+              if (cells.length >= 5) {
+                cells[1].innerHTML = `<span class="account-handle font-semibold text-white">${escapeHtml(handle)}</span>`;
+                cells[2].textContent = cache.followers || meta.followers || '—';
+                cells[3].textContent = cache.reach || meta.reach || '—';
+                cells[4].innerHTML = `<button type="button" class="btn-disconnect-sm" onclick="configureSocialChannel('${channelKey}')">Configurar</button>`;
               }
             }
 
@@ -1874,12 +1870,11 @@ document.addEventListener('DOMContentLoaded', () => {
           } else {
             if (row) {
               const cells = row.querySelectorAll('td');
-              if (cells.length >= 6) {
+              if (cells.length >= 5) {
                 cells[1].innerHTML = `<span class="account-handle text-muted">Sin vincular</span>`;
-                cells[2].innerHTML = `<span class="badge-api-disconnected"><i class="fa-solid fa-circle-xmark"></i> Desconectado</span>`;
+                cells[2].textContent = '—';
                 cells[3].textContent = '—';
-                cells[4].textContent = '—';
-                cells[5].innerHTML = `<button type="button" class="btn-connect-sm" onclick="openConnectModal('${channelKey}')">Conectar</button>`;
+                cells[4].innerHTML = `<button type="button" class="btn-connect-sm" onclick="openConnectModal('${channelKey}')">Conectar</button>`;
               }
             }
 
