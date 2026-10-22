@@ -1912,7 +1912,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const socialStatus = urlParams.get('social_status');
     const socialMsg = urlParams.get('msg');
-    const socialProvider = urlParams.get('provider') || 'Meta';
+    const pendingChannel = localStorage.getItem('magum_social_pending');
+    const rawProvider = urlParams.get('provider') || pendingChannel || 'LinkedIn';
+    const socialProvider = rawProvider.charAt(0).toUpperCase() + rawProvider.slice(1).toLowerCase();
 
     if (socialStatus) {
       const socialNavBtn = document.querySelector('[data-view="view-marketing-social"]');
@@ -1965,8 +1967,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }).then(async (result) => {
               if (result.isConfirmed) {
                 try {
-                  await MagumApi.connectSocialManual(socialProvider.toLowerCase(), `@${socialProvider.toLowerCase()}_oficial`);
+                  const targetChannel = (rawProvider || 'linkedin').toLowerCase();
+                  await MagumApi.connectSocialManual(targetChannel, `@${targetChannel}_oficial`);
+                  localStorage.removeItem('magum_social_pending');
+                  window.history.replaceState({}, document.title, window.location.pathname + '#marketing-social');
                   await syncSocialFromBackend();
+                  if (typeof switchChannelView === 'function') {
+                    switchChannelView(targetChannel);
+                  }
                   Swal.fire({
                     title: '¡Canal Conectado!',
                     text: `Tu cuenta de ${socialProvider} ha sido vinculada y sincronizada exitosamente con tus métricas.`,
