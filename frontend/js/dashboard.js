@@ -1745,14 +1745,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const originalText = 'Conectar';
 
       // Si es Meta (Instagram o Facebook), iniciar flujo OAuth oficial en vivo
-      if (channelKey === 'instagram' || channelKey === 'facebook') {
-        if (socialSubmitText) socialSubmitText.textContent = 'Conectando...';
+      const hasManualInput = socialHandleInput && socialHandleInput.value.trim().length > 0;
+
+      // Si el usuario no especificó handle manual y la red soporta OAuth oficial, intentar autenticación en vivo
+      const oauthProviders = ['instagram', 'facebook', 'youtube', 'tiktok', 'linkedin', 'twitter', 'x'];
+      if (!hasManualInput && oauthProviders.includes(channelKey)) {
+        if (socialSubmitText) socialSubmitText.textContent = 'Conectando con API...';
         socialSubmitBtn.disabled = true;
 
         try {
-          if (!window.MagumApi) {
-            throw new Error('Cliente API no inicializado.');
-          }
+          if (!window.MagumApi) throw new Error('Cliente API no inicializado.');
 
           const authRes = await MagumApi.getSocialAuthUrl(channelKey);
           if (authRes && authRes.success && authRes.authUrl) {
@@ -1765,33 +1767,39 @@ document.addEventListener('DOMContentLoaded', () => {
             socialSubmitBtn.disabled = false;
             if (socialSubmitText) socialSubmitText.textContent = originalText;
             if (window.Swal) {
-              Swal.fire({
-                title: 'Credenciales de Meta Requeridas',
-                text: authRes.message || 'Se requiere configurar META_APP_ID en las variables de entorno de Railway.',
-                icon: 'warning',
-                confirmButtonColor: '#210087'
+              const result = await Swal.fire({
+                title: `Credenciales de ${meta.name}`,
+                text: `Para conectar por OAuth oficial en vivo se requiere configurar ${authRes.envKey || 'las API Keys'} en Railway. ¿Deseas ingresar tu nombre de usuario o canal directamente?`,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#210087',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ingresar @Usuario',
+                cancelButtonText: 'Cancelar'
               });
+              if (result.isConfirmed) {
+                if (socialHandleInput) socialHandleInput.focus();
+              }
             } else {
               alert(authRes.message);
             }
             return;
           }
 
-          throw new Error((authRes && authRes.message) || 'No se obtuvo la URL de autorización de Meta.');
+          throw new Error((authRes && authRes.message) || 'No se obtuvo la URL de autorización oficial.');
         } catch (authErr) {
           socialSubmitBtn.disabled = false;
           if (socialSubmitText) socialSubmitText.textContent = originalText;
-          console.error('[Social OAuth] Error al conectar con Meta:', authErr);
-
+          console.error('[Social OAuth] Error al conectar con API:', authErr);
           if (window.Swal) {
             Swal.fire({
-              title: 'Error de Conexión',
-              text: authErr.message || 'No fue posible abrir la autorización oficial con Meta. Verifica tu sesión y las credenciales.',
+              title: 'Error de Conexión API',
+              text: authErr.message || 'No fue posible abrir la autorización oficial. Verifica la conexión con el servidor.',
               icon: 'error',
               confirmButtonColor: '#ef4444'
             });
           } else {
-            alert('Error al conectar con Meta: ' + authErr.message);
+            alert('Error al conectar: ' + authErr.message);
           }
           return;
         }
