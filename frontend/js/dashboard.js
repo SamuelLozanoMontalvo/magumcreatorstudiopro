@@ -2704,7 +2704,39 @@ document.addEventListener('DOMContentLoaded', () => {
   const warningsList = document.getElementById('warnings-list');
   const warningsChevron = document.getElementById('warnings-chevron');
   const warningPastDate = document.getElementById('warning-past-date');
-  const warningEmptyContent = document.getElementById('warning-empty-content');
+  const warningFbContent = document.getElementById('warning-fb-content');
+  const warningIgContent = document.getElementById('warning-ig-content');
+
+  // Canales y Media para validaciones
+  const toggleChFb = document.getElementById('toggle-ch-fb');
+  const toggleChIg = document.getElementById('toggle-ch-ig');
+  let currentPostImage = null;
+
+  // Interacción selectores de fecha y reloj
+  const groupDatePicker = document.getElementById('group-date-picker');
+  const groupTimePicker = document.getElementById('group-time-picker');
+  if (groupDatePicker && postScheduleDate) {
+    groupDatePicker.addEventListener('click', (e) => {
+      if (e.target !== postScheduleDate) {
+        if (typeof postScheduleDate.showPicker === 'function') {
+          try { postScheduleDate.showPicker(); } catch (err) { postScheduleDate.focus(); }
+        } else {
+          postScheduleDate.focus();
+        }
+      }
+    });
+  }
+  if (groupTimePicker && postScheduleTime) {
+    groupTimePicker.addEventListener('click', (e) => {
+      if (e.target !== postScheduleTime) {
+        if (typeof postScheduleTime.showPicker === 'function') {
+          try { postScheduleTime.showPicker(); } catch (err) { postScheduleTime.focus(); }
+        } else {
+          postScheduleTime.focus();
+        }
+      }
+    });
+  }
 
   function validatePostForm() {
     let errorCount = 0;
@@ -2725,14 +2757,34 @@ document.addEventListener('DOMContentLoaded', () => {
       if (warningPastDate) warningPastDate.style.display = 'none';
     }
 
-    // 2. Validar contenido vacío (texto o recurso visual)
+    // 2. Validar contenido según redes seleccionadas (Facebook e Instagram)
     const captionText = postCaptionInput ? postCaptionInput.value.trim() : '';
     const hasMedia = !!currentPostImage;
-    if (!captionText && !hasMedia) {
-      errorCount++;
-      if (warningEmptyContent) warningEmptyContent.style.display = 'flex';
+    const isFbActive = toggleChFb && toggleChFb.classList.contains('active');
+    const isIgActive = toggleChIg && toggleChIg.classList.contains('active');
+
+    // Validación Facebook: requiere texto o recurso visual
+    if (isFbActive) {
+      if (!captionText && !hasMedia) {
+        errorCount++;
+        if (warningFbContent) warningFbContent.style.display = 'flex';
+      } else {
+        if (warningFbContent) warningFbContent.style.display = 'none';
+      }
     } else {
-      if (warningEmptyContent) warningEmptyContent.style.display = 'none';
+      if (warningFbContent) warningFbContent.style.display = 'none';
+    }
+
+    // Validación Instagram: requiere obligatoriamente foto o video
+    if (isIgActive) {
+      if (!hasMedia) {
+        errorCount++;
+        if (warningIgContent) warningIgContent.style.display = 'flex';
+      } else {
+        if (warningIgContent) warningIgContent.style.display = 'none';
+      }
+    } else {
+      if (warningIgContent) warningIgContent.style.display = 'none';
     }
 
     // Actualizar caja de advertencias
@@ -2850,8 +2902,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Toggle de canales (FB, IG)
-  const toggleChFb = document.getElementById('toggle-ch-fb');
-  const toggleChIg = document.getElementById('toggle-ch-ig');
   const previewChannelIndicator = document.getElementById('preview-channel-indicator');
   const counterNetworkIcon = document.getElementById('counter-network-icon');
 
@@ -2869,12 +2919,14 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleChFb.addEventListener('click', () => {
       toggleChFb.classList.toggle('active');
       updateActiveChannelsUI();
+      validatePostForm();
     });
   }
   if (toggleChIg) {
     toggleChIg.addEventListener('click', () => {
       toggleChIg.classList.toggle('active');
       updateActiveChannelsUI();
+      validatePostForm();
     });
   }
 
@@ -2897,7 +2949,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Subida de archivos (imagen / video)
-  let currentPostImage = null;
   const mockupMediaContainer = document.getElementById('mockup-media-container');
   const mockupMediaImg = document.getElementById('mockup-media-img');
   const mockupTextBody = document.getElementById('mockup-text-body');

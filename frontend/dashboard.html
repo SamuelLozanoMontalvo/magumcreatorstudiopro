@@ -2760,9 +2760,13 @@
                 <i class="fa-solid fa-circle-info"></i>
                 <span>La fecha de publicación está en el pasado.</span>
               </div>
-              <div class="warning-item" id="warning-empty-content" style="display: none;">
+              <div class="warning-item" id="warning-fb-content" style="display: none;">
                 <i class="fa-brands fa-facebook"></i>
                 <span>Post → Se requiere al menos un carácter de texto o un recurso visual.</span>
+              </div>
+              <div class="warning-item" id="warning-ig-content" style="display: none;">
+                <i class="fa-brands fa-instagram" style="color: #e1306c;"></i>
+                <span>Post → Se requiere al menos un recurso visual (foto o video).</span>
               </div>
             </div>
           </div>
@@ -2780,9 +2784,15 @@
               
               <!-- Píldora de Fecha y Hora interactiva -->
               <div class="schedule-pill-box" id="schedule-pill-box" title="Elegir fecha y hora">
-                <i class="fa-regular fa-calendar"></i>
-                <input type="date" id="post-schedule-date" class="metricool-date-input">
-                <input type="time" id="post-schedule-time" class="metricool-time-input" value="18:00">
+                <div class="pill-field-group" id="group-date-picker">
+                  <i class="fa-regular fa-calendar" id="icon-date-cal" style="color: #64748b;"></i>
+                  <input type="date" id="post-schedule-date" class="metricool-date-input">
+                </div>
+                <span class="pill-divider"></span>
+                <div class="pill-field-group" id="group-time-picker">
+                  <i class="fa-regular fa-clock" id="icon-time-clock" style="color: #64748b;"></i>
+                  <input type="time" id="post-schedule-time" class="metricool-time-input" value="18:00">
+                </div>
               </div>
 
               <!-- Botón Split con Menú Desplegable (Screenshot 2 Exact Replica) -->

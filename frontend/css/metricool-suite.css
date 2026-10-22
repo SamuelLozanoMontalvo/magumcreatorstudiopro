@@ -1000,3 +1000,34 @@ body.dark-mode .metricool-sub-input {
   color: #ff00db !important;
   background: rgba(255, 0, 219, 0.1);
 }
+
+/* ==========================================================================
+   PILL FIELD GROUP (CALENDAR + CLOCK SEPARATION)
+   ========================================================================== */
+.pill-field-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.pill-field-group i {
+  font-size: 0.9rem;
+  transition: color 0.15s;
+}
+.pill-field-group:hover i {
+  color: #ff00db !important;
+}
+.pill-divider {
+  width: 1px;
+  height: 16px;
+  background: #cbd5e1;
+  margin: 0 4px;
+}
+body.dark-mode .pill-divider {
+  background: #334155;
+}
+.metricool-date-input::-webkit-calendar-picker-indicator,
+.metricool-time-input::-webkit-calendar-picker-indicator {
+  display: none !important;
+  -webkit-appearance: none !important;
+}
