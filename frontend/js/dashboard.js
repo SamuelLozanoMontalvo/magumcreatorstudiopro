@@ -1569,6 +1569,56 @@ document.addEventListener('DOMContentLoaded', () => {
       placeholder: 'linkedin.com/company/tu-empresa',
       followers: '5,140',
       reach: '9,820'
+    },
+    twitter: {
+      name: 'X (Twitter)',
+      icon: 'fa-brands fa-x-twitter',
+      color: '#000000',
+      badgeBg: 'rgba(255, 255, 255, 0.1)',
+      badgeColor: '#ffffff',
+      placeholder: '@tu_cuenta_x',
+      followers: '7,890',
+      reach: '19,400'
+    },
+    pinterest: {
+      name: 'Pinterest Business',
+      icon: 'fa-brands fa-pinterest',
+      color: '#e60023',
+      badgeBg: 'rgba(230, 0, 35, 0.15)',
+      badgeColor: '#e60023',
+      placeholder: 'pinterest.com/tu_cuenta',
+      followers: '4,320',
+      reach: '14,800'
+    },
+    google_business: {
+      name: 'Google Business Profile',
+      icon: 'fa-brands fa-google',
+      color: '#4285f4',
+      badgeBg: 'rgba(66, 133, 244, 0.15)',
+      badgeColor: '#4285f4',
+      placeholder: 'Nombre en Google Maps / Business',
+      followers: '9,150',
+      reach: '22,300'
+    },
+    threads: {
+      name: 'Threads',
+      icon: 'fa-brands fa-threads',
+      color: '#000000',
+      badgeBg: 'rgba(255, 255, 255, 0.1)',
+      badgeColor: '#ffffff',
+      placeholder: '@tu_usuario_threads',
+      followers: '6,450',
+      reach: '15,200'
+    },
+    twitch: {
+      name: 'Twitch Channel',
+      icon: 'fa-brands fa-twitch',
+      color: '#9146ff',
+      badgeBg: 'rgba(145, 70, 255, 0.15)',
+      badgeColor: '#9146ff',
+      placeholder: 'twitch.tv/tu_canal',
+      followers: '3,210',
+      reach: '8,900'
     }
   };
 
@@ -1784,7 +1834,7 @@ document.addEventListener('DOMContentLoaded', () => {
           connMap[c.provider] = c;
         });
 
-        ['instagram', 'facebook', 'tiktok', 'youtube', 'linkedin'].forEach(channelKey => {
+        ['instagram', 'facebook', 'tiktok', 'youtube', 'linkedin', 'twitter', 'pinterest', 'google_business', 'threads', 'twitch'].forEach(channelKey => {
           const conn = connMap[channelKey];
           const meta = channelData[channelKey] || {};
           const row = document.querySelector(`tr[data-channel-row="${channelKey}"]`);

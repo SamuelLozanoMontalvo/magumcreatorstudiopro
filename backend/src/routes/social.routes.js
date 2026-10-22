@@ -270,7 +270,10 @@ router.post('/connect-manual', verifyToken, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Proveedor y nombre de cuenta son obligatorios.' });
     }
 
-    const validProviders = ['instagram', 'facebook', 'tiktok', 'youtube', 'linkedin'];
+    const validProviders = [
+      'instagram', 'facebook', 'tiktok', 'youtube', 'linkedin',
+      'twitter', 'x', 'pinterest', 'google_business', 'threads', 'twitch'
+    ];
     if (!validProviders.includes(provider.toLowerCase())) {
       return res.status(400).json({ success: false, message: 'Proveedor de red social no soportado.' });
     }
@@ -284,7 +287,13 @@ router.post('/connect-manual', verifyToken, async (req, res) => {
       facebook: { followers: '16,400', reach: '16,400', engagement: '4.8%', posts: 98 },
       tiktok: { followers: '8,420', reach: '38,200', engagement: '7.4%', posts: 46 },
       youtube: { followers: '12,300', reach: '45,600', engagement: '6.1%', posts: 32 },
-      linkedin: { followers: '5,140', reach: '12,800', engagement: '4.2%', posts: 28 }
+      linkedin: { followers: '5,140', reach: '12,800', engagement: '4.2%', posts: 28 },
+      twitter: { followers: '7,890', reach: '19,400', engagement: '3.9%', posts: 215 },
+      x: { followers: '7,890', reach: '19,400', engagement: '3.9%', posts: 215 },
+      pinterest: { followers: '4,320', reach: '14,800', engagement: '6.5%', posts: 84 },
+      google_business: { followers: '9,150', reach: '22,300', engagement: '8.1%', posts: 19 },
+      threads: { followers: '6,450', reach: '15,200', engagement: '5.8%', posts: 63 },
+      twitch: { followers: '3,210', reach: '8,900', engagement: '9.2%', posts: 12 }
     };
 
     const metrics = sampleMetrics[provider.toLowerCase()] || { followers: '1,200', reach: '3,400', engagement: '4.0%', posts: 10 };
