@@ -9,6 +9,10 @@
     { "source": "/login.html", "destination": "/frontend/index.html" },
     { "source": "/setup-password", "destination": "/frontend/setup-password.html" },
     { "source": "/setup-password.html", "destination": "/frontend/setup-password.html" },
+    { "source": "/privacy", "destination": "/frontend/privacy.html" },
+    { "source": "/privacy.html", "destination": "/frontend/privacy.html" },
+    { "source": "/data-deletion", "destination": "/frontend/data-deletion.html" },
+    { "source": "/data-deletion.html", "destination": "/frontend/data-deletion.html" },
     { "source": "/index.html", "destination": "/frontend/index.html" },
     { "source": "/", "destination": "/frontend/index.html" }
   ]
