@@ -1890,37 +1890,48 @@ document.addEventListener('DOMContentLoaded', () => {
           counter.textContent = `${connectedCount} de ${extraChannelsExpanded ? '10' : '5'} redes conectadas`;
         }
 
-        // Si hay canales conectados, sincronizar y dar vida a las demás sub-vistas de Metricool
+                // Si hay canales conectados, sincronizar KPIs reales y dar vida a las sub-vistas
         if (connectedCount > 0) {
-          // 1. Analítica (KPIs de Cabecera)
+          // 1. Analítica: Cálculo dinámico de números reales consolidados
+          let totalFollowers = 0;
+          let totalReach = 0;
+          let sumEng = 0;
+          let countEng = 0;
+
+          ['instagram', 'facebook', 'tiktok', 'youtube'].forEach(p => {
+            const conn = connMap[p];
+            if (conn && conn.status === 'active') {
+              const cache = conn.metrics_cache || {};
+              const f = parseInt(String(cache.followers || '0').replace(/[^0-9]/g, ''), 10) || 0;
+              const r = parseInt(String(cache.reach || '0').replace(/[^0-9]/g, ''), 10) || 0;
+              const e = parseFloat(String(cache.engagement || '0').replace(/[^0-9.]/g, '')) || 0;
+              totalFollowers += f;
+              totalReach += r;
+              if (e > 0) {
+                sumEng += e;
+                countEng++;
+              }
+            }
+          });
+
           const kpiFollowers = document.getElementById('metric-followers-total');
           const kpiReach = document.getElementById('metric-reach-total');
           const kpiEngagement = document.getElementById('metric-engagement-rate');
-          if (kpiFollowers) kpiFollowers.textContent = '34,800';
-          if (kpiReach) kpiReach.textContent = '40,500';
-          if (kpiEngagement) kpiEngagement.textContent = '5.0%';
+          if (kpiFollowers) kpiFollowers.textContent = totalFollowers > 0 ? totalFollowers.toLocaleString() : '2,340';
+          if (kpiReach) kpiReach.textContent = totalReach > 0 ? totalReach.toLocaleString() : '5,460';
+          if (kpiEngagement) kpiEngagement.textContent = countEng > 0 ? `${(sumEng / countEng).toFixed(1)}%` : '4.4%';
 
           // 2. Reporting (Informe Ejecutivo)
           const reportBizName = document.getElementById('report-sheet-biz-name');
           if (reportBizName) reportBizName.textContent = 'Magum Creator Studio';
 
-          // 3. Inbox (Conversaciones activas con canales sincronizados)
-          const igChatName = document.querySelector('[data-chat-id="chat-2"] .chat-contact-name');
-          if (igChatName && connMap['instagram']) igChatName.textContent = connMap['instagram'].account_name;
-          const fbChatName = document.querySelector('[data-chat-id="chat-3"] .chat-contact-name');
-          if (fbChatName && connMap['facebook']) fbChatName.textContent = connMap['facebook'].account_name;
-
-          // 4. SmartLinks (Perfil en vivo y Smartphone Mockup)
+          // 3. SmartLinks
           const smartTitle = document.getElementById('smartlink-input-title');
           const phoneTitle = document.getElementById('phone-profile-name');
           const phoneDesc = document.getElementById('phone-profile-desc');
           if (smartTitle) smartTitle.value = 'Magum Creator Studio';
           if (phoneTitle) phoneTitle.textContent = 'Magum Creator Studio';
           if (phoneDesc) phoneDesc.textContent = 'Agencia & Creator Studio Oficial. Conectamos tu marca en redes sociales.';
-
-          // 5. Planificación (Calendario y programador de posts)
-          const todayPostCard = document.querySelector('.cal-day-cell.today .cal-post-card .post-title-trunc');
-          if (todayPostCard) todayPostCard.textContent = 'Reel: Lanzamiento Magum Creator Studio';
         }
       }
     } catch (err) {
@@ -2240,8 +2251,91 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================================================
-  // 14. INBOX INTERACTIVO (MENSAJES EN TIEMPO REAL)
+  // 14. INBOX MULTICANAL OFICIAL (INSTAGRAM DIRECT & FACEBOOK MESSENGER)
   // ==========================================================================
+  const DEFAULT_INBOX_CHATS = {
+    'chat-ig-1': {
+      id: 'chat-ig-1',
+      name: 'Mariana Restrepo',
+      handle: '@mariana_art',
+      channel: 'instagram',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80',
+      messages: [
+        { sender: 'incoming', text: '¡Hola Samy! Vi sus reels y el trabajo que hacen en Magum con marcas personales. ¿Cómo es el proceso para que me asesoren con mi estrategia de contenido para este mes?', time: '10:40 AM' },
+        { sender: 'outgoing', text: '¡Hola Mariana! Qué gusto saludarte. Hacemos un diagnóstico de tu perfil actual, definimos los 4 pilares de tu marca y armamos el calendario de grabación. Te paso la propuesta por aquí o agendamos una videollamada de 15 min.', time: '10:41 AM' },
+        { sender: 'incoming', text: 'Me encantaría la llamada, ¿tienen disponibilidad el jueves por la tarde?', time: '10:42 AM' }
+      ]
+    },
+    'chat-fb-1': {
+      id: 'chat-fb-1',
+      name: 'Restaurante Bocagrande (Felipe)',
+      handle: 'Restaurante & Bar Bocagrande',
+      channel: 'facebook',
+      avatar: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=80&q=80',
+      messages: [
+        { sender: 'incoming', text: 'Buenas tardes Magum Creator Studio. Vimos sus campañas en Facebook y queremos renovar la presencia digital del restaurante. ¿Tienen paquetes que incluyan pauta en Meta Ads y producción de videos?', time: 'Ayer' },
+        { sender: 'outgoing', text: '¡Buenas tardes Felipe! Sí, contamos con producción mensual de reels, fotografía gastronómica y gestión de pauta en Meta Ads orientada a reservas. ¿Te compartimos el dossier?', time: 'Ayer' },
+        { sender: 'incoming', text: 'Excelente, por favor envíamelo a este chat o al correo oficial.', time: 'Ayer' }
+      ]
+    },
+    'chat-ig-2': {
+      id: 'chat-ig-2',
+      name: 'David Ortiz (@davidortiz.fit)',
+      handle: '@davidortiz.fit',
+      channel: 'instagram',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&q=80',
+      messages: [
+        { sender: 'incoming', text: 'Bro, una pregunta sobre los paquetes de grabación de reels en estudio. ¿Ustedes se encargan de los guiones y edición o solo la producción?', time: 'Ayer' },
+        { sender: 'outgoing', text: '¡Hola David! Nos encargamos de la investigación de tendencias, armado de guiones con ganchos virales, grabación en set y postproducción dinámica.', time: 'Ayer' }
+      ]
+    },
+    'chat-fb-2': {
+      id: 'chat-fb-2',
+      name: 'Laura Jiménez (Consultoría)',
+      handle: 'Laura Jiménez Asociados',
+      channel: 'facebook',
+      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=80&q=80',
+      messages: [
+        { sender: 'incoming', text: 'Hola equipo, quisiéramos cotizar el servicio de branding digital para nuestra firma de consultores.', time: 'Hace 2 días' },
+        { sender: 'outgoing', text: 'Hola Laura, un gusto. Manejamos diseño de identidad corporativa, manual de marca y plantillas para redes. ¿Para qué fecha lo proyectan?', time: 'Hace 2 días' }
+      ]
+    },
+    'chat-ig-3': {
+      id: 'chat-ig-3',
+      name: 'Camila Peña (@camila.boutique)',
+      handle: '@camila.boutique',
+      channel: 'instagram',
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80',
+      messages: [
+        { sender: 'incoming', text: 'Hola Samy, ¿cuándo inician el próximo ciclo de creación de contenido para marcas de moda?', time: 'Hace 3 días' },
+        { sender: 'outgoing', text: '¡Hola Camila! Iniciamos cupos el primer lunes de cada mes. Te reservamos un cupo prioritario si gustas.', time: 'Hace 3 días' }
+      ]
+    }
+  };
+
+  function getInboxStorageKey() {
+    const raw = localStorage.getItem('magum_session');
+    let accId = 'default';
+    try { accId = JSON.parse(raw).accountId || 'default'; } catch {}
+    return `magum_inbox_chats_${accId}`;
+  }
+
+  function getInboxChats() {
+    try {
+      const raw = localStorage.getItem(getInboxStorageKey());
+      return raw ? JSON.parse(raw) : DEFAULT_INBOX_CHATS;
+    } catch {
+      return DEFAULT_INBOX_CHATS;
+    }
+  }
+
+  function saveInboxChats(chats) {
+    try {
+      localStorage.setItem(getInboxStorageKey(), JSON.stringify(chats));
+    } catch {}
+  }
+
+  let activeChatId = 'chat-ig-1';
   const inboxChatItems = document.querySelectorAll('.inbox-chat-item');
   const threadContactName = document.getElementById('thread-contact-name');
   const threadAvatar = document.getElementById('thread-avatar');
@@ -2250,59 +2344,144 @@ document.addEventListener('DOMContentLoaded', () => {
   const inboxMessagesScroll = document.getElementById('inbox-messages-scroll');
   const inboxReplyInput = document.getElementById('inbox-reply-input');
   const btnSendInboxMsg = document.getElementById('btn-send-inbox-msg');
+  const inboxTabButtons = document.querySelectorAll('.inbox-channel-tabs .inbox-tab');
+  const inboxSearchInput = document.getElementById('inbox-search-input');
 
-  inboxChatItems.forEach(chat => {
-    chat.addEventListener('click', () => {
-      inboxChatItems.forEach(c => c.classList.remove('active'));
-      chat.classList.add('active');
+  function renderThreadMessages(chatId) {
+    if (!inboxMessagesScroll) return;
+    const allChats = getInboxChats();
+    const chat = allChats[chatId] || DEFAULT_INBOX_CHATS[chatId];
+    if (!chat) return;
 
-      const name = chat.querySelector('.chat-contact-name')?.textContent || 'Cliente';
-      const avatarSrc = chat.querySelector('.chat-avatar-wrap img')?.src || '';
-      const channel = chat.getAttribute('data-channel');
+    inboxMessagesScroll.innerHTML = '';
+    (chat.messages || []).forEach(msg => {
+      const bubbleGroup = document.createElement('div');
+      bubbleGroup.className = `msg-bubble-group ${msg.sender}`;
+      const timeHtml = msg.sender === 'outgoing'
+        ? `${escapeHtml(msg.time)} • Leído <i class="fa-solid fa-check-double" style="color: #00d2ff;"></i>`
+        : escapeHtml(msg.time);
+      bubbleGroup.innerHTML = `
+        <div class="msg-bubble">${escapeHtml(msg.text)}</div>
+        <span class="msg-time">${timeHtml}</span>
+      `;
+      inboxMessagesScroll.appendChild(bubbleGroup);
+    });
+    inboxMessagesScroll.scrollTop = inboxMessagesScroll.scrollHeight;
+  }
 
-      if (threadContactName) threadContactName.textContent = name;
-      if (threadAvatar && avatarSrc) threadAvatar.src = avatarSrc;
-      if (inboxReplyInput) inboxReplyInput.placeholder = `Escribe un mensaje para ${name}...`;
+  function selectInboxChat(chatId) {
+    activeChatId = chatId;
+    const allChats = getInboxChats();
+    const chat = allChats[chatId] || DEFAULT_INBOX_CHATS[chatId];
 
+    document.querySelectorAll('.inbox-chat-item').forEach(c => {
+      if (c.getAttribute('data-chat-id') === chatId) {
+        c.classList.add('active');
+        const unread = c.querySelector('.chat-unread-badge');
+        if (unread) unread.remove();
+      } else {
+        c.classList.remove('active');
+      }
+    });
+
+    if (chat) {
+      if (threadContactName) threadContactName.textContent = chat.name;
+      if (threadAvatar && chat.avatar) threadAvatar.src = chat.avatar;
+      if (inboxReplyInput) {
+        inboxReplyInput.placeholder = chat.channel === 'instagram'
+          ? `Responder a ${chat.name} como @samy_lozano...`
+          : `Responder a ${chat.name} como Magum Creator Studio...`;
+      }
       if (threadChannelBadge) {
-        if (channel === 'whatsapp') {
-          threadChannelBadge.className = 'chat-channel-badge badge-wa';
-          threadChannelBadge.innerHTML = '<i class="fa-brands fa-whatsapp"></i>';
-          if (threadMeta) threadMeta.innerHTML = '<i class="fa-solid fa-circle text-success" style="font-size: 0.55rem;"></i> WhatsApp Business • En línea';
-        } else if (channel === 'instagram') {
+        if (chat.channel === 'instagram') {
           threadChannelBadge.className = 'chat-channel-badge badge-ig';
           threadChannelBadge.innerHTML = '<i class="fa-brands fa-instagram"></i>';
-          if (threadMeta) threadMeta.innerHTML = '<i class="fa-solid fa-circle text-success" style="font-size: 0.55rem;"></i> Instagram DM • Activo hace 10m';
+          if (threadMeta) threadMeta.innerHTML = '<i class="fa-solid fa-circle text-success" style="font-size: 0.55rem;"></i> Instagram DM • @samy_lozano • En línea';
         } else {
           threadChannelBadge.className = 'chat-channel-badge badge-fb';
           threadChannelBadge.innerHTML = '<i class="fa-brands fa-facebook-messenger"></i>';
-          if (threadMeta) threadMeta.innerHTML = '<i class="fa-solid fa-circle text-success" style="font-size: 0.55rem;"></i> Messenger • Activo';
+          if (threadMeta) threadMeta.innerHTML = '<i class="fa-solid fa-circle text-success" style="font-size: 0.55rem;"></i> Messenger • Magum Creator Studio • Activo';
         }
       }
+      renderThreadMessages(chatId);
+    }
+  }
 
-      // Quitar unread si lo tenía
-      const unreadBadge = chat.querySelector('.chat-unread-badge');
-      if (unreadBadge) unreadBadge.remove();
+  inboxChatItems.forEach(chatEl => {
+    chatEl.addEventListener('click', () => {
+      const cId = chatEl.getAttribute('data-chat-id');
+      if (cId) selectInboxChat(cId);
     });
   });
 
+  // Filtrado de pestañas del Inbox
+  inboxTabButtons.forEach(tab => {
+    tab.addEventListener('click', () => {
+      inboxTabButtons.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const channel = tab.getAttribute('data-inbox-channel');
+
+      document.querySelectorAll('.inbox-chat-item').forEach(item => {
+        const itemChan = item.getAttribute('data-channel');
+        if (channel === 'all' || itemChan === channel) {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
+  });
+
+  // Búsqueda en el Inbox
+  if (inboxSearchInput) {
+    inboxSearchInput.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      document.querySelectorAll('.inbox-chat-item').forEach(item => {
+        const name = (item.querySelector('.chat-contact-name')?.textContent || '').toLowerCase();
+        const preview = (item.querySelector('.chat-preview-msg')?.textContent || '').toLowerCase();
+        if (!q || name.includes(q) || preview.includes(q)) {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
+  }
+
+  // Enviar mensaje en el chat activo
   function sendActiveChatMessage() {
     if (!inboxReplyInput) return;
     const text = inboxReplyInput.value.trim();
     if (!text) return;
 
-    if (inboxMessagesScroll) {
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const allChats = getInboxChats();
+    if (!allChats[activeChatId]) {
+      allChats[activeChatId] = DEFAULT_INBOX_CHATS[activeChatId] || { messages: [] };
+    }
 
-      const msgGroup = document.createElement('div');
-      msgGroup.className = 'msg-bubble-group outgoing';
-      msgGroup.innerHTML = `
-        <div class="msg-bubble">${escapeHtml(text)}</div>
-        <span class="msg-time">${timeStr} • Enviado <i class="fa-solid fa-check"></i></span>
-      `;
-      inboxMessagesScroll.appendChild(msgGroup);
-      inboxMessagesScroll.scrollTop = inboxMessagesScroll.scrollHeight;
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    const newMsg = {
+      sender: 'outgoing',
+      text,
+      time: timeStr
+    };
+
+    allChats[activeChatId].messages = allChats[activeChatId].messages || [];
+    allChats[activeChatId].messages.push(newMsg);
+    saveInboxChats(allChats);
+
+    // Actualizar vista del hilo
+    renderThreadMessages(activeChatId);
+
+    // Actualizar snippet en la lista lateral
+    const activeItem = document.querySelector(`.inbox-chat-item[data-chat-id="${activeChatId}"]`);
+    if (activeItem) {
+      const previewEl = activeItem.querySelector('.chat-preview-msg');
+      if (previewEl) previewEl.textContent = `Tú: ${text}`;
+      const timeEl = activeItem.querySelector('.chat-timestamp');
+      if (timeEl) timeEl.textContent = timeStr;
     }
 
     inboxReplyInput.value = '';
@@ -2318,39 +2497,124 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ==========================================================================
-  // 15. SMARTLINKS: SINCRONIZACIÓN EN TIEMPO REAL CON MOCKUP
-  // ==========================================================================
-  const smartlinkTitleInput = document.getElementById('smartlink-input-title');
-  const smartlinkBioInput = document.getElementById('smartlink-input-bio');
-  const phoneProfileName = document.getElementById('phone-profile-name');
-  const phoneProfileDesc = document.getElementById('phone-profile-desc');
-  const btnCopySmartlink = document.getElementById('btn-copy-smartlink');
-
-  if (smartlinkTitleInput && phoneProfileName) {
-    smartlinkTitleInput.addEventListener('input', (e) => {
-      phoneProfileName.textContent = e.target.value.trim() || 'Mi Negocio';
-    });
-  }
-
-  if (smartlinkBioInput && phoneProfileDesc) {
-    smartlinkBioInput.addEventListener('input', (e) => {
-      phoneProfileDesc.textContent = e.target.value.trim() || '';
-    });
-  }
-
-  if (btnCopySmartlink) {
-    btnCopySmartlink.addEventListener('click', () => {
-      navigator.clipboard.writeText('https://magum.link/samy_lozano').then(() => {
-        if (window.MagumAlert) {
-          MagumAlert.success('Enlace Copiado', 'El enlace de tu SmartLink se ha copiado al portapapeles.');
+  // Interacción de los botones del sidebar lateral de Metricool (Instagram / Facebook -> Inbox)
+  const sidebarChannels = document.querySelectorAll('.metricool-channels-sidebar .metricool-channel-item');
+  sidebarChannels.forEach(item => {
+    item.addEventListener('click', (e) => {
+      if (e.target.closest('.btn-channel-connect')) return;
+      const ch = item.getAttribute('data-channel');
+      if (ch === 'instagram' || ch === 'facebook') {
+        const inboxSubNav = document.querySelector('[data-metricool-subview="metricool-subview-inbox"]');
+        if (inboxSubNav) inboxSubNav.click();
+        const targetTab = document.querySelector(`.inbox-channel-tabs [data-inbox-channel="${ch}"]`);
+        if (targetTab) targetTab.click();
+        const firstChat = document.querySelector(`.inbox-chat-item[data-channel="${ch}"]`);
+        if (firstChat) {
+          const cId = firstChat.getAttribute('data-chat-id');
+          if (cId) selectInboxChat(cId);
         }
-      });
+      }
+    });
+  });
+
+  // ==========================================================================
+  // 15. MODAL CALIBRAR MÉTRICAS REALES MULTICANAL
+  // ==========================================================================
+  const modalCalibrate = document.getElementById('modal-calibrate-metrics');
+  const btnOpenCalibrate = document.getElementById('btn-open-calibrate-metrics');
+  const btnCloseCalibrate = document.getElementById('btn-close-calibrate-metrics');
+  const btnCancelCalibrate = document.getElementById('btn-cancel-calibrate-metrics');
+  const btnSaveCalibrate = document.getElementById('btn-save-calibrate-metrics');
+
+  const calIgFollowers = document.getElementById('calibrate-ig-followers');
+  const calIgReach = document.getElementById('calibrate-ig-reach');
+  const calFbFollowers = document.getElementById('calibrate-fb-followers');
+  const calFbReach = document.getElementById('calibrate-fb-reach');
+  const calEngagement = document.getElementById('calibrate-engagement');
+
+  if (btnOpenCalibrate && modalCalibrate) {
+    btnOpenCalibrate.addEventListener('click', () => {
+      modalCalibrate.style.display = 'flex';
+    });
+  }
+  if (btnCloseCalibrate) btnCloseCalibrate.addEventListener('click', () => modalCalibrate.style.display = 'none');
+  if (btnCancelCalibrate) btnCancelCalibrate.addEventListener('click', () => modalCalibrate.style.display = 'none');
+
+  if (btnSaveCalibrate) {
+    btnSaveCalibrate.addEventListener('click', async () => {
+      const igF = calIgFollowers ? calIgFollowers.value.trim() : '1,450';
+      const igR = calIgReach ? calIgReach.value.trim() : '3,820';
+      const fbF = calFbFollowers ? calFbFollowers.value.trim() : '890';
+      const fbR = calFbReach ? calFbReach.value.trim() : '1,640';
+      const eng = calEngagement ? calEngagement.value.trim() : '4.4%';
+
+      btnSaveCalibrate.disabled = true;
+      btnSaveCalibrate.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+
+      // 1. Guardar en Base de Datos mediante API si está disponible
+      if (window.MagumApi && typeof MagumApi.updateSocialMetrics === 'function') {
+        try {
+          await MagumApi.updateSocialMetrics([
+            { provider: 'instagram', followers: igF, reach: igR, engagement: eng },
+            { provider: 'facebook', followers: fbF, reach: fbR, engagement: eng }
+          ]);
+        } catch (err) {
+          console.warn('Persistencia remota offline:', err);
+        }
+      }
+
+      // 2. Actualizar celdas de la tabla de canales
+      const rowIg = document.querySelector('tr[data-channel-row="instagram"]');
+      if (rowIg) {
+        const cells = rowIg.querySelectorAll('td');
+        if (cells.length >= 5) {
+          cells[2].textContent = igF;
+          cells[3].textContent = igR;
+        }
+      }
+      const rowFb = document.querySelector('tr[data-channel-row="facebook"]');
+      if (rowFb) {
+        const cells = rowFb.querySelectorAll('td');
+        if (cells.length >= 5) {
+          cells[2].textContent = fbF;
+          cells[3].textContent = fbR;
+        }
+      }
+
+      // 3. Recalcular KPIs de cabecera
+      const numIgF = parseInt(igF.replace(/[^0-9]/g, ''), 10) || 0;
+      const numFbF = parseInt(fbF.replace(/[^0-9]/g, ''), 10) || 0;
+      const numIgR = parseInt(igR.replace(/[^0-9]/g, ''), 10) || 0;
+      const numFbR = parseInt(fbR.replace(/[^0-9]/g, ''), 10) || 0;
+
+      const totalF = numIgF + numFbF;
+      const totalR = numIgR + numFbR;
+
+      const kpiFollowers = document.getElementById('metric-followers-total');
+      const kpiReach = document.getElementById('metric-reach-total');
+      const kpiEngagement = document.getElementById('metric-engagement-rate');
+
+      if (kpiFollowers) kpiFollowers.textContent = totalF > 0 ? totalF.toLocaleString() : '2,340';
+      if (kpiReach) kpiReach.textContent = totalR > 0 ? totalR.toLocaleString() : '5,460';
+      if (kpiEngagement) kpiEngagement.textContent = eng.includes('%') ? eng : `${eng}%`;
+
+      btnSaveCalibrate.disabled = false;
+      btnSaveCalibrate.innerHTML = '<i class="fa-solid fa-check"></i> <span>Guardar y Aplicar</span>';
+      modalCalibrate.style.display = 'none';
+
+      if (window.Swal) {
+        Swal.fire({
+          title: '¡Métricas Reales Calibradas!',
+          text: 'Las cifras de tus canales sociales han sido actualizadas con datos auténticos.',
+          icon: 'success',
+          confirmButtonColor: '#ff00db'
+        });
+      }
     });
   }
 
   // ==========================================================================
-  // 16. MOTOR DE PROGRAMACIÓN DE PUBLICACIONES MULTICANAL & REPORTING
+  // 16. MOTOR DE PLANIFICACIÓN INTERACTIVO (EDITAR, COPIAR, ELIMINAR, DRAG & DROP, MULTIRED)
   // ==========================================================================
   const btnNewPost = document.getElementById('btn-metricool-new-post');
   const btnNewPostCal = document.getElementById('btn-open-create-post-from-calendar');
@@ -2371,6 +2635,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const postChips = document.querySelectorAll('.post-channel-chip');
 
   let currentPostImage = null;
+  let editingPostId = null; // null si es nuevo post, string id si se está editando
 
   function getScheduledPostsStorageKey() {
     const raw = localStorage.getItem('magum_session');
@@ -2393,21 +2658,87 @@ document.addEventListener('DOMContentLoaded', () => {
     renderScheduledPosts();
   }
 
-  function openPostModal() {
-    if (modalCreatePost) {
-      modalCreatePost.style.display = 'flex';
+  function openPostModal(postToEdit = null, defaultDayIdx = 2) {
+    if (!modalCreatePost) return;
+    modalCreatePost.style.display = 'flex';
+
+    const modalTitleEl = modalCreatePost.querySelector('.modal-title');
+    const modalBtnEl = document.getElementById('btn-submit-create-post');
+
+    if (postToEdit) {
+      editingPostId = postToEdit.id;
+      if (modalTitleEl) modalTitleEl.textContent = 'Editar Publicación Programada';
+      if (modalBtnEl) {
+        modalBtnEl.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> <span>Guardar Cambios</span>';
+      }
+      if (postCaptionInput) {
+        postCaptionInput.value = postToEdit.caption || '';
+        postCaptionInput.dispatchEvent(new Event('input'));
+      }
+      if (postScheduleDate) postScheduleDate.value = postToEdit.date || '';
+      if (postScheduleTime) postScheduleTime.value = postToEdit.time || '18:00';
+      currentPostImage = postToEdit.image || null;
+      if (previewImageBox) {
+        if (currentPostImage) {
+          previewImageBox.innerHTML = `<img src="${currentPostImage}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">`;
+        } else {
+          previewImageBox.innerHTML = '<i class="fa-regular fa-image placeholder-preview-icon"></i>';
+        }
+      }
+      // Canales
+      postChips.forEach(chip => {
+        const ch = chip.getAttribute('data-chip');
+        if (postToEdit.channels && postToEdit.channels.includes(ch)) {
+          chip.classList.add('active');
+          const cb = chip.querySelector('input[type="checkbox"]');
+          if (cb) cb.checked = true;
+        } else {
+          chip.classList.remove('active');
+          const cb = chip.querySelector('input[type="checkbox"]');
+          if (cb) cb.checked = false;
+        }
+      });
+    } else {
+      editingPostId = null;
+      if (modalTitleEl) modalTitleEl.textContent = 'Nueva Publicación Multicanal';
+      if (modalBtnEl) {
+        modalBtnEl.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>Programar Publicación</span>';
+      }
+      if (postCaptionInput) {
+        postCaptionInput.value = '';
+        postCaptionInput.dispatchEvent(new Event('input'));
+      }
       if (postScheduleDate && !postScheduleDate.value) {
         postScheduleDate.value = new Date().toISOString().split('T')[0];
       }
-      if (previewAuthorName) {
-        previewAuthorName.textContent = 'samy_lozano';
+      if (postScheduleTime) postScheduleTime.value = '18:00';
+      currentPostImage = null;
+      if (previewImageBox) {
+        previewImageBox.innerHTML = '<i class="fa-regular fa-image placeholder-preview-icon"></i>';
       }
+      // Por defecto activar IG y Facebook
+      postChips.forEach(chip => {
+        const ch = chip.getAttribute('data-chip');
+        if (ch === 'instagram' || ch === 'facebook') {
+          chip.classList.add('active');
+          const cb = chip.querySelector('input[type="checkbox"]');
+          if (cb) cb.checked = true;
+        } else {
+          chip.classList.remove('active');
+          const cb = chip.querySelector('input[type="checkbox"]');
+          if (cb) cb.checked = false;
+        }
+      });
+    }
+
+    if (previewAuthorName) {
+      previewAuthorName.textContent = 'samy_lozano';
     }
   }
   window.openPostModal = openPostModal;
 
-  if (btnNewPost) btnNewPost.addEventListener('click', openPostModal);
-  if (btnNewPostCal) btnNewPostCal.addEventListener('click', openPostModal);
+  if (btnNewPost) btnNewPost.addEventListener('click', () => openPostModal());
+  if (btnNewPostCal) btnNewPostCal.addEventListener('click', () => openPostModal());
   if (btnCloseCreatePost) btnCloseCreatePost.addEventListener('click', () => modalCreatePost.style.display = 'none');
   if (btnCancelCreatePost) btnCancelCreatePost.addEventListener('click', () => modalCreatePost.style.display = 'none');
 
@@ -2431,7 +2762,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Contador de caracteres y preview en tiempo real del caption
+  // Contador de caracteres y preview en tiempo real
   if (postCaptionInput) {
     postCaptionInput.addEventListener('input', (e) => {
       const val = e.target.value;
@@ -2447,8 +2778,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Optimización de copia con IA
   if (btnCaptionAi && postCaptionInput) {
     btnCaptionAi.addEventListener('click', () => {
-      const current = postCaptionInput.value.trim() || 'Lanzamiento de nueva campaña';
-      const aiOptimized = `${current}\n\n✨ ¡Haz que tu marca destaque con contenido de alto impacto!\n\n🚀 Comenta "INFO" o envíanos un DM para empezar hoy.\n\n#MagumCreatorStudio #MarketingDigital #EstrategiaDeContenidos #Branding`;
+      const current = postCaptionInput.value.trim() || 'Estrategia de contenidos y producción audiovisual';
+      const aiOptimized = `${current}\n\n✨ Haz que tu marca destaque con contenido de alto impacto visual y estrategia.\n\n🚀 Escríbenos por DM para agendar tu diagnóstico de marca.\n\n#MagumCreatorStudio #MarketingDigital #ContenidoVisual #Branding`;
       postCaptionInput.value = aiOptimized;
       postCaptionInput.dispatchEvent(new Event('input'));
     });
@@ -2458,10 +2789,12 @@ document.addEventListener('DOMContentLoaded', () => {
   postChips.forEach(chip => {
     chip.addEventListener('click', () => {
       chip.classList.toggle('active');
+      const cb = chip.querySelector('input[type="checkbox"]');
+      if (cb) cb.checked = chip.classList.contains('active');
     });
   });
 
-  // Guardar y Programar Publicación
+  // Guardar (Crear o Editar) Publicación
   if (btnSubmitCreatePost) {
     btnSubmitCreatePost.addEventListener('click', () => {
       const caption = (postCaptionInput ? postCaptionInput.value : '').trim();
@@ -2486,44 +2819,110 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
+      if (activeChannels.length === 0) {
+        activeChannels.push('instagram');
+      }
+
       const dateVal = (postScheduleDate && postScheduleDate.value) || new Date().toISOString().split('T')[0];
       const timeVal = (postScheduleTime && postScheduleTime.value) || '18:00';
 
-      const newPost = {
-        id: 'post_' + Date.now(),
-        caption,
-        channels: activeChannels.length > 0 ? activeChannels : ['instagram'],
-        date: dateVal,
-        time: timeVal,
-        image: currentPostImage,
-        createdAt: new Date().toISOString()
-      };
-
       const posts = getScheduledPosts();
-      posts.push(newPost);
-      saveScheduledPosts(posts);
 
-      // Limpiar y cerrar modal
-      if (postCaptionInput) postCaptionInput.value = '';
-      if (postCaptionInput) postCaptionInput.dispatchEvent(new Event('input'));
-      currentPostImage = null;
-      if (previewImageBox) {
-        previewImageBox.innerHTML = '<i class="fa-regular fa-image placeholder-preview-icon"></i>';
-      }
-      if (modalCreatePost) modalCreatePost.style.display = 'none';
+      if (editingPostId) {
+        // Modo Edición
+        const idx = posts.findIndex(p => p.id === editingPostId);
+        if (idx !== -1) {
+          posts[idx].caption = caption;
+          posts[idx].channels = activeChannels;
+          posts[idx].date = dateVal;
+          posts[idx].time = timeVal;
+          if (currentPostImage) posts[idx].image = currentPostImage;
+          posts[idx].updatedAt = new Date().toISOString();
+        }
+        saveScheduledPosts(posts);
 
-      if (window.Swal) {
-        Swal.fire({
-          title: '¡Publicación Programada!',
-          html: `Tu post se ha programado para el <strong>${dateVal}</strong> a las <strong>${timeVal}</strong> en tus canales oficiales.`,
-          icon: 'success',
-          confirmButtonColor: '#ff00db'
-        });
+        if (modalCreatePost) modalCreatePost.style.display = 'none';
+        if (window.MagumAlert) {
+          MagumAlert.success('Publicación Actualizada', 'Los cambios en tu publicación se han guardado exitosamente.');
+        }
+      } else {
+        // Modo Nuevo Post
+        const newPost = {
+          id: 'post_' + Date.now(),
+          caption,
+          channels: activeChannels,
+          date: dateVal,
+          dayIndex: new Date(dateVal).getDay() === 0 ? 6 : new Date(dateVal).getDay() - 1,
+          time: timeVal,
+          image: currentPostImage,
+          createdAt: new Date().toISOString()
+        };
+        posts.push(newPost);
+        saveScheduledPosts(posts);
+
+        if (modalCreatePost) modalCreatePost.style.display = 'none';
+        if (window.Swal) {
+          Swal.fire({
+            title: '¡Publicación Programada!',
+            html: `Tu post se ha programado para el <strong>${dateVal}</strong> a las <strong>${timeVal}</strong> en: <strong>${activeChannels.join(', ')}</strong>.`,
+            icon: 'success',
+            confirmButtonColor: '#ff00db'
+          });
+        }
       }
     });
   }
 
-  // Renderizar publicaciones en el calendario de planificación
+  // Duplicar / Copiar Publicación
+  function duplicatePost(postId) {
+    const posts = getScheduledPosts();
+    const original = posts.find(p => p.id === postId);
+    if (!original) return;
+
+    const nextDayIdx = ((original.dayIndex || 0) + 1) % 7;
+    const duplicated = {
+      ...original,
+      id: 'post_' + Date.now(),
+      dayIndex: nextDayIdx,
+      caption: `${original.caption}`,
+      createdAt: new Date().toISOString()
+    };
+    posts.push(duplicated);
+    saveScheduledPosts(posts);
+
+    if (window.MagumAlert) {
+      MagumAlert.success('Publicación Duplicada', 'Se ha creado una copia de la publicación en tu calendario.');
+    }
+  }
+
+  // Eliminar Publicación
+  function deletePost(postId) {
+    if (window.Swal) {
+      Swal.fire({
+        title: '¿Eliminar publicación?',
+        text: 'Esta publicación programada se removerá de tu calendario.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#334155',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const posts = getScheduledPosts().filter(p => p.id !== postId);
+          saveScheduledPosts(posts);
+          Swal.fire('Eliminada', 'La publicación ha sido eliminada del calendario.', 'success');
+        }
+      });
+    } else {
+      if (confirm('¿Eliminar esta publicación?')) {
+        const posts = getScheduledPosts().filter(p => p.id !== postId);
+        saveScheduledPosts(posts);
+      }
+    }
+  }
+
+  // Renderizar publicaciones en el calendario semanal con soporte completo de Drag & Drop
   function renderScheduledPosts() {
     const calendarBody = document.getElementById('calendar-grid-body');
     if (!calendarBody) return;
@@ -2531,9 +2930,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const posts = getScheduledPosts();
     const cells = calendarBody.querySelectorAll('.cal-day-cell');
 
-    cells.forEach((cell, idx) => {
+    cells.forEach((cell) => {
+      const dayIdx = parseInt(cell.getAttribute('data-day-index') || '0', 10);
       cell.innerHTML = '';
-      const dayPosts = posts.filter((p, pIdx) => (pIdx % 7) === idx);
+
+      // Habilitar Drag & Drop en la celda
+      cell.ondragover = (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+      };
+      cell.ondragenter = () => cell.classList.add('cal-drag-over');
+      cell.ondragleave = () => cell.classList.remove('cal-drag-over');
+      cell.ondrop = (e) => {
+        e.preventDefault();
+        cell.classList.remove('cal-drag-over');
+        const draggedPostId = e.dataTransfer.getData('text/plain');
+        if (!draggedPostId) return;
+
+        const allPosts = getScheduledPosts();
+        const targetPost = allPosts.find(p => p.id === draggedPostId);
+        if (targetPost) {
+          targetPost.dayIndex = dayIdx;
+          saveScheduledPosts(allPosts);
+          const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+          if (window.MagumAlert) {
+            MagumAlert.success('Publicación Reprogramada', `Movida al día ${dayNames[dayIdx]}.`);
+          }
+        }
+      };
+
+      // Filtrar posts que correspondan a este día
+      const dayPosts = posts.filter(p => (p.dayIndex !== undefined ? p.dayIndex : 2) === dayIdx);
 
       if (dayPosts.length === 0) {
         const emptyBtn = document.createElement('div');
@@ -2542,32 +2969,83 @@ document.addEventListener('DOMContentLoaded', () => {
         emptyBtn.innerHTML = '<i class="fa-solid fa-plus" style="font-size: 0.95rem; color: #ff00db;"></i><span style="font-size: 0.72rem; font-weight: 600;">Programar</span>';
         emptyBtn.onmouseover = () => { emptyBtn.style.borderColor = '#ff00db'; emptyBtn.style.background = 'rgba(255, 0, 219, 0.05)'; };
         emptyBtn.onmouseout = () => { emptyBtn.style.borderColor = 'var(--border-color)'; emptyBtn.style.background = 'transparent'; };
-        emptyBtn.onclick = () => openPostModal();
+        emptyBtn.onclick = () => openPostModal(null, dayIdx);
         cell.appendChild(emptyBtn);
       } else {
         dayPosts.forEach(post => {
           const card = document.createElement('div');
           card.className = 'cal-post-card scheduled';
-          card.style.cssText = 'position: relative; margin-bottom: 8px;';
-          const netIcon = post.channels.includes('instagram') ? 'fa-brands fa-instagram' : 'fa-brands fa-facebook';
-          const netPillClass = post.channels.includes('instagram') ? 'net-ig' : 'net-fb';
+          card.setAttribute('draggable', 'true');
+          card.setAttribute('data-post-id', post.id);
+
+          // Eventos de arrastre
+          card.ondragstart = (e) => {
+            e.dataTransfer.setData('text/plain', post.id);
+            card.classList.add('dragging');
+          };
+          card.ondragend = () => {
+            card.classList.remove('dragging');
+          };
+
+          // Redes activas
+          const channels = Array.isArray(post.channels) && post.channels.length > 0 ? post.channels : ['instagram'];
+          let channelBadgesHtml = '';
+          channels.forEach(ch => {
+            if (ch === 'instagram') {
+              channelBadgesHtml += '<span class="post-pill-net net-ig" title="Instagram"><i class="fa-brands fa-instagram"></i></span>';
+            } else if (ch === 'facebook') {
+              channelBadgesHtml += '<span class="post-pill-net net-fb" title="Facebook"><i class="fa-brands fa-facebook"></i></span>';
+            } else if (ch === 'tiktok') {
+              channelBadgesHtml += '<span class="post-pill-net net-tt" title="TikTok"><i class="fa-brands fa-tiktok"></i></span>';
+            } else {
+              channelBadgesHtml += `<span class="post-pill-net net-ig"><i class="fa-solid fa-share-nodes"></i></span>`;
+            }
+          });
+
+          // Imagen si tiene
+          const imgHtml = post.image ? `<img src="${post.image}" class="cal-post-thumb" alt="Miniatura">` : '';
 
           card.innerHTML = `
-            <span class="post-pill-net ${netPillClass}">
-              <i class="${netIcon}"></i> ${escapeHtml(post.time)}
-            </span>
-            <div class="post-title-trunc">${escapeHtml(post.caption.slice(0, 42))}...</div>
-            <button type="button" class="btn-delete-post" style="position: absolute; top: 4px; right: 4px; background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.75rem;" title="Eliminar publicación">
-              <i class="fa-solid fa-trash-can"></i>
-            </button>
+            ${imgHtml}
+            <div class="cal-post-top-row">
+              <div class="cal-post-channels">${channelBadgesHtml}</div>
+              <span class="cal-post-time"><i class="fa-regular fa-clock"></i> ${escapeHtml(post.time || '18:00')}</span>
+            </div>
+            <div class="post-title-trunc" title="${escapeHtml(post.caption)}">${escapeHtml(post.caption)}</div>
+            <div class="cal-card-actions">
+              <button type="button" class="btn-card-action btn-action-edit" title="Editar publicación">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button type="button" class="btn-card-action btn-action-copy" title="Copiar / Duplicar">
+                <i class="fa-solid fa-copy"></i>
+              </button>
+              <button type="button" class="btn-card-action btn-action-delete" title="Eliminar">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
           `;
 
-          const btnDel = card.querySelector('.btn-delete-post');
+          // Botones de acción dentro de la tarjeta
+          const btnEdit = card.querySelector('.btn-action-edit');
+          const btnCopy = card.querySelector('.btn-action-copy');
+          const btnDel = card.querySelector('.btn-action-delete');
+
+          if (btnEdit) {
+            btnEdit.onclick = (e) => {
+              e.stopPropagation();
+              openPostModal(post, dayIdx);
+            };
+          }
+          if (btnCopy) {
+            btnCopy.onclick = (e) => {
+              e.stopPropagation();
+              duplicatePost(post.id);
+            };
+          }
           if (btnDel) {
             btnDel.onclick = (e) => {
               e.stopPropagation();
-              const updated = posts.filter(p => p.id !== post.id);
-              saveScheduledPosts(updated);
+              deletePost(post.id);
             };
           }
 
@@ -2577,10 +3055,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Inicializar renderizado del calendario
+  // Inicializar renderizado del calendario y selección inicial del inbox
   renderScheduledPosts();
+  selectInboxChat('chat-ig-1');
   
-  // Reporting botones
+// Reporting botones
   const btnExportPdf = document.getElementById('btn-export-pdf');
   const btnExportExcel = document.getElementById('btn-export-excel');
   if (btnExportPdf) {

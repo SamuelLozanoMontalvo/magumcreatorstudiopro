@@ -308,6 +308,13 @@ class MagumApiClient {
   async getSocialMetrics() {
     return this.request('/social/metrics');
   }
+
+  async updateSocialMetrics(metrics) {
+    return this.request('/social/metrics', {
+      method: 'PUT',
+      body: JSON.stringify({ metrics })
+    });
+  }
 }
 
 // Clases e instancias globales disponibles en todos los scripts del frontend

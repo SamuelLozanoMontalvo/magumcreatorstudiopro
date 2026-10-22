@@ -506,4 +506,46 @@ router.get('/metrics', verifyToken, async (req, res) => {
   }
 });
 
+// ============================================================================
+// 7. ACTUALIZAR MÉTRICAS REALES DE CANALES
+// ============================================================================
+router.put('/metrics', verifyToken, async (req, res) => {
+  try {
+    const accountId = resolveAccountId(req);
+    if (!accountId) {
+      return res.status(400).json({ success: false, message: 'Identificador de cuenta requerido.' });
+    }
+
+    const { metrics } = req.body;
+    if (!Array.isArray(metrics)) {
+      return res.status(400).json({ success: false, message: 'Se esperaba un arreglo de métricas.' });
+    }
+
+    for (const item of metrics) {
+      if (!item.provider) continue;
+      const followers = String(item.followers || '0').trim();
+      const reach = String(item.reach || '0').trim();
+      const engagement = String(item.engagement || '4.5%').trim();
+
+      await db.query(`
+        UPDATE social_connections
+        SET metrics_cache = jsonb_build_object(
+          'followers', $1::text,
+          'reach', $2::text,
+          'engagement', $3::text,
+          'posts', COALESCE((metrics_cache->>'posts')::int, 48)
+        ),
+        last_synced_at = CURRENT_TIMESTAMP,
+        updated_at = CURRENT_TIMESTAMP
+        WHERE account_id = $4 AND provider = $5
+      `, [followers, reach, engagement, accountId, item.provider]);
+    }
+
+    res.json({ success: true, message: 'Métricas actualizadas exitosamente en base de datos.' });
+  } catch (err) {
+    console.error('Error al actualizar métricas:', err);
+    res.status(500).json({ success: false, message: 'Error interno al actualizar métricas.' });
+  }
+});
+
 module.exports = router;

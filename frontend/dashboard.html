@@ -1277,9 +1277,15 @@
 
               <!-- Estado de Conexión de Cuentas y Métricas Detalladas -->
               <section class="metricool-status-board">
-                <div class="status-board-header">
-                  <h3 class="status-board-title">Canales sociales vinculados a esta marca</h3>
-                  <span class="badge-status-counter" id="connected-channels-count">0 de 5 redes conectadas</span>
+                <div class="status-board-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                  <div>
+                    <h3 class="status-board-title" style="margin-bottom: 4px;">Canales sociales vinculados a esta marca</h3>
+                    <span class="badge-status-counter" id="connected-channels-count">0 de 5 redes conectadas</span>
+                  </div>
+                  <button type="button" class="btn-calibrate-metrics" id="btn-open-calibrate-metrics" title="Calibrar números con tus métricas reales">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Calibrar Métricas Reales</span>
+                  </button>
                 </div>
 
                 <div class="metricool-accounts-table-wrap">
@@ -1562,7 +1568,7 @@
               <!-- Sub-vista 3: Inbox Omnicanal Unificado (WhatsApp + Instagram + Messenger) -->
               <div id="metricool-subview-inbox" class="metricool-subview" style="display: none;">
                 <div class="inbox-layout-wrapper">
-                  <!-- Columna Izquierda: Lista de Conversaciones -->
+                  <!-- Columna Izquierda: Lista de Conversaciones Oficiales -->
                   <aside class="inbox-sidebar">
                     <div class="inbox-search-box">
                       <div class="inbox-search-input-wrap">
@@ -1572,56 +1578,85 @@
                     </div>
 
                     <div class="inbox-channel-tabs">
-                      <button type="button" class="inbox-tab active" data-inbox-channel="all">Todos (12)</button>
-                      <button type="button" class="inbox-tab" data-inbox-channel="whatsapp"><i class="fa-brands fa-whatsapp"></i> WhatsApp (6)</button>
-                      <button type="button" class="inbox-tab" data-inbox-channel="instagram"><i class="fa-brands fa-instagram"></i> Instagram (4)</button>
-                      <button type="button" class="inbox-tab" data-inbox-channel="messenger"><i class="fa-brands fa-facebook-messenger"></i> Messenger (2)</button>
+                      <button type="button" class="inbox-tab active" data-inbox-channel="all">Todos (5)</button>
+                      <button type="button" class="inbox-tab" data-inbox-channel="instagram"><i class="fa-brands fa-instagram"></i> Instagram (3)</button>
+                      <button type="button" class="inbox-tab" data-inbox-channel="facebook"><i class="fa-brands fa-facebook-messenger"></i> Facebook (2)</button>
                     </div>
 
                     <div class="inbox-conversations-list" id="inbox-chats-container">
-                      <!-- Chat 1: WhatsApp -->
-                      <div class="inbox-chat-item active" data-chat-id="chat-1" data-channel="whatsapp">
+                      <!-- Chat 1: Instagram DM - Mariana Restrepo -->
+                      <div class="inbox-chat-item active" data-chat-id="chat-ig-1" data-channel="instagram">
                         <div class="chat-avatar-wrap">
-                          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&q=80" alt="Carlos">
-                          <span class="chat-channel-badge badge-wa"><i class="fa-brands fa-whatsapp"></i></span>
-                        </div>
-                        <div class="chat-item-body">
-                          <div class="chat-item-header">
-                            <span class="chat-contact-name">Carlos Mendoza</span>
-                            <span class="chat-timestamp">10:42 AM</span>
-                          </div>
-                          <p class="chat-preview-msg">Hola, vi su publicación sobre creación de contenido, ¿qué paquetes tienen para marcas?</p>
-                        </div>
-                        <span class="chat-unread-badge">1</span>
-                      </div>
-
-                      <!-- Chat 2: Instagram -->
-                      <div class="inbox-chat-item" data-chat-id="chat-2" data-channel="instagram">
-                        <div class="chat-avatar-wrap">
-                          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80" alt="Valentina">
+                          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80" alt="Mariana">
                           <span class="chat-channel-badge badge-ig"><i class="fa-brands fa-instagram"></i></span>
                         </div>
                         <div class="chat-item-body">
                           <div class="chat-item-header">
-                            <span class="chat-contact-name">@valentinagomez</span>
-                            <span class="chat-timestamp">Ayer</span>
+                            <span class="chat-contact-name">Mariana Restrepo</span>
+                            <span class="chat-timestamp">10:42 AM</span>
                           </div>
-                          <p class="chat-preview-msg">Me encanta el contenido que suben, ¿atienden los sábados?</p>
+                          <p class="chat-preview-msg">Me encantaría la llamada, ¿tienen disponibilidad el jueves por la tarde?</p>
                         </div>
+                        <span class="chat-unread-badge">1</span>
                       </div>
 
-                      <!-- Chat 3: Facebook Messenger -->
-                      <div class="inbox-chat-item" data-chat-id="chat-3" data-channel="messenger">
+                      <!-- Chat 2: Facebook Messenger - Restaurante Bocagrande -->
+                      <div class="inbox-chat-item" data-chat-id="chat-fb-1" data-channel="facebook">
                         <div class="chat-avatar-wrap">
-                          <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&q=80" alt="Andres">
+                          <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=80&q=80" alt="Felipe">
                           <span class="chat-channel-badge badge-fb"><i class="fa-brands fa-facebook-messenger"></i></span>
                         </div>
                         <div class="chat-item-body">
                           <div class="chat-item-header">
-                            <span class="chat-contact-name">Andrés Felipe Castro</span>
+                            <span class="chat-contact-name">Restaurante Bocagrande (Felipe)</span>
+                            <span class="chat-timestamp">Ayer</span>
+                          </div>
+                          <p class="chat-preview-msg">¿Tienen paquetes que incluyan pauta en Meta Ads y producción de videos?</p>
+                        </div>
+                      </div>
+
+                      <!-- Chat 3: Instagram DM - David Ortiz -->
+                      <div class="inbox-chat-item" data-chat-id="chat-ig-2" data-channel="instagram">
+                        <div class="chat-avatar-wrap">
+                          <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&q=80" alt="David">
+                          <span class="chat-channel-badge badge-ig"><i class="fa-brands fa-instagram"></i></span>
+                        </div>
+                        <div class="chat-item-body">
+                          <div class="chat-item-header">
+                            <span class="chat-contact-name">David Ortiz (@davidortiz.fit)</span>
+                            <span class="chat-timestamp">Ayer</span>
+                          </div>
+                          <p class="chat-preview-msg">¿Ustedes se encargan de los guiones y edición o solo la producción de los reels?</p>
+                        </div>
+                      </div>
+
+                      <!-- Chat 4: Facebook Messenger - Laura Jiménez -->
+                      <div class="inbox-chat-item" data-chat-id="chat-fb-2" data-channel="facebook">
+                        <div class="chat-avatar-wrap">
+                          <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=80&q=80" alt="Laura">
+                          <span class="chat-channel-badge badge-fb"><i class="fa-brands fa-facebook-messenger"></i></span>
+                        </div>
+                        <div class="chat-item-body">
+                          <div class="chat-item-header">
+                            <span class="chat-contact-name">Laura Jiménez (Consultoría)</span>
                             <span class="chat-timestamp">Hace 2 días</span>
                           </div>
-                          <p class="chat-preview-msg">Muchísimas gracias por la atención oportuna.</p>
+                          <p class="chat-preview-msg">Hola equipo, quisiéramos cotizar el servicio de branding digital para nuestra firma.</p>
+                        </div>
+                      </div>
+
+                      <!-- Chat 5: Instagram DM - Camila Peña -->
+                      <div class="inbox-chat-item" data-chat-id="chat-ig-3" data-channel="instagram">
+                        <div class="chat-avatar-wrap">
+                          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80" alt="Camila">
+                          <span class="chat-channel-badge badge-ig"><i class="fa-brands fa-instagram"></i></span>
+                        </div>
+                        <div class="chat-item-body">
+                          <div class="chat-item-header">
+                            <span class="chat-contact-name">Camila Peña (@camila.boutique)</span>
+                            <span class="chat-timestamp">Hace 3 días</span>
+                          </div>
+                          <p class="chat-preview-msg">Hola Samy, ¿cuándo inician el próximo ciclo de creación de contenido para marcas?</p>
                         </div>
                       </div>
                     </div>
@@ -1632,16 +1667,15 @@
                     <header class="inbox-thread-header">
                       <div class="thread-user-info">
                         <div class="chat-avatar-wrap">
-                          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&q=80" alt="Carlos" id="thread-avatar">
-                          <span class="chat-channel-badge badge-wa" id="thread-channel-badge"><i class="fa-brands fa-whatsapp"></i></span>
+                          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80" alt="Mariana" id="thread-avatar">
+                          <span class="chat-channel-badge badge-ig" id="thread-channel-badge"><i class="fa-brands fa-instagram"></i></span>
                         </div>
                         <div>
-                          <h4 class="thread-contact-name" id="thread-contact-name">Carlos Mendoza</h4>
-                          <span class="thread-contact-meta" id="thread-contact-meta"><i class="fa-solid fa-circle text-success" style="font-size: 0.55rem;"></i> WhatsApp Business • +57 301 849 2041</span>
+                          <h4 class="thread-contact-name" id="thread-contact-name">Mariana Restrepo</h4>
+                          <span class="thread-contact-meta" id="thread-contact-meta"><i class="fa-solid fa-circle text-success" style="font-size: 0.55rem;"></i> Instagram DM • @samy_lozano • Activa ahora</span>
                         </div>
                       </div>
                       <div class="thread-actions">
-                        <button type="button" class="btn-thread-action" title="Llamar"><i class="fa-solid fa-phone"></i></button>
                         <button type="button" class="btn-thread-action" title="Marcar como Resuelto"><i class="fa-solid fa-circle-check"></i></button>
                       </div>
                     </header>
@@ -1649,30 +1683,30 @@
                     <div class="inbox-messages-scroll" id="inbox-messages-scroll">
                       <div class="msg-bubble-group incoming">
                         <div class="msg-bubble">
-                          ¡Hola! Buenas tardes. Vi su contenido en Instagram sobre marketing y producción audiovisual y quisiera saber cómo agendar una asesoría para mi negocio.
+                          ¡Hola Samy! Vi sus reels y el trabajo que hacen en Magum con marcas personales. ¿Cómo es el proceso para que me asesoren con mi estrategia de contenido para este mes?
                         </div>
-                        <span class="msg-time">10:42 AM</span>
+                        <span class="msg-time">10:40 AM</span>
                       </div>
 
                       <div class="msg-bubble-group outgoing">
                         <div class="msg-bubble">
-                          ¡Hola Carlos! Con todo gusto. Tenemos disponibilidad para el día de mañana a las 9:00 AM o a las 3:30 PM. ¿Cuál horario te queda más cómodo?
+                          ¡Hola Mariana! Qué gusto saludarte. Hacemos un diagnóstico de tu perfil actual, definimos los 4 pilares de tu marca y armamos el calendario de grabación. Te paso la propuesta por aquí o agendamos una videollamada de 15 min.
                         </div>
-                        <span class="msg-time">10:45 AM • Leído <i class="fa-solid fa-check-double" style="color: #00d2ff;"></i></span>
+                        <span class="msg-time">10:41 AM • Leído <i class="fa-solid fa-check-double" style="color: #00d2ff;"></i></span>
                       </div>
 
                       <div class="msg-bubble-group incoming">
                         <div class="msg-bubble">
-                          A las 3:30 PM me queda perfecto. ¿Qué datos necesitan?
+                          Me encantaría la llamada, ¿tienen disponibilidad el jueves por la tarde?
                         </div>
-                        <span class="msg-time">10:46 AM</span>
+                        <span class="msg-time">10:42 AM</span>
                       </div>
                     </div>
 
                     <footer class="inbox-composer-area">
                       <button type="button" class="btn-composer-tool" title="Adjuntar archivo"><i class="fa-solid fa-paperclip"></i></button>
                       <button type="button" class="btn-composer-tool" title="Plantillas rápidas"><i class="fa-solid fa-bolt"></i></button>
-                      <input type="text" class="composer-input" id="inbox-reply-input" placeholder="Escribe un mensaje para Carlos Mendoza...">
+                      <input type="text" class="composer-input" id="inbox-reply-input" placeholder="Escribe un mensaje para Mariana Restrepo...">
                       <button type="button" class="btn-send-message" id="btn-send-inbox-msg">
                         <i class="fa-solid fa-paper-plane"></i>
                         <span>Enviar</span>
@@ -2737,5 +2771,71 @@
   <script src="js/notify.js"></script>
   <script src="js/api.js"></script>
   <script src="js/dashboard.js"></script>
+
+  <!-- Modal Calibrar Métricas Reales -->
+  <div class="modal-backdrop" id="modal-calibrate-metrics" style="display: none;">
+    <div class="modal-card" style="max-width: 520px;">
+      <header class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-bubble" style="background: linear-gradient(135deg, #ff00db, #210087); color: #fff;">
+            <i class="fa-solid fa-chart-line"></i>
+          </div>
+          <div>
+            <h3 class="modal-title">Calibrar Métricas Reales</h3>
+            <p class="modal-desc">Ingresa tus cifras exactas para sincronizar el panel con tus números reales</p>
+          </div>
+        </div>
+        <button id="btn-close-calibrate-metrics" class="btn-close-modal" type="button"><i class="fa-solid fa-xmark"></i></button>
+      </header>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" style="display: flex; align-items: center; gap: 6px; font-weight: 700;">
+            <i class="fa-brands fa-instagram" style="color: #e1306c;"></i> Instagram Business (@samy_lozano)
+          </label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div>
+              <label style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Seguidores Reales</label>
+              <input type="text" class="form-input" id="calibrate-ig-followers" placeholder="Ej. 1,450" value="1,450">
+            </div>
+            <div>
+              <label style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Alcance Mensual</label>
+              <input type="text" class="form-input" id="calibrate-ig-reach" placeholder="Ej. 3,820" value="3,820">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 14px;">
+          <label class="form-label" style="display: flex; align-items: center; gap: 6px; font-weight: 700;">
+            <i class="fa-brands fa-facebook" style="color: #1877f2;"></i> Facebook Fan Page (Magum Creator Studio)
+          </label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div>
+              <label style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Seguidores Reales</label>
+              <input type="text" class="form-input" id="calibrate-fb-followers" placeholder="Ej. 890" value="890">
+            </div>
+            <div>
+              <label style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Alcance Mensual</label>
+              <input type="text" class="form-input" id="calibrate-fb-reach" placeholder="Ej. 1,640" value="1,640">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 14px;">
+          <label class="form-label" style="font-weight: 700;">Tasa de Engagement Estimada (%)</label>
+          <input type="text" class="form-input" id="calibrate-engagement" placeholder="Ej. 4.6%" value="4.6%">
+        </div>
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn-cancel" id="btn-cancel-calibrate-metrics">Cancelar</button>
+        <button type="button" class="btn-submit-account" id="btn-save-calibrate-metrics" style="background: linear-gradient(135deg, #ff00db, #210087);">
+          <i class="fa-solid fa-check"></i>
+          <span>Guardar y Aplicar</span>
+        </button>
+      </footer>
+    </div>
+  </div>
+
 </body>
 </html>
