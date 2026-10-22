@@ -121,6 +121,10 @@ router.get('/oauth/url/:provider', verifyToken, async (req, res) => {
   }
 });
 
+// Cache en memoria para deduplicar peticiones simultáneas del navegador con el mismo código OAuth
+const processedCodes = new Map();
+const activeCodeLocks = new Map();
+
 // ============================================================================
 // 3. CALLBACK DE AUTORIZACIÓN META (FACEBOOK + INSTAGRAM BUSINESS)
 // ============================================================================
@@ -135,6 +139,24 @@ router.get('/callback/meta', async (req, res) => {
   if (!code || !state) {
     return res.redirect(`${FRONTEND_URL}/dashboard.html?social_status=error&msg=missing_code_or_state#marketing-social`);
   }
+
+  // Prevenir que una petición duplicada del navegador intente canjear el mismo código de un solo uso
+  if (processedCodes.has(code)) {
+    console.log('[Meta OAuth] Código ya procesado con éxito previamente, redirigiendo al dashboard.');
+    return res.redirect(`${FRONTEND_URL}/dashboard.html?social_status=connected&provider=Meta#marketing-social`);
+  }
+
+  if (activeCodeLocks.has(code)) {
+    console.log('[Meta OAuth] Petición duplicada concurrente en vuelo, esperando resolución...');
+    try {
+      await activeCodeLocks.get(code);
+    } catch (e) {}
+    return res.redirect(`${FRONTEND_URL}/dashboard.html?social_status=connected&provider=Meta#marketing-social`);
+  }
+
+  let resolveLock = null;
+  const lockPromise = new Promise(resolve => { resolveLock = resolve; });
+  activeCodeLocks.set(code, lockPromise);
 
   try {
     // Validar token state firmado para recuperar el accountId legítimo
@@ -166,8 +188,24 @@ router.get('/callback/meta', async (req, res) => {
     const tokenData = await tokenRes.json();
 
     if (tokenData.error) {
-      throw new Error(tokenData.error.message || 'Error al canjear código con Meta.');
+      const errMsg = tokenData.error.message || '';
+      if (errMsg.includes('authorization code has been used')) {
+        console.warn('[Meta OAuth] Código ya utilizado detectado. Verificando si la conexión ya quedó registrada...');
+        const existing = await db.query(
+          "SELECT id FROM social_connections WHERE account_id = $1 AND updated_at > NOW() - INTERVAL '10 minutes'",
+          [accountId]
+        );
+        if (existing.rows.length > 0) {
+          processedCodes.set(code, Date.now());
+          setTimeout(() => processedCodes.delete(code), 5 * 60 * 1000);
+          return res.redirect(`${FRONTEND_URL}/dashboard.html?social_status=connected&provider=Meta#marketing-social`);
+        }
+      }
+      throw new Error(errMsg || 'Error al canjear código con Meta.');
     }
+
+    processedCodes.set(code, Date.now());
+    setTimeout(() => processedCodes.delete(code), 5 * 60 * 1000);
 
     const shortToken = tokenData.access_token;
 
@@ -297,6 +335,9 @@ router.get('/callback/meta', async (req, res) => {
   } catch (err) {
     console.error('Error procesando callback de Meta:', err.message || err);
     res.redirect(`${FRONTEND_URL}/dashboard.html?social_status=error&msg=${encodeURIComponent(err.message)}#marketing-social`);
+  } finally {
+    if (resolveLock) resolveLock();
+    activeCodeLocks.delete(code);
   }
 });
 
