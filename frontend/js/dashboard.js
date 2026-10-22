@@ -2192,18 +2192,21 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================================================
-  // 13. CAMBIAR FOTO DE PERFIL / AVATAR
+  // 13. CAMBIAR FOTO DE PERFIL / AVATAR (REDESIGN MODERNO)
   // ==========================================================================
   const topbarAvatarBtn = document.getElementById('topbar-avatar-btn');
   const modalAvatar = document.getElementById('modal-change-avatar');
   const btnCloseAvatarModal = document.getElementById('btn-close-avatar-modal');
   const btnCancelAvatarModal = document.getElementById('btn-cancel-avatar-modal');
-  const btnTriggerAvatarFile = document.getElementById('btn-trigger-avatar-file');
+  const avatarRingTrigger = document.getElementById('avatar-ring-trigger');
+  const btnAvatarBadgeCam = document.getElementById('btn-avatar-badge-cam');
+  const avatarDropzone = document.getElementById('avatar-dropzone');
   const inputAvatarFile = document.getElementById('input-avatar-file');
   const inputAvatarUrl = document.getElementById('input-avatar-url');
   const btnSaveAvatar = document.getElementById('btn-save-avatar');
   const topbarAvatarImg = document.getElementById('topbar-avatar-img');
   const avatarModalPreview = document.getElementById('avatar-modal-preview');
+  const avatarFileNameIndicator = document.getElementById('avatar-file-name-indicator');
 
   // Cargar avatar previamente guardado en localStorage
   const savedAvatar = localStorage.getItem('magum_user_avatar');
@@ -2211,10 +2214,30 @@ document.addEventListener('DOMContentLoaded', () => {
     topbarAvatarImg.src = savedAvatar;
   }
 
+  function handleAvatarFile(file) {
+    if (!file || !file.type.startsWith('image/')) {
+      if (window.MagumAlert) MagumAlert.warning('Archivo Inválido', 'Por favor selecciona un archivo de imagen válido (PNG, JPG, WEBP).');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (loadEvent) => {
+      const dataUrl = loadEvent.target.result;
+      if (avatarModalPreview) avatarModalPreview.src = dataUrl;
+      if (avatarFileNameIndicator) {
+        avatarFileNameIndicator.innerHTML = '<span style="color: #10b981; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> ' + escapeHtml(file.name) + '</span>';
+      }
+      if (inputAvatarUrl) inputAvatarUrl.value = '';
+    };
+    reader.readAsDataURL(file);
+  }
+
   if (topbarAvatarBtn && modalAvatar) {
     topbarAvatarBtn.addEventListener('click', () => {
       if (avatarModalPreview && topbarAvatarImg) {
         avatarModalPreview.src = topbarAvatarImg.src;
+      }
+      if (avatarFileNameIndicator) {
+        avatarFileNameIndicator.textContent = 'Haz clic en el avatar o selecciona una opción inferior';
       }
       modalAvatar.style.display = 'flex';
     });
@@ -2222,20 +2245,94 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnCloseAvatarModal) btnCloseAvatarModal.addEventListener('click', () => modalAvatar.style.display = 'none');
     if (btnCancelAvatarModal) btnCancelAvatarModal.addEventListener('click', () => modalAvatar.style.display = 'none');
 
-    if (btnTriggerAvatarFile && inputAvatarFile) {
-      btnTriggerAvatarFile.addEventListener('click', () => inputAvatarFile.click());
-      inputAvatarFile.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (loadEvent) => {
-            const dataUrl = loadEvent.target.result;
-            if (avatarModalPreview) avatarModalPreview.src = dataUrl;
-          };
-          reader.readAsDataURL(file);
+    // Clics para abrir el selector de archivo
+    const triggerFilePicker = () => { if (inputAvatarFile) inputAvatarFile.click(); };
+    if (avatarRingTrigger) avatarRingTrigger.addEventListener('click', triggerFilePicker);
+    if (btnAvatarBadgeCam) btnAvatarBadgeCam.addEventListener('click', (e) => { e.stopPropagation(); triggerFilePicker(); });
+    if (avatarDropzone) avatarDropzone.addEventListener('click', triggerFilePicker);
+
+    // Eventos Drag & Drop en Dropzone
+    if (avatarDropzone) {
+      ['dragenter', 'dragover'].forEach(evtName => {
+        avatarDropzone.addEventListener(evtName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          avatarDropzone.classList.add('dragover');
+        });
+      });
+      ['dragleave', 'drop'].forEach(evtName => {
+        avatarDropzone.addEventListener(evtName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          avatarDropzone.classList.remove('dragover');
+        });
+      });
+      avatarDropzone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt && dt.files;
+        if (files && files.length > 0) {
+          handleAvatarFile(files[0]);
         }
       });
     }
+
+    if (inputAvatarFile) {
+      inputAvatarFile.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (file) handleAvatarFile(file);
+      });
+    }
+
+    // Pestañas (Subir archivo vs Enlace URL)
+    const tabUpload = document.getElementById('tab-avatar-upload');
+    const tabUrl = document.getElementById('tab-avatar-url');
+    const panelUpload = document.getElementById('panel-avatar-upload');
+    const panelUrl = document.getElementById('panel-avatar-url');
+
+    if (tabUpload && tabUrl && panelUpload && panelUrl) {
+      tabUpload.addEventListener('click', () => {
+        tabUpload.classList.add('active');
+        tabUrl.classList.remove('active');
+        panelUpload.style.display = 'block';
+        panelUrl.style.display = 'none';
+      });
+      tabUrl.addEventListener('click', () => {
+        tabUrl.classList.add('active');
+        tabUpload.classList.remove('active');
+        panelUrl.style.display = 'block';
+        panelUpload.style.display = 'none';
+        if (inputAvatarUrl) inputAvatarUrl.focus();
+      });
+    }
+
+    // Vista previa en vivo con URL
+    if (inputAvatarUrl) {
+      inputAvatarUrl.addEventListener('input', (e) => {
+        const url = e.target.value.trim();
+        if (url && (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:'))) {
+          if (avatarModalPreview) avatarModalPreview.src = url;
+          if (avatarFileNameIndicator) {
+            avatarFileNameIndicator.innerHTML = '<span style="color: #ff00db; font-weight: 600;"><i class="fa-solid fa-link"></i> Imagen cargada desde URL</span>';
+          }
+        }
+      });
+    }
+
+    // Presets de avatares predefinidos
+    document.querySelectorAll('.preset-avatar-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.preset-avatar-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        const presetUrl = btn.getAttribute('data-preset');
+        if (presetUrl && avatarModalPreview) {
+          avatarModalPreview.src = presetUrl;
+          if (inputAvatarUrl) inputAvatarUrl.value = presetUrl;
+          if (avatarFileNameIndicator) {
+            avatarFileNameIndicator.innerHTML = '<span style="color: #ff00db; font-weight: 600;"><i class="fa-solid fa-wand-magic-sparkles"></i> Avatar sugerido seleccionado</span>';
+          }
+        }
+      });
+    });
 
     if (btnSaveAvatar) {
       btnSaveAvatar.addEventListener('click', () => {

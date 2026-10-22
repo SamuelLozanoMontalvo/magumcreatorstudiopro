@@ -2897,45 +2897,102 @@
     </div>
   </div>
 
-  <!-- Modal para Cambiar Foto de Perfil / Avatar -->
+    <!-- Modal para Cambiar Foto de Perfil / Avatar -->
   <div class="modal-backdrop" id="modal-change-avatar" style="display: none;">
-    <div class="modal-card" style="max-width: 440px;">
+    <div class="modal-card modal-avatar-card">
       <header class="modal-header">
         <div class="modal-title-wrap">
-          <div class="modal-icon-bubble" style="background: #210087; color: #fff;">
+          <div class="modal-badge-icon avatar-badge-glow">
             <i class="fa-solid fa-camera"></i>
           </div>
           <div>
-            <h3 class="modal-title">Cambiar Foto de Perfil</h3>
-            <p class="modal-desc">Personaliza la imagen oficial de tu negocio</p>
+            <h3 class="modal-title">Foto de Perfil</h3>
+            <p class="modal-desc">Personaliza el avatar oficial de tu negocio</p>
           </div>
         </div>
-        <button id="btn-close-avatar-modal" class="btn-close-modal" type="button"><i class="fa-solid fa-xmark"></i></button>
+        <button id="btn-close-avatar-modal" class="btn-close-modal" type="button" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
       </header>
 
-      <div class="modal-body">
-        <div class="avatar-current-preview-box" style="text-align: center; margin-bottom: 20px;">
-          <img src="" alt="Avatar actual" id="avatar-modal-preview" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #ff00db; box-shadow: 0 4px 15px rgba(255, 0, 219, 0.3);">
+      <div class="modal-body avatar-modal-body">
+        <!-- Avatar Preview Interactivo con Anillo Glow -->
+        <div class="avatar-hero-container">
+          <div class="avatar-ring-wrapper" id="avatar-ring-trigger" title="Haz clic para seleccionar nueva foto">
+            <img src="" alt="Avatar actual" id="avatar-modal-preview" class="avatar-circle-img">
+            <div class="avatar-hover-overlay">
+              <i class="fa-solid fa-camera"></i>
+              <span>Cambiar</span>
+            </div>
+            <button type="button" class="avatar-badge-btn" id="btn-avatar-badge-cam" title="Subir foto">
+              <i class="fa-solid fa-camera"></i>
+            </button>
+          </div>
+          <p class="avatar-helper-label" id="avatar-file-name-indicator">Haz clic en el avatar o selecciona una opción inferior</p>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Subir archivo desde tu dispositivo</label>
-          <button type="button" class="btn-action-suggestion" id="btn-trigger-avatar-file" style="width: 100%; justify-content: center; padding: 12px;">
+        <!-- Pestañas de Selección (Subir Archivo / Enlace URL) -->
+        <div class="avatar-tabs-nav">
+          <button type="button" class="avatar-tab-btn active" id="tab-avatar-upload" data-target="panel-avatar-upload">
             <i class="fa-solid fa-cloud-arrow-up"></i>
-            <span>Seleccionar Imagen (PNG, JPG)</span>
+            <span>Subir Archivo</span>
+          </button>
+          <button type="button" class="avatar-tab-btn" id="tab-avatar-url" data-target="panel-avatar-url">
+            <i class="fa-solid fa-link"></i>
+            <span>Enlace Web (URL)</span>
           </button>
         </div>
 
-        <div class="form-group" style="margin-top: 14px;">
-          <label class="form-label">O pegar enlace directo de imagen (URL)</label>
-          <input type="url" class="form-input" id="input-avatar-url" placeholder="https://ejemplo.com/tu-foto.jpg">
+        <!-- Panel 1: Drag & Drop Zone -->
+        <div class="avatar-tab-panel" id="panel-avatar-upload">
+          <div class="avatar-dropzone" id="avatar-dropzone">
+            <div class="dropzone-icon-circle">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+            <div class="dropzone-text-group">
+              <p class="dropzone-main-text"><strong>Haz clic para examinar</strong> o arrastra tu imagen aquí</p>
+              <p class="dropzone-sub-text">Soporta PNG, JPG, GIF o WEBP (Recomendado 500 × 500 px)</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 2: Enlace directo URL -->
+        <div class="avatar-tab-panel" id="panel-avatar-url" style="display: none;">
+          <div class="url-input-card">
+            <label class="url-input-label" for="input-avatar-url">Pega el enlace directo de tu imagen:</label>
+            <div class="input-with-leading-icon">
+              <i class="fa-solid fa-globe leading-icon"></i>
+              <input type="url" class="form-input avatar-url-field" id="input-avatar-url" placeholder="https://ejemplo.com/tu-foto.jpg">
+            </div>
+            <p class="url-help-tip"><i class="fa-solid fa-circle-info"></i> La vista previa se actualizará en tiempo real.</p>
+          </div>
+        </div>
+
+        <!-- Avatares Rápidos / Predefinidos (Presets) -->
+        <div class="avatar-presets-section">
+          <span class="presets-title">O elige un avatar profesional sugerido:</span>
+          <div class="presets-row">
+            <button type="button" class="preset-avatar-btn" data-preset="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&h=300&fit=crop&crop=faces" title="Avatar 1">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces" alt="Preset 1">
+            </button>
+            <button type="button" class="preset-avatar-btn" data-preset="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=faces" title="Avatar 2">
+              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=faces" alt="Preset 2">
+            </button>
+            <button type="button" class="preset-avatar-btn" data-preset="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&h=300&fit=crop&crop=faces" title="Avatar 3">
+              <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop&crop=faces" alt="Preset 3">
+            </button>
+            <button type="button" class="preset-avatar-btn" data-preset="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=300&h=300&fit=crop&crop=faces" title="Avatar 4">
+              <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop&crop=faces" alt="Preset 4">
+            </button>
+            <button type="button" class="preset-avatar-btn" data-preset="https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300&h=300&fit=crop&crop=faces" title="Avatar 5">
+              <img src="https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100&h=100&fit=crop&crop=faces" alt="Preset 5">
+            </button>
+          </div>
         </div>
       </div>
 
-      <footer class="modal-footer">
+      <footer class="modal-footer avatar-modal-footer">
         <button type="button" class="btn-cancel" id="btn-cancel-avatar-modal">Cancelar</button>
-        <button type="button" class="btn-submit-account" id="btn-save-avatar" style="background: #210087;">
-          <i class="fa-solid fa-floppy-disk"></i>
+        <button type="button" class="btn-save-avatar-primary" id="btn-save-avatar">
+          <i class="fa-solid fa-check"></i>
           <span>Guardar Foto</span>
         </button>
       </footer>
