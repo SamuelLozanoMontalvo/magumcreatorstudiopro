@@ -143,7 +143,7 @@ router.get('/oauth/url/:provider', verifyToken, async (req, res) => {
           message: 'Se requiere configurar LINKEDIN_CLIENT_ID y LINKEDIN_CLIENT_SECRET en Railway para la API oficial de LinkedIn.'
         });
       }
-      const scopes = 'openid profile email';
+      const scopes = (process.env.LINKEDIN_OAUTH_SCOPES || 'w_member_social').trim();
       authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${linkedinId}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${stateToken}&scope=${encodeURIComponent(scopes)}`;
     } else if (provider === 'twitter' || provider === 'x') {
       const twitterId = (process.env.TWITTER_CLIENT_ID || '').trim();
@@ -591,12 +591,16 @@ router.get('/callback/linkedin', async (req, res) => {
     const linkedinSecret = (process.env.LINKEDIN_CLIENT_SECRET || '').trim();
     const redirectUri = `${getBaseServerUrl()}/api/social/callback/linkedin`;
 
+    const basicAuth = Buffer.from(`${linkedinId}:${linkedinSecret}`).toString('base64');
     const tokenRes = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${basicAuth}`
+      },
       body: new URLSearchParams({
         grant_type: 'authorization_code',
-        code,
+        code: code.trim(),
         client_id: linkedinId,
         client_secret: linkedinSecret,
         redirect_uri: redirectUri
@@ -605,17 +609,29 @@ router.get('/callback/linkedin', async (req, res) => {
 
     const tokenData = await tokenRes.json();
     if (!tokenData.access_token) {
-      throw new Error(tokenData.error_description || 'Fallo al obtener token de LinkedIn.');
+      console.error('[LinkedIn OAuth] Error en canje de token:', tokenData);
+      throw new Error(tokenData.error_description || tokenData.error || 'Fallo de autenticación con LinkedIn. Verifica el Client Secret en Render.');
     }
 
-    const userRes = await fetch('https://api.linkedin.com/v2/userinfo', {
-      headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
-    });
-    const userData = await userRes.json();
+    let name = 'LinkedIn Conectado';
+    let avatarUrl = '';
+    let sub = `li_${Date.now()}`;
 
-    const name = userData.name || `${userData.given_name || ''} ${userData.family_name || ''}`.trim() || 'LinkedIn Member';
-    const avatarUrl = userData.picture || '';
-    const sub = userData.sub || `li_${Date.now()}`;
+    try {
+      const userRes = await fetch('https://api.linkedin.com/v2/userinfo', {
+        headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+      });
+      if (userRes.ok) {
+        const userData = await userRes.json();
+        name = userData.name || `${userData.given_name || ''} ${userData.family_name || ''}`.trim() || name;
+        avatarUrl = userData.picture || '';
+        sub = userData.sub || sub;
+      }
+    } catch (e) {
+      console.warn('userinfo no disponible, usando fallback:', e.message);
+    }
+
+
 
     const metrics = {
       followers: '2,850',

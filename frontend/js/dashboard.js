@@ -1634,36 +1634,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const meta = channelData[channelKey] || {
       name: channelKey,
       icon: 'fa-solid fa-share-nodes',
-      color: '#ff00db',
-      placeholder: '@tu_cuenta'
+      color: '#ff00db'
     };
 
     const modal = document.getElementById('modal-connect-social');
     const modalTitle = document.getElementById('modal-social-title');
     const modalBubble = document.getElementById('modal-social-icon-bubble');
-    const handleInput = document.getElementById('connect-social-handle');
-    const followersInput = document.getElementById('connect-social-followers');
     const channelInput = document.getElementById('connect-social-channel');
     const submitBtn = document.getElementById('btn-simulate-oauth');
     const submitText = document.getElementById('btn-social-submit-text');
-    const labelHandle = document.getElementById('label-connect-handle');
 
     if (channelInput) channelInput.value = channelKey;
     if (modalTitle) modalTitle.textContent = `Conectar ${meta.name}`;
-    if (labelHandle) {
-      if (channelKey === 'youtube') labelHandle.textContent = 'Nombre de canal o @handle de YouTube:';
-      else if (channelKey === 'linkedin') labelHandle.textContent = 'Perfil personal o Página de LinkedIn:';
-      else if (channelKey === 'tiktok') labelHandle.textContent = 'Nombre de usuario (@usuario) de TikTok:';
-      else if (channelKey === 'twitter' || channelKey === 'x') labelHandle.textContent = 'Usuario (@cuenta) en X / Twitter:';
-      else labelHandle.textContent = 'Nombre de usuario o canal:';
-    }
-    if (handleInput) {
-      handleInput.value = '';
-      handleInput.placeholder = meta.placeholder || '@tu_cuenta';
-    }
-    if (followersInput) {
-      followersInput.value = '';
-    }
     if (modalBubble) {
       modalBubble.innerHTML = `<i class="${meta.icon}"></i>`;
       modalBubble.style.background = meta.color;
@@ -1673,7 +1655,7 @@ document.addEventListener('DOMContentLoaded', () => {
       submitBtn.style.background = meta.color;
     }
     if (submitText) {
-      submitText.textContent = (channelKey === 'facebook' || channelKey === 'instagram') ? 'Conectar con Meta' : 'Vincular y Sincronizar';
+      submitText.textContent = `Conectar con ${meta.name}`;
     }
     if (modal) {
       modal.style.display = 'flex';
@@ -1739,128 +1721,53 @@ document.addEventListener('DOMContentLoaded', () => {
   if (socialSubmitBtn) {
     socialSubmitBtn.addEventListener('click', async () => {
       const channelKey = socialChannelInput ? socialChannelInput.value : 'instagram';
-      const handle = (socialHandleInput && socialHandleInput.value.trim()) || `@${channelKey}_pro`;
       const meta = channelData[channelKey] || { name: channelKey };
+      const originalText = `Conectar con ${meta.name}`;
 
-      const originalText = 'Conectar';
+      if (socialSubmitText) socialSubmitText.textContent = 'Abriendo autorización...';
+      socialSubmitBtn.disabled = true;
 
-      // Si es Meta (Instagram o Facebook), iniciar flujo OAuth oficial en vivo
-      const hasManualInput = socialHandleInput && socialHandleInput.value.trim().length > 0;
+      try {
+        if (!window.MagumApi) throw new Error('Cliente API no inicializado.');
 
-      // Si el usuario no especificó handle manual y la red soporta OAuth oficial, intentar autenticación en vivo
-      const oauthProviders = ['instagram', 'facebook', 'youtube', 'tiktok', 'linkedin', 'twitter', 'x'];
-      if (!hasManualInput && oauthProviders.includes(channelKey)) {
-        if (socialSubmitText) socialSubmitText.textContent = 'Conectando con API...';
-        socialSubmitBtn.disabled = true;
+        const authRes = await MagumApi.getSocialAuthUrl(channelKey);
+        if (authRes && authRes.success && authRes.authUrl) {
+          localStorage.setItem('magum_social_pending', channelKey);
+          window.location.href = authRes.authUrl;
+          return;
+        }
 
-        try {
-          if (!window.MagumApi) throw new Error('Cliente API no inicializado.');
-
-          const authRes = await MagumApi.getSocialAuthUrl(channelKey);
-          if (authRes && authRes.success && authRes.authUrl) {
-            localStorage.setItem('magum_social_pending', channelKey);
-            window.location.href = authRes.authUrl;
-            return;
-          }
-
-          if (authRes && authRes.needsCredentials) {
-            socialSubmitBtn.disabled = false;
-            if (socialSubmitText) socialSubmitText.textContent = originalText;
-            if (window.Swal) {
-              const result = await Swal.fire({
-                title: `Credenciales de ${meta.name}`,
-                text: `Para conectar por OAuth oficial en vivo se requiere configurar ${authRes.envKey || 'las API Keys'} en Railway. ¿Deseas ingresar tu nombre de usuario o canal directamente?`,
-                icon: 'info',
-                showCancelButton: true,
-                confirmButtonColor: '#210087',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Ingresar @Usuario',
-                cancelButtonText: 'Cancelar'
-              });
-              if (result.isConfirmed) {
-                if (socialHandleInput) socialHandleInput.focus();
-              }
-            } else {
-              alert(authRes.message);
-            }
-            return;
-          }
-
-          throw new Error((authRes && authRes.message) || 'No se obtuvo la URL de autorización oficial.');
-        } catch (authErr) {
+        if (authRes && authRes.needsCredentials) {
           socialSubmitBtn.disabled = false;
           if (socialSubmitText) socialSubmitText.textContent = originalText;
-          console.error('[Social OAuth] Error al conectar con API:', authErr);
           if (window.Swal) {
             Swal.fire({
-              title: 'Error de Conexión API',
-              text: authErr.message || 'No fue posible abrir la autorización oficial. Verifica la conexión con el servidor.',
-              icon: 'error',
-              confirmButtonColor: '#ef4444'
+              title: `Configuración de ${meta.name}`,
+              text: authRes.message || `Falta configurar ${authRes.envKey} en Render para activar la conexión oficial.`,
+              icon: 'warning',
+              confirmButtonColor: '#210087'
             });
           } else {
-            alert('Error al conectar: ' + authErr.message);
+            alert(authRes.message);
           }
           return;
         }
-      }
 
-      // Para otros canales o guardado manual
-      if (socialSubmitText) socialSubmitText.textContent = 'Sincronizando...';
-      socialSubmitBtn.disabled = true;
-
-      const followersInput = document.getElementById('connect-social-followers');
-      let customMetrics = null;
-      if (followersInput && followersInput.value.trim()) {
-        const rawF = followersInput.value.trim().replace(/[^0-9]/g, '');
-        const fNum = parseInt(rawF, 10) || 0;
-        customMetrics = {
-          followers: fNum > 0 ? fNum.toLocaleString() : '0',
-          reach: (fNum * 3.5 || 3400).toLocaleString(),
-          engagement: '5.4%',
-          posts: 28
-        };
-      }
-
-      try {
-        if (window.MagumApi) {
-          await MagumApi.connectSocialManual(channelKey, handle, customMetrics);
+        throw new Error((authRes && authRes.message) || 'No se obtuvo la URL de autorización oficial.');
+      } catch (authErr) {
+        socialSubmitBtn.disabled = false;
+        if (socialSubmitText) socialSubmitText.textContent = originalText;
+        console.error('[Social OAuth] Error al conectar:', authErr);
+        if (window.Swal) {
+          Swal.fire({
+            title: 'Error de Conexión',
+            text: authErr.message || 'No fue posible abrir la autorización oficial. Verifica las credenciales en Render.',
+            icon: 'error',
+            confirmButtonColor: '#ef4444'
+          });
+        } else {
+          alert('Error al conectar: ' + authErr.message);
         }
-      } catch (err) {
-        console.warn('Registro local de canal:', err.message);
-      }
-
-      if (socialSubmitBtn) socialSubmitBtn.disabled = false;
-      if (socialSubmitText) socialSubmitText.textContent = originalText;
-      if (socialModal) socialModal.style.display = 'none';
-
-      await syncSocialFromBackend();
-
-      // Actualizar fila en la tabla de cuentas
-      const row = document.querySelector(`tr[data-channel-row="${channelKey}"]`);
-      if (row) {
-        const cells = row.querySelectorAll('td');
-        if (cells.length >= 6) {
-          cells[1].innerHTML = `<span class="account-handle">${escapeHtml(handle)}</span>`;
-          cells[2].innerHTML = `<span class="badge-api-connected"><i class="fa-solid fa-circle-check"></i> Sincronizado</span>`;
-          cells[3].textContent = meta.followers || '1,200';
-          cells[4].textContent = meta.reach || '3,400';
-          cells[5].innerHTML = `<button type="button" class="btn-disconnect-sm" onclick="configureSocialChannel('${channelKey}')">Configurar</button>`;
-        }
-      }
-
-      // Actualizar botón en el sub-sidebar
-      const sideBtn = document.querySelector(`.btn-channel-connect[data-connect-channel="${channelKey}"]`);
-      if (sideBtn) {
-        sideBtn.innerHTML = '<i class="fa-solid fa-check" style="color: #10b981;"></i>';
-        sideBtn.title = `${meta.name} Conectado`;
-      }
-
-      if (window.MagumAlert) {
-        MagumAlert.success(
-          '¡Canal Vinculado con Éxito!',
-          `Se han sincronizado las métricas oficiales de ${meta.name} (${handle}).`
-        );
       }
     });
   }
