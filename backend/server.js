@@ -60,12 +60,36 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Healthcheck para Railway y monitoreo
-app.get(['/health', '/api/health'], (req, res) => {
+// Healthcheck para Railway y monitoreo del estado operativo
+app.get(['/health', '/api/health'], async (req, res) => {
+  let dbStatus = 'disconnected';
+  let socialTableExists = false;
+  try {
+    const ping = await db.query('SELECT NOW()');
+    if (ping.rows.length > 0) dbStatus = 'connected';
+    const checkTable = await db.query(`
+      SELECT to_regclass('public.social_connections') as exists;
+    `);
+    socialTableExists = Boolean(checkTable.rows[0]?.exists);
+  } catch (err) {
+    dbStatus = 'error: ' + (err.message || 'unknown');
+  }
+
+  const metaAppId = (process.env.META_APP_ID || process.env.FACEBOOK_APP_ID || '').trim();
+  const metaSecret = (process.env.META_APP_SECRET || process.env.FACEBOOK_APP_SECRET || '').trim();
+
   res.json({
     status: 'online',
     service: 'MAGUM Creator Studio Backend API',
-    database: 'PostgreSQL',
+    database: {
+      status: dbStatus,
+      socialTableExists
+    },
+    metaConfig: {
+      hasAppId: Boolean(metaAppId),
+      hasSecret: Boolean(metaSecret),
+      appIdMasked: metaAppId ? `${metaAppId.substring(0, 4)}****${metaAppId.slice(-4)}` : null
+    },
     timestamp: new Date().toISOString()
   });
 });

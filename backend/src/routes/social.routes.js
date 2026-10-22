@@ -16,7 +16,18 @@ const SERVER_BASE_URL = process.env.SERVER_BASE_URL || 'https://magumcreatorstud
 // ============================================================================
 router.get('/connections', verifyToken, async (req, res) => {
   try {
-    const accountId = resolveAccountId(req);
+    let accountId = resolveAccountId(req);
+    if (!accountId && req.user && req.user.role === 'admin') {
+      try {
+        const firstAcc = await db.query('SELECT id FROM accounts WHERE deleted_at IS NULL ORDER BY created_at ASC LIMIT 1');
+        if (firstAcc.rows.length > 0) {
+          accountId = firstAcc.rows[0].id;
+        }
+      } catch (e) {
+        console.warn('Error resolviendo cuenta para admin en connections:', e.message);
+      }
+    }
+
     if (!accountId) {
       return res.status(400).json({ success: false, message: 'Identificador de cuenta no proporcionado.' });
     }
@@ -43,9 +54,22 @@ router.get('/connections', verifyToken, async (req, res) => {
 // ============================================================================
 // 2. GENERAR URL OFICIAL DE OAUTH 2.0 (META, TIKTOK, LINKEDIN)
 // ============================================================================
-router.get('/oauth/url/:provider', verifyToken, (req, res) => {
+router.get('/oauth/url/:provider', verifyToken, async (req, res) => {
   try {
-    const accountId = resolveAccountId(req);
+    let accountId = resolveAccountId(req);
+
+    // Si es Super Admin y no especificó accountId en cabecera/query, resolver al primer account activo
+    if (!accountId && req.user && req.user.role === 'admin') {
+      try {
+        const firstAcc = await db.query('SELECT id FROM accounts WHERE deleted_at IS NULL ORDER BY created_at ASC LIMIT 1');
+        if (firstAcc.rows.length > 0) {
+          accountId = firstAcc.rows[0].id;
+        }
+      } catch (e) {
+        console.warn('Error resolviendo cuenta para admin:', e.message);
+      }
+    }
+
     const { provider } = req.params;
 
     if (!accountId) {
@@ -59,7 +83,7 @@ router.get('/oauth/url/:provider', verifyToken, (req, res) => {
       { expiresIn: '15m' }
     );
 
-    const appId = process.env.META_APP_ID || process.env.FACEBOOK_APP_ID;
+    const appId = (process.env.META_APP_ID || process.env.FACEBOOK_APP_ID || '').trim();
     const isMeta = (provider === 'meta' || provider === 'facebook' || provider === 'instagram');
     const redirectUri = isMeta 
       ? `${SERVER_BASE_URL}/api/social/callback/meta` 
@@ -69,19 +93,20 @@ router.get('/oauth/url/:provider', verifyToken, (req, res) => {
 
     if (isMeta) {
       if (!appId) {
-        return res.json({
+        return res.status(400).json({
           success: false,
           needsCredentials: true,
           message: 'Se requiere configurar META_APP_ID en las variables de entorno de Railway para el flujo de autorización en vivo.'
         });
       }
       const scopes = [
+        'public_profile',
+        'email',
         'pages_show_list',
         'pages_read_engagement',
         'pages_manage_posts',
         'instagram_basic',
-        'instagram_manage_insights',
-        'business_management'
+        'instagram_manage_insights'
       ].join(',');
 
       authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&state=${stateToken}&response_type=code`;
@@ -107,12 +132,12 @@ router.get('/callback/meta', async (req, res) => {
   const { code, state, error, error_description } = req.query;
 
   if (error) {
-    console.warn('Autorización Meta cancelada por el usuario:', error_description);
-    return res.redirect(`${FRONTEND_URL}/dashboard.html?social_status=canceled`);
+    console.warn('Autorización Meta cancelada por el usuario:', error_description || error);
+    return res.redirect(`${FRONTEND_URL}/dashboard.html?social_status=canceled&msg=${encodeURIComponent(error_description || error)}#marketing-social`);
   }
 
   if (!code || !state) {
-    return res.redirect(`${FRONTEND_URL}/dashboard.html?social_status=error&msg=missing_code_or_state`);
+    return res.redirect(`${FRONTEND_URL}/dashboard.html?social_status=error&msg=missing_code_or_state#marketing-social`);
   }
 
   try {
@@ -124,12 +149,19 @@ router.get('/callback/meta', async (req, res) => {
       throw new Error('El estado de autorización no contiene un accountId válido.');
     }
 
+    const appId = (process.env.META_APP_ID || process.env.FACEBOOK_APP_ID || '').trim();
+    const appSecret = (process.env.META_APP_SECRET || process.env.FACEBOOK_APP_SECRET || '').trim();
+
+    if (!appId || !appSecret) {
+      throw new Error('Las credenciales de Meta (META_APP_ID / META_APP_SECRET) no están disponibles en el servidor.');
+    }
+
     const redirectUri = `${SERVER_BASE_URL}/api/social/callback/meta`;
 
     // 1. Intercambiar code por User Access Token corto
     const tokenParams = new URLSearchParams({
-      client_id: META_APP_ID,
-      client_secret: META_APP_SECRET,
+      client_id: appId,
+      client_secret: appSecret,
       redirect_uri: redirectUri,
       code
     });
@@ -146,8 +178,8 @@ router.get('/callback/meta', async (req, res) => {
     // 2. Extender a Long-Lived Token (60 días renovable)
     const longTokenParams = new URLSearchParams({
       grant_type: 'fb_exchange_token',
-      client_id: META_APP_ID,
-      client_secret: META_APP_SECRET,
+      client_id: appId,
+      client_secret: appSecret,
       fb_exchange_token: shortToken
     });
 
@@ -161,55 +193,61 @@ router.get('/callback/meta', async (req, res) => {
     );
     const accountsData = await accountsRes.json();
 
-    if (accountsData.data && accountsData.data.length > 0) {
-      for (const page of accountsData.data) {
-        const pageId = page.id;
-        const pageName = page.name;
-        const pageToken = page.access_token;
+    if (accountsData.error) {
+      throw new Error(accountsData.error.message || 'Error consultando páginas en Meta Graph API');
+    }
 
-        // Guardar conexión de Facebook Fan Page
-        const fbConnId = `soc_fb_${crypto.randomBytes(8).toString('hex')}`;
+    if (!accountsData.data || accountsData.data.length === 0) {
+      return res.redirect(`${FRONTEND_URL}/dashboard.html?social_status=warning&msg=${encodeURIComponent('No se encontraron páginas de Facebook ni cuentas de Instagram Business administradas por este usuario.')}#marketing-social`);
+    }
+
+    for (const page of accountsData.data) {
+      const pageId = page.id;
+      const pageName = page.name;
+      const pageToken = page.access_token;
+
+      // Guardar conexión de Facebook Fan Page
+      const fbConnId = `soc_fb_${crypto.randomBytes(8).toString('hex')}`;
+      await db.query(`
+        INSERT INTO social_connections (
+          id, account_id, provider, provider_account_id, account_name,
+          access_token, status, last_synced_at, updated_at
+        ) VALUES ($1, $2, 'facebook', $3, $4, $5, 'active', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        ON CONFLICT (account_id, provider) DO UPDATE SET
+          provider_account_id = EXCLUDED.provider_account_id,
+          account_name = EXCLUDED.account_name,
+          access_token = EXCLUDED.access_token,
+          status = 'active',
+          last_synced_at = CURRENT_TIMESTAMP,
+          updated_at = CURRENT_TIMESTAMP;
+      `, [fbConnId, accountId, pageId, pageName, pageToken]);
+
+      // Si la página tiene una cuenta de Instagram Business vinculada
+      if (page.instagram_business_account) {
+        const ig = page.instagram_business_account;
+        const igConnId = `soc_ig_${crypto.randomBytes(8).toString('hex')}`;
         await db.query(`
           INSERT INTO social_connections (
-            id, account_id, provider, provider_account_id, account_name,
+            id, account_id, provider, provider_account_id, account_name, account_avatar,
             access_token, status, last_synced_at, updated_at
-          ) VALUES ($1, $2, 'facebook', $3, $4, $5, 'active', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          ) VALUES ($1, $2, 'instagram', $3, $4, $5, $6, 'active', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
           ON CONFLICT (account_id, provider) DO UPDATE SET
             provider_account_id = EXCLUDED.provider_account_id,
             account_name = EXCLUDED.account_name,
+            account_avatar = EXCLUDED.account_avatar,
             access_token = EXCLUDED.access_token,
             status = 'active',
             last_synced_at = CURRENT_TIMESTAMP,
             updated_at = CURRENT_TIMESTAMP;
-        `, [fbConnId, accountId, pageId, pageName, pageToken]);
-
-        // Si la página tiene una cuenta de Instagram Business vinculada
-        if (page.instagram_business_account) {
-          const ig = page.instagram_business_account;
-          const igConnId = `soc_ig_${crypto.randomBytes(8).toString('hex')}`;
-          await db.query(`
-            INSERT INTO social_connections (
-              id, account_id, provider, provider_account_id, account_name, account_avatar,
-              access_token, status, last_synced_at, updated_at
-            ) VALUES ($1, $2, 'instagram', $3, $4, $5, $6, 'active', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-            ON CONFLICT (account_id, provider) DO UPDATE SET
-              provider_account_id = EXCLUDED.provider_account_id,
-              account_name = EXCLUDED.account_name,
-              account_avatar = EXCLUDED.account_avatar,
-              access_token = EXCLUDED.access_token,
-              status = 'active',
-              last_synced_at = CURRENT_TIMESTAMP,
-              updated_at = CURRENT_TIMESTAMP;
-          `, [igConnId, accountId, ig.id, `@${ig.username}`, ig.profile_picture_url, pageToken]);
-        }
+        `, [igConnId, accountId, ig.id, `@${ig.username}`, ig.profile_picture_url, pageToken]);
       }
     }
 
     // Redirección exitosa hacia el frontend en Vercel
-    res.redirect(`${FRONTEND_URL}/dashboard.html?social_status=connected&provider=meta`);
+    res.redirect(`${FRONTEND_URL}/dashboard.html?social_status=connected&provider=meta#marketing-social`);
   } catch (err) {
     console.error('Error procesando callback de Meta:', err.message || err);
-    res.redirect(`${FRONTEND_URL}/dashboard.html?social_status=error&msg=${encodeURIComponent(err.message)}`);
+    res.redirect(`${FRONTEND_URL}/dashboard.html?social_status=error&msg=${encodeURIComponent(err.message)}#marketing-social`);
   }
 });
 

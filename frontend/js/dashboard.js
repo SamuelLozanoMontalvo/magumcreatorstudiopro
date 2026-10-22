@@ -1599,6 +1599,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (socialSubmitBtn) {
       socialSubmitBtn.style.background = meta.color;
     }
+    if (socialSubmitText) {
+      socialSubmitText.textContent = (channelKey === 'instagram' || channelKey === 'facebook')
+        ? 'Conectar con Meta (OAuth 2.0)'
+        : 'Autorizar y Sincronizar API';
+    }
     if (socialModal) socialModal.style.display = 'flex';
   };
 
@@ -1664,22 +1669,64 @@ document.addEventListener('DOMContentLoaded', () => {
       const handle = (socialHandleInput && socialHandleInput.value.trim()) || `@empresa_${channelKey}`;
       const meta = channelData[channelKey] || { name: channelKey };
 
-      const originalText = socialSubmitText ? socialSubmitText.textContent : '';
-      if (socialSubmitText) socialSubmitText.textContent = 'Autenticando con la API...';
-      // Si es Meta (Instagram o Facebook), intentar flujo OAuth oficial en vivo
+      const originalText = socialSubmitText ? socialSubmitText.textContent : 'Conectar';
+
+      // Si es Meta (Instagram o Facebook), iniciar flujo OAuth oficial en vivo
       if (channelKey === 'instagram' || channelKey === 'facebook') {
+        if (socialSubmitText) socialSubmitText.textContent = 'Conectando con Meta...';
+        socialSubmitBtn.disabled = true;
+
         try {
-          if (window.MagumApi) {
-            const authRes = await MagumApi.getSocialAuthUrl('meta');
-            if (authRes && authRes.success && authRes.authUrl) {
-              window.location.href = authRes.authUrl;
-              return;
-            }
+          if (!window.MagumApi) {
+            throw new Error('Cliente API no inicializado.');
           }
+
+          const authRes = await MagumApi.getSocialAuthUrl('meta');
+          if (authRes && authRes.success && authRes.authUrl) {
+            localStorage.setItem('magum_social_pending', channelKey);
+            window.location.href = authRes.authUrl;
+            return;
+          }
+
+          if (authRes && authRes.needsCredentials) {
+            socialSubmitBtn.disabled = false;
+            if (socialSubmitText) socialSubmitText.textContent = originalText;
+            if (window.Swal) {
+              Swal.fire({
+                title: 'Credenciales de Meta Requeridas',
+                text: authRes.message || 'Se requiere configurar META_APP_ID en las variables de entorno de Railway.',
+                icon: 'warning',
+                confirmButtonColor: '#210087'
+              });
+            } else {
+              alert(authRes.message);
+            }
+            return;
+          }
+
+          throw new Error((authRes && authRes.message) || 'No se obtuvo la URL de autorización de Meta.');
         } catch (authErr) {
-          console.warn('Flujo OAuth en vivo no disponible, procediendo con registro directo:', authErr);
+          socialSubmitBtn.disabled = false;
+          if (socialSubmitText) socialSubmitText.textContent = originalText;
+          console.error('[Social OAuth] Error al conectar con Meta:', authErr);
+
+          if (window.Swal) {
+            Swal.fire({
+              title: 'Error de Conexión',
+              text: authErr.message || 'No fue posible abrir la autorización oficial con Meta. Verifica tu sesión y las credenciales.',
+              icon: 'error',
+              confirmButtonColor: '#ef4444'
+            });
+          } else {
+            alert('Error al conectar con Meta: ' + authErr.message);
+          }
+          return;
         }
       }
+
+      // Para otros canales o guardado manual
+      if (socialSubmitText) socialSubmitText.textContent = 'Sincronizando...';
+      socialSubmitBtn.disabled = true;
 
       try {
         if (window.MagumApi) {
@@ -1698,7 +1745,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (row) {
         const cells = row.querySelectorAll('td');
         if (cells.length >= 6) {
-          cells[1].innerHTML = `<span class="account-handle">${handle}</span>`;
+          cells[1].innerHTML = `<span class="account-handle">${escapeHtml(handle)}</span>`;
           cells[2].innerHTML = `<span class="badge-api-connected"><i class="fa-solid fa-circle-check"></i> Sincronizado</span>`;
           cells[3].textContent = meta.followers || '1,200';
           cells[4].textContent = meta.reach || '3,400';
@@ -1728,42 +1775,123 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const res = await MagumApi.getSocialConnections();
       if (res && res.success && Array.isArray(res.connections)) {
-        res.connections.forEach(conn => {
-          const channelKey = conn.provider;
-          const handle = conn.account_name;
+        let connectedCount = 0;
+        const connMap = {};
+        res.connections.forEach(c => {
+          connMap[c.provider] = c;
+        });
+
+        ['instagram', 'facebook', 'tiktok', 'youtube', 'linkedin'].forEach(channelKey => {
+          const conn = connMap[channelKey];
           const meta = channelData[channelKey] || {};
-          const cache = conn.metrics_cache || {};
-
-          // Actualizar fila
           const row = document.querySelector(`tr[data-channel-row="${channelKey}"]`);
-          if (row) {
-            const cells = row.querySelectorAll('td');
-            if (cells.length >= 6) {
-              cells[1].innerHTML = `<span class="account-handle">${handle}</span>`;
-              cells[2].innerHTML = `<span class="badge-api-connected"><i class="fa-solid fa-circle-check"></i> Sincronizado</span>`;
-              cells[3].textContent = cache.followers || meta.followers || '1,200';
-              cells[4].textContent = cache.reach || meta.reach || '3,400';
-              cells[5].innerHTML = `<button type="button" class="btn-disconnect-sm" onclick="configureSocialChannel('${channelKey}')">Configurar</button>`;
-            }
-          }
-
-          // Actualizar botón en el sub-sidebar
           const sideBtn = document.querySelector(`.btn-channel-connect[data-connect-channel="${channelKey}"]`);
-          if (sideBtn) {
-            sideBtn.innerHTML = '<i class="fa-solid fa-check" style="color: #10b981;"></i>';
-            sideBtn.title = `${meta.name || channelKey} Conectado`;
+
+          if (conn && conn.status === 'active') {
+            connectedCount++;
+            const handle = conn.account_name;
+            const cache = conn.metrics_cache || {};
+
+            if (row) {
+              const cells = row.querySelectorAll('td');
+              if (cells.length >= 6) {
+                cells[1].innerHTML = `<span class="account-handle">${escapeHtml(handle)}</span>`;
+                cells[2].innerHTML = `<span class="badge-api-connected"><i class="fa-solid fa-circle-check"></i> Sincronizado</span>`;
+                cells[3].textContent = cache.followers || meta.followers || '—';
+                cells[4].textContent = cache.reach || meta.reach || '—';
+                cells[5].innerHTML = `<button type="button" class="btn-disconnect-sm" onclick="configureSocialChannel('${channelKey}')">Configurar</button>`;
+              }
+            }
+
+            if (sideBtn) {
+              sideBtn.innerHTML = '<i class="fa-solid fa-check" style="color: #10b981;"></i>';
+              sideBtn.title = `${meta.name || channelKey} Conectado`;
+            }
+          } else {
+            if (row) {
+              const cells = row.querySelectorAll('td');
+              if (cells.length >= 6) {
+                cells[1].innerHTML = `<span class="account-handle text-muted">Sin vincular</span>`;
+                cells[2].innerHTML = `<span class="badge-api-disconnected"><i class="fa-solid fa-circle-xmark"></i> Desconectado</span>`;
+                cells[3].textContent = '—';
+                cells[4].textContent = '—';
+                cells[5].innerHTML = `<button type="button" class="btn-connect-sm" onclick="openConnectModal('${channelKey}')">Conectar</button>`;
+              }
+            }
+
+            if (sideBtn) {
+              sideBtn.innerHTML = channelKey === 'linkedin' ? '<i class="fa-solid fa-gem"></i>' : '<i class="fa-solid fa-plus"></i>';
+              sideBtn.title = `Conectar ${meta.name || channelKey}`;
+            }
           }
         });
 
         const counter = document.getElementById('connected-channels-count');
-        if (counter && res.connections.length > 0) {
-          counter.textContent = `${res.connections.length} de 5 redes conectadas`;
+        if (counter) {
+          counter.textContent = `${connectedCount} de 5 redes conectadas`;
         }
       }
     } catch (err) {
       console.warn('Modo sin conexión remota social:', err.message);
     }
   }
+
+  // Verificar retorno de autorización OAuth desde Meta (URL Params)
+  (function handleOAuthReturnStatus() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const socialStatus = urlParams.get('social_status');
+    const socialMsg = urlParams.get('msg');
+    const socialProvider = urlParams.get('provider') || 'Meta';
+
+    if (socialStatus) {
+      const socialNavBtn = document.querySelector('[data-view="view-marketing-social"]');
+      if (socialNavBtn) {
+        socialNavBtn.click();
+      }
+
+      if (socialStatus === 'connected') {
+        if (window.Swal) {
+          Swal.fire({
+            title: '¡Conexión Exitosa!',
+            text: `Tus canales de ${socialProvider.toUpperCase()} han sido sincronizados exitosamente con Magum Creator Studio.`,
+            icon: 'success',
+            confirmButtonColor: '#210087'
+          });
+        }
+        syncSocialFromBackend();
+      } else if (socialStatus === 'warning') {
+        if (window.Swal) {
+          Swal.fire({
+            title: 'Vinculación sin Páginas',
+            text: socialMsg ? decodeURIComponent(socialMsg) : 'Tu cuenta se autenticó pero no se encontraron Páginas de Facebook o Instagram vinculadas.',
+            icon: 'warning',
+            confirmButtonColor: '#210087'
+          });
+        }
+      } else if (socialStatus === 'error') {
+        if (window.Swal) {
+          Swal.fire({
+            title: 'Error de Autorización',
+            text: socialMsg ? decodeURIComponent(socialMsg) : 'Ocurrió un error al procesar la vinculación con Meta.',
+            icon: 'error',
+            confirmButtonColor: '#ef4444'
+          });
+        }
+      } else if (socialStatus === 'canceled') {
+        if (window.Swal) {
+          Swal.fire({
+            title: 'Autorización Cancelada',
+            text: 'Has cancelado el proceso de autorización con Meta.',
+            icon: 'info',
+            confirmButtonColor: '#210087'
+          });
+        }
+      }
+
+      const cleanUrl = window.location.pathname + window.location.hash;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+  })();
 
   // Interacción de pestañas superiores estilo Metricool
   const metricoolTabs = document.querySelectorAll('.metricool-tab-btn');
