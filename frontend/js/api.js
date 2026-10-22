@@ -292,10 +292,10 @@ class MagumApiClient {
     return this.request(`/social/oauth/url/${encodeURIComponent(provider)}`);
   }
 
-  async connectSocialManual(provider, accountName) {
+  async connectSocialManual(provider, accountName, metrics = null) {
     return this.request('/social/connect-manual', {
       method: 'POST',
-      body: JSON.stringify({ provider, accountName })
+      body: JSON.stringify({ provider, accountName, metrics })
     });
   }
 

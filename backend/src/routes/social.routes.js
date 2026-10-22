@@ -387,7 +387,15 @@ router.post('/connect-manual', verifyToken, async (req, res) => {
       twitch: { followers: '3,210', reach: '8,900', engagement: '9.2%', posts: 12 }
     };
 
-    const metrics = sampleMetrics[provider.toLowerCase()] || { followers: '1,200', reach: '3,400', engagement: '4.0%', posts: 10 };
+    let metrics = sampleMetrics[provider.toLowerCase()] || { followers: '1,200', reach: '3,400', engagement: '4.0%', posts: 10 };
+    if (req.body.metrics && typeof req.body.metrics === 'object') {
+      metrics = {
+        followers: req.body.metrics.followers !== undefined ? String(req.body.metrics.followers) : metrics.followers,
+        reach: req.body.metrics.reach !== undefined ? String(req.body.metrics.reach) : metrics.reach,
+        engagement: req.body.metrics.engagement !== undefined ? String(req.body.metrics.engagement) : metrics.engagement,
+        posts: req.body.metrics.posts !== undefined ? Number(req.body.metrics.posts) : metrics.posts
+      };
+    }
 
     await db.query(`
       INSERT INTO social_connections (

@@ -1642,15 +1642,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalTitle = document.getElementById('modal-social-title');
     const modalBubble = document.getElementById('modal-social-icon-bubble');
     const handleInput = document.getElementById('connect-social-handle');
+    const followersInput = document.getElementById('connect-social-followers');
     const channelInput = document.getElementById('connect-social-channel');
     const submitBtn = document.getElementById('btn-simulate-oauth');
     const submitText = document.getElementById('btn-social-submit-text');
+    const labelHandle = document.getElementById('label-connect-handle');
 
     if (channelInput) channelInput.value = channelKey;
     if (modalTitle) modalTitle.textContent = `Conectar ${meta.name}`;
+    if (labelHandle) {
+      if (channelKey === 'youtube') labelHandle.textContent = 'Nombre de canal o @handle de YouTube:';
+      else if (channelKey === 'linkedin') labelHandle.textContent = 'Perfil personal o Página de LinkedIn:';
+      else if (channelKey === 'tiktok') labelHandle.textContent = 'Nombre de usuario (@usuario) de TikTok:';
+      else if (channelKey === 'twitter' || channelKey === 'x') labelHandle.textContent = 'Usuario (@cuenta) en X / Twitter:';
+      else labelHandle.textContent = 'Nombre de usuario o canal:';
+    }
     if (handleInput) {
       handleInput.value = '';
-      handleInput.placeholder = meta.placeholder;
+      handleInput.placeholder = meta.placeholder || '@tu_cuenta';
+    }
+    if (followersInput) {
+      followersInput.value = '';
     }
     if (modalBubble) {
       modalBubble.innerHTML = `<i class="${meta.icon}"></i>`;
@@ -1661,7 +1673,7 @@ document.addEventListener('DOMContentLoaded', () => {
       submitBtn.style.background = meta.color;
     }
     if (submitText) {
-      submitText.textContent = 'Conectar';
+      submitText.textContent = (channelKey === 'facebook' || channelKey === 'instagram') ? 'Conectar con Meta' : 'Vincular y Sincronizar';
     }
     if (modal) {
       modal.style.display = 'flex';
@@ -1789,9 +1801,22 @@ document.addEventListener('DOMContentLoaded', () => {
       if (socialSubmitText) socialSubmitText.textContent = 'Sincronizando...';
       socialSubmitBtn.disabled = true;
 
+      const followersInput = document.getElementById('connect-social-followers');
+      let customMetrics = null;
+      if (followersInput && followersInput.value.trim()) {
+        const rawF = followersInput.value.trim().replace(/[^0-9]/g, '');
+        const fNum = parseInt(rawF, 10) || 0;
+        customMetrics = {
+          followers: fNum > 0 ? fNum.toLocaleString() : '0',
+          reach: (fNum * 3.5 || 3400).toLocaleString(),
+          engagement: '5.4%',
+          posts: 28
+        };
+      }
+
       try {
         if (window.MagumApi) {
-          await MagumApi.connectSocialManual(channelKey, handle);
+          await MagumApi.connectSocialManual(channelKey, handle, customMetrics);
         }
       } catch (err) {
         console.warn('Registro local de canal:', err.message);
@@ -1800,6 +1825,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (socialSubmitBtn) socialSubmitBtn.disabled = false;
       if (socialSubmitText) socialSubmitText.textContent = originalText;
       if (socialModal) socialModal.style.display = 'none';
+
+      await syncSocialFromBackend();
 
       // Actualizar fila en la tabla de cuentas
       const row = document.querySelector(`tr[data-channel-row="${channelKey}"]`);
@@ -1898,7 +1925,7 @@ document.addEventListener('DOMContentLoaded', () => {
           let sumEng = 0;
           let countEng = 0;
 
-          ['instagram', 'facebook', 'tiktok', 'youtube'].forEach(p => {
+          ['instagram', 'facebook', 'tiktok', 'youtube', 'linkedin', 'twitter', 'x', 'pinterest', 'google_business', 'threads', 'twitch'].forEach(p => {
             const conn = connMap[p];
             if (conn && conn.status === 'active') {
               const cache = conn.metrics_cache || {};
