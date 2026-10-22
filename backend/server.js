@@ -78,6 +78,8 @@ app.get(['/health', '/api/health'], async (req, res) => {
 
   const metaAppId = (process.env.META_APP_ID || process.env.FACEBOOK_APP_ID || '').trim();
   const metaSecret = (process.env.META_APP_SECRET || process.env.FACEBOOK_APP_SECRET || '').trim();
+  const linkedinId = (process.env.LINKEDIN_CLIENT_ID || '').trim();
+  const linkedinSecret = (process.env.LINKEDIN_CLIENT_SECRET || '').trim();
 
   res.json({
     status: 'online',
@@ -90,6 +92,11 @@ app.get(['/health', '/api/health'], async (req, res) => {
       hasAppId: Boolean(metaAppId),
       hasSecret: Boolean(metaSecret),
       appIdMasked: metaAppId ? `${metaAppId.substring(0, 4)}****${metaAppId.slice(-4)}` : null
+    },
+    linkedinConfig: {
+      hasClientId: Boolean(linkedinId),
+      hasClientSecret: Boolean(linkedinSecret),
+      clientIdMasked: linkedinId ? `${linkedinId.substring(0, 4)}****${linkedinId.slice(-4)}` : null
     },
     timestamp: new Date().toISOString()
   });

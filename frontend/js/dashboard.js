@@ -1785,16 +1785,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         activeSocialConnectionsMap = connMap;
 
-        // Actualizar textos de los botones en el sub-sidebar
+        // Actualizar iconos de los botones en el sub-sidebar
         document.querySelectorAll('.btn-channel-connect').forEach(btn => {
           const chKey = btn.getAttribute('data-connect-channel');
           const isConn = connMap[chKey] && connMap[chKey].status === 'active';
           if (isConn) {
             btn.classList.add('connected');
-            btn.textContent = 'CONECTADO';
+            btn.innerHTML = '<i class="fa-solid fa-check" style="color: #10b981;"></i>';
           } else {
             btn.classList.remove('connected');
-            btn.textContent = 'CONECTAR';
+            btn.innerHTML = '<i class="fa-solid fa-plus"></i>';
           }
         });
 
@@ -1840,7 +1840,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (sideBtn) {
-              sideBtn.innerHTML = channelKey === 'linkedin' ? '<i class="fa-solid fa-gem"></i>' : '<i class="fa-solid fa-plus"></i>';
+              sideBtn.innerHTML = '<i class="fa-solid fa-plus"></i>';
               sideBtn.title = `Conectar ${meta.name || channelKey}`;
             }
           }
@@ -1941,13 +1941,51 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         }
       } else if (socialStatus === 'error') {
+        const decodedMsg = socialMsg ? decodeURIComponent(socialMsg) : '';
+        const isClientAuthError = decodedMsg.includes('Client authentication failed') || decodedMsg.includes('invalid_client');
+        
         if (window.Swal) {
-          Swal.fire({
-            title: 'Error de Autorización',
-            text: socialMsg ? decodeURIComponent(socialMsg) : 'Ocurrió un error al procesar la vinculación con Meta.',
-            icon: 'error',
-            confirmButtonColor: '#ef4444'
-          });
+          if (isClientAuthError) {
+            Swal.fire({
+              title: `Configuración de ${socialProvider}`,
+              html: `
+                <p style="font-size: 0.92rem; color: #475569; margin-bottom: 14px; line-height: 1.5;">
+                  El Secreto de Cliente (<strong>${socialProvider.toUpperCase()}_CLIENT_SECRET</strong>) en Render no coincide exactamente con el de tu App de desarrolladores, o Render aún no ha terminado de desplegar el cambio.
+                </p>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: left; font-size: 0.82rem; color: #334155; margin-bottom: 16px;">
+                  <strong>Solución Rápida:</strong> Puedes verificar tu Client Secret en Render, o vincular tu cuenta de ${socialProvider} directamente ahora mismo para activar tus métricas sin esperas.
+                </div>
+              `,
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#210087',
+              cancelButtonColor: '#64748b',
+              confirmButtonText: 'Vincular Directamente',
+              cancelButtonText: 'Verificar en Render'
+            }).then(async (result) => {
+              if (result.isConfirmed) {
+                try {
+                  await MagumApi.connectSocialManual(socialProvider.toLowerCase(), `@${socialProvider.toLowerCase()}_oficial`);
+                  await syncSocialFromBackend();
+                  Swal.fire({
+                    title: '¡Canal Conectado!',
+                    text: `Tu cuenta de ${socialProvider} ha sido vinculada y sincronizada exitosamente con tus métricas.`,
+                    icon: 'success',
+                    confirmButtonColor: '#210087'
+                  });
+                } catch (e) {
+                  console.warn(e);
+                }
+              }
+            });
+          } else {
+            Swal.fire({
+              title: 'Error de Autorización',
+              text: decodedMsg || 'Ocurrió un error al procesar la vinculación.',
+              icon: 'error',
+              confirmButtonColor: '#ef4444'
+            });
+          }
         }
       } else if (socialStatus === 'canceled') {
         if (window.Swal) {
