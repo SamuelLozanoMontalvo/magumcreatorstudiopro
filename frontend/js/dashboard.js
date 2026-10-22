@@ -1989,21 +1989,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-    });
-  }
-
-  // Botón Crear publicación estilo Metricool
-  const btnNewPost = document.getElementById('btn-metricool-new-post');
-  if (btnNewPost) {
-    btnNewPost.addEventListener('click', () => {
-      if (window.MagumAlert) {
-        MagumAlert.info(
-          'Planificador Multicanal',
-          'El editor de contenidos te permitirá redactar, programar y emitir publicaciones en Instagram, Facebook y TikTok al mismo tiempo.'
-        );
-      }
-    });
-  }
 
   // ==========================================================================
   // 11. CIERRE DE SESIÓN SEGURO
