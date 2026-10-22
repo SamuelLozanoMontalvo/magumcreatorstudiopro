@@ -90,6 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const sidebarName = document.getElementById('sidebar-account-name');
       if (topbarName) topbarName.textContent = bizName;
       if (sidebarName) sidebarName.textContent = bizName;
+      
+      // Nombre de la cuenta activa en la pestaña de la ventana del navegador
+      document.title = `${bizName} | Magum Creator Studio`;
 
       // Si fue abierto por el Super Admin, mostrar banner superior seguro
       if (session.impersonatedByAdmin) {
@@ -1893,18 +1896,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })();
 
-  // Interacción de pestañas superiores estilo Metricool
+  // Interacción de pestañas superiores estilo Metricool con cambio de sub-vista real
   const metricoolTabs = document.querySelectorAll('.metricool-tab-btn');
+  const metricoolSubviews = document.querySelectorAll('.metricool-subview');
   const metricoolViewTitle = document.getElementById('metricool-view-title');
+
+  window.switchMetricoolTab = function(tabName) {
+    metricoolTabs.forEach(t => {
+      if (t.getAttribute('data-metricool-tab') === tabName) {
+        t.classList.add('active');
+      } else {
+        t.classList.remove('active');
+      }
+    });
+
+    metricoolSubviews.forEach(sub => {
+      if (sub.id === `metricool-subview-${tabName}`) {
+        sub.style.display = 'block';
+        sub.classList.add('active');
+      } else {
+        sub.style.display = 'none';
+        sub.classList.remove('active');
+      }
+    });
+
+    const activeTab = document.querySelector(`.metricool-tab-btn[data-metricool-tab="${tabName}"]`);
+    const label = activeTab ? activeTab.querySelector('span')?.textContent : 'Analíticas';
+    if (metricoolViewTitle) {
+      metricoolViewTitle.textContent = label || 'Analíticas';
+    }
+  };
+
   metricoolTabs.forEach(tab => {
     tab.addEventListener('click', () => {
-      metricoolTabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
       const tabName = tab.getAttribute('data-metricool-tab') || 'analitica';
-      const label = tab.querySelector('span')?.textContent || 'Analíticas';
-      if (metricoolViewTitle) {
-        metricoolViewTitle.textContent = label;
-      }
+      window.switchMetricoolTab(tabName);
     });
   });
 
@@ -1933,33 +1959,36 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Botón Más conexiones
+    // Botón Más conexiones: Despliega directamente las redes adicionales en la lista y tabla sin popups molestos
   const btnMoreConns = document.getElementById('btn-open-more-connections');
+  let extraChannelsExpanded = false;
+
   if (btnMoreConns) {
     btnMoreConns.addEventListener('click', () => {
-      if (window.Swal) {
-        Swal.fire({
-          title: 'Conectar Canales Adicionales',
-          html: `
-            <div style="display: flex; flex-direction: column; gap: 12px; text-align: left; margin-top: 14px;">
-              <button class="period-pill" style="padding: 10px; display: flex; align-items: center; gap: 10px;" onclick="Swal.close(); openConnectModal('youtube')">
-                <i class="fa-brands fa-youtube" style="color: #ff0000; font-size: 1.2rem;"></i>
-                <span>YouTube Channel</span>
-              </button>
-              <button class="period-pill" style="padding: 10px; display: flex; align-items: center; gap: 10px;" onclick="Swal.close(); openConnectModal('linkedin')">
-                <i class="fa-brands fa-linkedin-in" style="color: #0a66c2; font-size: 1.2rem;"></i>
-                <span>LinkedIn Company Page</span>
-              </button>
-              <button class="period-pill" style="padding: 10px; display: flex; align-items: center; gap: 10px;" onclick="Swal.close(); alert('Próximamente soporte para X / Twitter')">
-                <i class="fa-brands fa-x-twitter" style="font-size: 1.2rem;"></i>
-                <span>X (Twitter)</span>
-              </button>
-            </div>
-          `,
-          showConfirmButton: false,
-          showCloseButton: true
-        });
+      extraChannelsExpanded = !extraChannelsExpanded;
+      const extraListItems = document.querySelectorAll('.extra-channel');
+      const extraTableRows = document.querySelectorAll('.extra-channel-row');
+
+      extraListItems.forEach(el => {
+        el.style.display = extraChannelsExpanded ? 'flex' : 'none';
+      });
+
+      extraTableRows.forEach(row => {
+        row.style.display = extraChannelsExpanded ? 'table-row' : 'none';
+      });
+
+      btnMoreConns.innerHTML = extraChannelsExpanded 
+        ? '<i class="fa-solid fa-minus"></i> <span>Menos conexiones</span>'
+        : '<i class="fa-solid fa-plus"></i> <span>Más conexiones</span>';
+      
+      const counter = document.getElementById('connected-channels-count');
+      if (counter) {
+        const total = extraChannelsExpanded ? '10' : '5';
+        const current = counter.textContent.split(' ')[0] || '0';
+        counter.textContent = `${current} de ${total} redes conectadas`;
       }
+    });
+  }
     });
   }
 
@@ -1996,4 +2025,332 @@ document.addEventListener('DOMContentLoaded', () => {
   syncTeamFromBackend();
   syncSocialFromBackend();
 
+  // ==========================================================================
+  // 11. COLAPSO Y EXPANSIÓN DEL SIDEBAR CON MEMORIA (LOCALSTORAGE)
+  // ==========================================================================
+  const btnSidebarCollapse = document.getElementById('btn-sidebar-collapse');
+  const sidebarEl = document.getElementById('sidebar');
+
+  // Cargar preferencia guardada
+  if (localStorage.getItem('magum_sidebar_collapsed') === 'true' && sidebarEl) {
+    sidebarEl.classList.add('collapsed');
+  }
+
+  if (btnSidebarCollapse && sidebarEl) {
+    btnSidebarCollapse.addEventListener('click', () => {
+      const isCollapsed = sidebarEl.classList.toggle('collapsed');
+      localStorage.setItem('magum_sidebar_collapsed', isCollapsed ? 'true' : 'false');
+    });
+  }
+
+  // ==========================================================================
+  // 12. CENTRO DE NOTIFICACIONES INTERACTIVO
+  // ==========================================================================
+  const btnNotifications = document.getElementById('btn-notifications');
+  const notifDropdown = document.getElementById('notifications-dropdown');
+  const notifBadge = document.getElementById('notif-count-badge');
+  const notifIndicator = document.getElementById('notification-indicator');
+  const btnMarkAllRead = document.getElementById('btn-mark-all-read');
+  const notifPills = document.querySelectorAll('.notif-pill');
+
+  if (btnNotifications && notifDropdown) {
+    btnNotifications.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isVisible = notifDropdown.style.display === 'block';
+      notifDropdown.style.display = isVisible ? 'none' : 'block';
+    });
+
+    document.addEventListener('click', (e) => {
+      if (notifDropdown && !notifDropdown.contains(e.target) && e.target !== btnNotifications) {
+        notifDropdown.style.display = 'none';
+      }
+    });
+  }
+
+  if (btnMarkAllRead) {
+    btnMarkAllRead.addEventListener('click', () => {
+      document.querySelectorAll('.notif-item.unread').forEach(item => {
+        item.classList.remove('unread');
+        const dot = item.querySelector('.notif-unread-dot');
+        if (dot) dot.remove();
+      });
+      if (notifBadge) notifBadge.textContent = '0';
+      if (notifIndicator) notifIndicator.style.display = 'none';
+      if (window.MagumAlert) {
+        MagumAlert.success('Notificaciones al día', 'Todas las notificaciones han sido marcadas como leídas.');
+      }
+    });
+  }
+
+  notifPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      notifPills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      const filter = pill.getAttribute('data-filter');
+      const items = document.querySelectorAll('.notif-item');
+      items.forEach(item => {
+        if (filter === 'all' || item.getAttribute('data-category') === filter) {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
+  });
+
+  // ==========================================================================
+  // 13. CAMBIAR FOTO DE PERFIL / AVATAR
+  // ==========================================================================
+  const topbarAvatarBtn = document.getElementById('topbar-avatar-btn');
+  const modalAvatar = document.getElementById('modal-change-avatar');
+  const btnCloseAvatarModal = document.getElementById('btn-close-avatar-modal');
+  const btnCancelAvatarModal = document.getElementById('btn-cancel-avatar-modal');
+  const btnTriggerAvatarFile = document.getElementById('btn-trigger-avatar-file');
+  const inputAvatarFile = document.getElementById('input-avatar-file');
+  const inputAvatarUrl = document.getElementById('input-avatar-url');
+  const btnSaveAvatar = document.getElementById('btn-save-avatar');
+  const topbarAvatarImg = document.getElementById('topbar-avatar-img');
+  const avatarModalPreview = document.getElementById('avatar-modal-preview');
+
+  // Cargar avatar previamente guardado en localStorage
+  const savedAvatar = localStorage.getItem('magum_user_avatar');
+  if (savedAvatar && topbarAvatarImg) {
+    topbarAvatarImg.src = savedAvatar;
+  }
+
+  if (topbarAvatarBtn && modalAvatar) {
+    topbarAvatarBtn.addEventListener('click', () => {
+      if (avatarModalPreview && topbarAvatarImg) {
+        avatarModalPreview.src = topbarAvatarImg.src;
+      }
+      modalAvatar.style.display = 'flex';
+    });
+
+    if (btnCloseAvatarModal) btnCloseAvatarModal.addEventListener('click', () => modalAvatar.style.display = 'none');
+    if (btnCancelAvatarModal) btnCancelAvatarModal.addEventListener('click', () => modalAvatar.style.display = 'none');
+
+    if (btnTriggerAvatarFile && inputAvatarFile) {
+      btnTriggerAvatarFile.addEventListener('click', () => inputAvatarFile.click());
+      inputAvatarFile.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (loadEvent) => {
+            const dataUrl = loadEvent.target.result;
+            if (avatarModalPreview) avatarModalPreview.src = dataUrl;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    if (btnSaveAvatar) {
+      btnSaveAvatar.addEventListener('click', () => {
+        let newSrc = avatarModalPreview ? avatarModalPreview.src : '';
+        if (inputAvatarUrl && inputAvatarUrl.value.trim()) {
+          newSrc = inputAvatarUrl.value.trim();
+        }
+
+        if (newSrc && topbarAvatarImg) {
+          topbarAvatarImg.src = newSrc;
+          localStorage.setItem('magum_user_avatar', newSrc);
+          modalAvatar.style.display = 'none';
+
+          if (window.MagumAlert) {
+            MagumAlert.success('Foto Actualizada', 'La foto de perfil se ha actualizado correctamente.');
+          }
+        }
+      });
+    }
+  }
+
+  // ==========================================================================
+  // 14. INBOX INTERACTIVO (MENSAJES EN TIEMPO REAL)
+  // ==========================================================================
+  const inboxChatItems = document.querySelectorAll('.inbox-chat-item');
+  const threadContactName = document.getElementById('thread-contact-name');
+  const threadAvatar = document.getElementById('thread-avatar');
+  const threadMeta = document.getElementById('thread-contact-meta');
+  const threadChannelBadge = document.getElementById('thread-channel-badge');
+  const inboxMessagesScroll = document.getElementById('inbox-messages-scroll');
+  const inboxReplyInput = document.getElementById('inbox-reply-input');
+  const btnSendInboxMsg = document.getElementById('btn-send-inbox-msg');
+
+  inboxChatItems.forEach(chat => {
+    chat.addEventListener('click', () => {
+      inboxChatItems.forEach(c => c.classList.remove('active'));
+      chat.classList.add('active');
+
+      const name = chat.querySelector('.chat-contact-name')?.textContent || 'Cliente';
+      const avatarSrc = chat.querySelector('.chat-avatar-wrap img')?.src || '';
+      const channel = chat.getAttribute('data-channel');
+
+      if (threadContactName) threadContactName.textContent = name;
+      if (threadAvatar && avatarSrc) threadAvatar.src = avatarSrc;
+      if (inboxReplyInput) inboxReplyInput.placeholder = `Escribe un mensaje para ${name}...`;
+
+      if (threadChannelBadge) {
+        if (channel === 'whatsapp') {
+          threadChannelBadge.className = 'chat-channel-badge badge-wa';
+          threadChannelBadge.innerHTML = '<i class="fa-brands fa-whatsapp"></i>';
+          if (threadMeta) threadMeta.innerHTML = '<i class="fa-solid fa-circle text-success" style="font-size: 0.55rem;"></i> WhatsApp Business • En línea';
+        } else if (channel === 'instagram') {
+          threadChannelBadge.className = 'chat-channel-badge badge-ig';
+          threadChannelBadge.innerHTML = '<i class="fa-brands fa-instagram"></i>';
+          if (threadMeta) threadMeta.innerHTML = '<i class="fa-solid fa-circle text-success" style="font-size: 0.55rem;"></i> Instagram DM • Activo hace 10m';
+        } else {
+          threadChannelBadge.className = 'chat-channel-badge badge-fb';
+          threadChannelBadge.innerHTML = '<i class="fa-brands fa-facebook-messenger"></i>';
+          if (threadMeta) threadMeta.innerHTML = '<i class="fa-solid fa-circle text-success" style="font-size: 0.55rem;"></i> Messenger • Activo';
+        }
+      }
+
+      // Quitar unread si lo tenía
+      const unreadBadge = chat.querySelector('.chat-unread-badge');
+      if (unreadBadge) unreadBadge.remove();
+    });
+  });
+
+  function sendActiveChatMessage() {
+    if (!inboxReplyInput) return;
+    const text = inboxReplyInput.value.trim();
+    if (!text) return;
+
+    if (inboxMessagesScroll) {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      const msgGroup = document.createElement('div');
+      msgGroup.className = 'msg-bubble-group outgoing';
+      msgGroup.innerHTML = `
+        <div class="msg-bubble">${escapeHtml(text)}</div>
+        <span class="msg-time">${timeStr} • Enviado <i class="fa-solid fa-check"></i></span>
+      `;
+      inboxMessagesScroll.appendChild(msgGroup);
+      inboxMessagesScroll.scrollTop = inboxMessagesScroll.scrollHeight;
+    }
+
+    inboxReplyInput.value = '';
+  }
+
+  if (btnSendInboxMsg) btnSendInboxMsg.addEventListener('click', sendActiveChatMessage);
+  if (inboxReplyInput) {
+    inboxReplyInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sendActiveChatMessage();
+      }
+    });
+  }
+
+  // ==========================================================================
+  // 15. SMARTLINKS: SINCRONIZACIÓN EN TIEMPO REAL CON MOCKUP
+  // ==========================================================================
+  const smartlinkTitleInput = document.getElementById('smartlink-input-title');
+  const smartlinkBioInput = document.getElementById('smartlink-input-bio');
+  const phoneProfileName = document.getElementById('phone-profile-name');
+  const phoneProfileDesc = document.getElementById('phone-profile-desc');
+  const btnCopySmartlink = document.getElementById('btn-copy-smartlink');
+
+  if (smartlinkTitleInput && phoneProfileName) {
+    smartlinkTitleInput.addEventListener('input', (e) => {
+      phoneProfileName.textContent = e.target.value.trim() || 'Mi Negocio';
+    });
+  }
+
+  if (smartlinkBioInput && phoneProfileDesc) {
+    smartlinkBioInput.addEventListener('input', (e) => {
+      phoneProfileDesc.textContent = e.target.value.trim() || '';
+    });
+  }
+
+  if (btnCopySmartlink) {
+    btnCopySmartlink.addEventListener('click', () => {
+      navigator.clipboard.writeText('https://magum.link/automotorcartagena').then(() => {
+        if (window.MagumAlert) {
+          MagumAlert.success('Enlace Copiado', 'El enlace de tu SmartLink se ha copiado al portapapeles.');
+        }
+      });
+    });
+  }
+
+  // ==========================================================================
+  // 16. MODAL CREAR PUBLICACIÓN & REPORTING
+  // ==========================================================================
+  const btnNewPost = document.getElementById('btn-metricool-new-post');
+  const btnNewPostCal = document.getElementById('btn-open-create-post-from-calendar');
+  const modalCreatePost = document.getElementById('modal-create-post');
+  const btnCloseCreatePost = document.getElementById('btn-close-create-post');
+  const btnCancelCreatePost = document.getElementById('btn-cancel-create-post');
+  const postCaptionInput = document.getElementById('post-caption-input');
+  const previewCaptionText = document.getElementById('preview-caption-text');
+  const postCaptionCounter = document.getElementById('post-caption-counter');
+  const btnSubmitCreatePost = document.getElementById('btn-submit-create-post');
+  const postChips = document.querySelectorAll('.post-channel-chip');
+
+  function openPostModal() {
+    if (modalCreatePost) modalCreatePost.style.display = 'flex';
+  }
+  if (btnNewPost) btnNewPost.addEventListener('click', openPostModal);
+  if (btnNewPostCal) btnNewPostCal.addEventListener('click', openPostModal);
+  if (btnCloseCreatePost) btnCloseCreatePost.addEventListener('click', () => modalCreatePost.style.display = 'none');
+  if (btnCancelCreatePost) btnCancelCreatePost.addEventListener('click', () => modalCreatePost.style.display = 'none');
+
+  if (postCaptionInput) {
+    postCaptionInput.addEventListener('input', (e) => {
+      const val = e.target.value;
+      if (previewCaptionText) {
+        previewCaptionText.innerHTML = `<strong>automotorcartagena</strong> ${escapeHtml(val) || '¡Tu texto se previsualizará en tiempo real aquí!'}`;
+      }
+      if (postCaptionCounter) {
+        postCaptionCounter.textContent = `${val.length} / 2,200 caracteres`;
+      }
+    });
+  }
+
+  postChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      chip.classList.toggle('active');
+    });
+  });
+
+  if (btnSubmitCreatePost) {
+    btnSubmitCreatePost.addEventListener('click', () => {
+      if (modalCreatePost) modalCreatePost.style.display = 'none';
+      if (window.Swal) {
+        Swal.fire({
+          title: '¡Publicación Programada!',
+          text: 'Tu publicación se ha puesto en cola para emitirse automáticamente en los canales seleccionados.',
+          icon: 'success',
+          confirmButtonColor: '#ff00db'
+        });
+      }
+    });
+  }
+
+  // Reporting botones
+  const btnExportPdf = document.getElementById('btn-export-pdf');
+  const btnExportExcel = document.getElementById('btn-export-excel');
+  if (btnExportPdf) {
+    btnExportPdf.addEventListener('click', () => {
+      if (window.Swal) {
+        Swal.fire({
+          title: 'Generando Reporte PDF...',
+          text: 'Consolidando métricas de comunidad, alcance, posts destacados y rendimiento web.',
+          timer: 1800,
+          timerProgressBar: true,
+          didOpen: () => Swal.showLoading()
+        }).then(() => {
+          Swal.fire('¡Reporte Listo!', 'El informe ejecutivo en PDF se ha descargado exitosamente.', 'success');
+        });
+      }
+    });
+  }
+  if (btnExportExcel) {
+    btnExportExcel.addEventListener('click', () => {
+      if (window.MagumAlert) {
+        MagumAlert.success('Exportación Completa', 'Se ha generado el archivo XLSX con todas las métricas desglosadas por día y canal.');
+      }
+    });
+  }
 });

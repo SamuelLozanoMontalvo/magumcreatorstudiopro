@@ -124,6 +124,11 @@
           <button id="btn-sidebar-toggle" class="btn-sidebar-toggle" type="button" aria-label="Abrir menú de navegación">
             <i class="fa-solid fa-bars"></i>
           </button>
+
+          <!-- Botón para colapsar / desplegar menú lateral en escritorio -->
+          <button id="btn-sidebar-collapse" class="btn-sidebar-collapse" type="button" aria-label="Colapsar o desplegar menú lateral" title="Colapsar / Desplegar menú lateral">
+            <i class="fa-solid fa-bars-staggered" id="icon-sidebar-collapse"></i>
+          </button>
           
           <div class="topbar-welcome">
             <h1 class="welcome-title">Bienvenido, <span id="topbar-account-name">Mi Negocio</span></h1>
@@ -133,26 +138,102 @@
 
         <div class="topbar-actions">
           
-          <!-- Botón de Búsqueda estilo App1 -->
-          <button class="topbar-icon-btn" type="button" aria-label="Buscar" title="Buscar...">
-            <i class="fa-solid fa-magnifying-glass"></i>
-          </button>
+          <!-- Botón de Notificaciones con Indicador y Menú Desplegable -->
+          <div class="topbar-notification-wrap" style="position: relative;">
+            <button class="topbar-icon-btn" id="btn-notifications" type="button" aria-label="Notificaciones" title="Centro de Notificaciones">
+              <i class="fa-regular fa-bell"></i>
+              <span class="notification-indicator" id="notification-indicator"></span>
+            </button>
 
-          <!-- Botón de Notificaciones con Indicador estilo App1 -->
-          <button class="topbar-icon-btn" type="button" aria-label="Notificaciones" title="Notificaciones">
-            <i class="fa-regular fa-bell"></i>
-            <span class="notification-indicator"></span>
-          </button>
+            <!-- Dropdown de Notificaciones del Negocio -->
+            <div class="notifications-dropdown" id="notifications-dropdown" style="display: none;">
+              <div class="notif-header">
+                <div class="notif-header-title">
+                  <i class="fa-solid fa-bell"></i>
+                  <span>Notificaciones</span>
+                  <span class="notif-count-badge" id="notif-count-badge">3</span>
+                </div>
+                <button type="button" class="btn-mark-all-read" id="btn-mark-all-read">Marcar leídas</button>
+              </div>
 
-          <!-- Avatar de Usuario estilo App1 -->
-          <div class="topbar-avatar" title="Perfil del negocio">
+              <div class="notif-filter-pills">
+                <button type="button" class="notif-pill active" data-filter="all">Todas</button>
+                <button type="button" class="notif-pill" data-filter="social">Redes</button>
+                <button type="button" class="notif-pill" data-filter="web">Web</button>
+                <button type="button" class="notif-pill" data-filter="news">Noticias</button>
+              </div>
+
+              <div class="notif-list" id="notif-list">
+                <!-- Notificación 1: Redes Sociales -->
+                <div class="notif-item unread" data-category="social">
+                  <div class="notif-icon-bubble notif-social">
+                    <i class="fa-brands fa-instagram"></i>
+                  </div>
+                  <div class="notif-content">
+                    <div class="notif-text">
+                      <strong>Instagram:</strong> Tu último Reel <em>"3 claves de mantenimiento"</em> superó <strong>5,420 reproducciones</strong> (+42% alcance).
+                    </div>
+                    <span class="notif-time">Hace 15 min</span>
+                  </div>
+                  <span class="notif-unread-dot"></span>
+                </div>
+
+                <!-- Notificación 2: Sitio Web -->
+                <div class="notif-item unread" data-category="web">
+                  <div class="notif-icon-bubble notif-web">
+                    <i class="fa-solid fa-globe"></i>
+                  </div>
+                  <div class="notif-content">
+                    <div class="notif-text">
+                      <strong>Sitio Web:</strong> Nuevo lead en formulario: <strong>Carlos Mendoza</strong> solicitó cotización de servicios.
+                    </div>
+                    <span class="notif-time">Hace 45 min</span>
+                  </div>
+                  <span class="notif-unread-dot"></span>
+                </div>
+
+                <!-- Notificación 3: Noticia Destacada del Día -->
+                <div class="notif-item unread" data-category="news">
+                  <div class="notif-icon-bubble notif-news">
+                    <i class="fa-solid fa-bolt"></i>
+                  </div>
+                  <div class="notif-content">
+                    <div class="notif-text">
+                      <strong>Noticia del día:</strong> Los videos de antes y después generan 3.8x más reservas locales esta semana en talleres y servicios.
+                    </div>
+                    <span class="notif-time">Hoy 08:30 AM</span>
+                  </div>
+                  <span class="notif-unread-dot"></span>
+                </div>
+
+                <!-- Notificación 4: WhatsApp -->
+                <div class="notif-item" data-category="social">
+                  <div class="notif-icon-bubble notif-whatsapp">
+                    <i class="fa-brands fa-whatsapp"></i>
+                  </div>
+                  <div class="notif-content">
+                    <div class="notif-text">
+                      <strong>WhatsApp:</strong> Nuevo mensaje entrante de <strong>+57 300 456 7890</strong> en el Inbox unificado.
+                    </div>
+                    <span class="notif-time">Ayer 18:20</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Avatar de Usuario con Acción para Cambiar Foto -->
+          <div class="topbar-avatar" id="topbar-avatar-btn" title="Haz clic para cambiar foto de perfil" style="cursor: pointer;">
             <img 
               src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" 
-              alt="Avatar" 
+              alt="Avatar de la cuenta" 
               class="topbar-avatar-img"
+              id="topbar-avatar-img"
             >
             <span class="topbar-avatar-fallback">MN</span>
+            <div class="avatar-edit-badge" title="Cambiar foto"><i class="fa-solid fa-camera"></i></div>
           </div>
+          <input type="file" id="input-avatar-file" accept="image/*" style="display: none;">
 
           <!-- Botón de Modo Claro / Modo Oscuro -->
           <button id="btn-theme-toggle" class="btn-theme-toggle" type="button" title="Cambiar tema">
@@ -1039,6 +1120,67 @@
                   </button>
                 </li>
 
+                <!-- Canales adicionales que se despliegan con 'Más conexiones' directamente aquí sin popup -->
+                <li class="metricool-channel-item extra-channel" data-channel="twitter" style="display: none;">
+                  <div class="channel-main-info">
+                    <span class="channel-icon-pill icon-x">
+                      <i class="fa-brands fa-x-twitter"></i>
+                    </span>
+                    <span class="channel-title-text">X (Twitter)</span>
+                  </div>
+                  <button type="button" class="btn-channel-connect" data-connect-channel="twitter" title="Conectar X">
+                    <i class="fa-solid fa-plus"></i>
+                  </button>
+                </li>
+
+                <li class="metricool-channel-item extra-channel" data-channel="pinterest" style="display: none;">
+                  <div class="channel-main-info">
+                    <span class="channel-icon-pill icon-pin">
+                      <i class="fa-brands fa-pinterest-p"></i>
+                    </span>
+                    <span class="channel-title-text">Pinterest</span>
+                  </div>
+                  <button type="button" class="btn-channel-connect" data-connect-channel="pinterest" title="Conectar Pinterest">
+                    <i class="fa-solid fa-plus"></i>
+                  </button>
+                </li>
+
+                <li class="metricool-channel-item extra-channel" data-channel="google_business" style="display: none;">
+                  <div class="channel-main-info">
+                    <span class="channel-icon-pill icon-gbp">
+                      <i class="fa-brands fa-google"></i>
+                    </span>
+                    <span class="channel-title-text">Google Business</span>
+                  </div>
+                  <button type="button" class="btn-channel-connect" data-connect-channel="google_business" title="Conectar Google Business">
+                    <i class="fa-solid fa-plus"></i>
+                  </button>
+                </li>
+
+                <li class="metricool-channel-item extra-channel" data-channel="threads" style="display: none;">
+                  <div class="channel-main-info">
+                    <span class="channel-icon-pill icon-threads">
+                      <i class="fa-brands fa-threads"></i>
+                    </span>
+                    <span class="channel-title-text">Threads</span>
+                  </div>
+                  <button type="button" class="btn-channel-connect" data-connect-channel="threads" title="Conectar Threads">
+                    <i class="fa-solid fa-plus"></i>
+                  </button>
+                </li>
+
+                <li class="metricool-channel-item extra-channel" data-channel="twitch" style="display: none;">
+                  <div class="channel-main-info">
+                    <span class="channel-icon-pill icon-twitch">
+                      <i class="fa-brands fa-twitch"></i>
+                    </span>
+                    <span class="channel-title-text">Twitch</span>
+                  </div>
+                  <button type="button" class="btn-channel-connect" data-connect-channel="twitch" title="Conectar Twitch">
+                    <i class="fa-solid fa-plus"></i>
+                  </button>
+                </li>
+
               </ul>
 
               <!-- Botón Más Conexiones -->
@@ -1052,6 +1194,9 @@
 
             <!-- ÁREA DE CONTENIDO PRINCIPAL -->
             <main class="metricool-main-content">
+
+              <!-- Sub-vista 1: Analítica (Activa por defecto) -->
+              <div id="metricool-subview-analitica" class="metricool-subview active">
               
               <!-- Encabezado de Sección -->
               <div class="metricool-header-row">
@@ -1234,10 +1379,633 @@
                           <button type="button" class="btn-connect-sm" onclick="openConnectModal('linkedin')">Conectar</button>
                         </td>
                       </tr>
+
+                      <!-- X (Twitter) -->
+                      <tr data-channel-row="twitter" class="extra-channel-row" style="display: none;">
+                        <td>
+                          <div class="table-channel-name">
+                            <span class="channel-icon-pill icon-x"><i class="fa-brands fa-x-twitter"></i></span>
+                            <strong>X (Twitter)</strong>
+                          </div>
+                        </td>
+                        <td><span class="account-handle text-muted">Sin vincular</span></td>
+                        <td><span class="badge-api-disconnected"><i class="fa-solid fa-circle-xmark"></i> Desconectado</span></td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>
+                          <button type="button" class="btn-connect-sm" onclick="openConnectModal('twitter')">Conectar</button>
+                        </td>
+                      </tr>
+
+                      <!-- Pinterest -->
+                      <tr data-channel-row="pinterest" class="extra-channel-row" style="display: none;">
+                        <td>
+                          <div class="table-channel-name">
+                            <span class="channel-icon-pill icon-pin"><i class="fa-brands fa-pinterest-p"></i></span>
+                            <strong>Pinterest Business</strong>
+                          </div>
+                        </td>
+                        <td><span class="account-handle text-muted">Sin vincular</span></td>
+                        <td><span class="badge-api-disconnected"><i class="fa-solid fa-circle-xmark"></i> Desconectado</span></td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>
+                          <button type="button" class="btn-connect-sm" onclick="openConnectModal('pinterest')">Conectar</button>
+                        </td>
+                      </tr>
+
+                      <!-- Google Business Profile -->
+                      <tr data-channel-row="google_business" class="extra-channel-row" style="display: none;">
+                        <td>
+                          <div class="table-channel-name">
+                            <span class="channel-icon-pill icon-gbp"><i class="fa-brands fa-google"></i></span>
+                            <strong>Google Business</strong>
+                          </div>
+                        </td>
+                        <td><span class="account-handle text-muted">Sin vincular</span></td>
+                        <td><span class="badge-api-disconnected"><i class="fa-solid fa-circle-xmark"></i> Desconectado</span></td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>
+                          <button type="button" class="btn-connect-sm" onclick="openConnectModal('google_business')">Conectar</button>
+                        </td>
+                      </tr>
+
+                      <!-- Threads -->
+                      <tr data-channel-row="threads" class="extra-channel-row" style="display: none;">
+                        <td>
+                          <div class="table-channel-name">
+                            <span class="channel-icon-pill icon-threads"><i class="fa-brands fa-threads"></i></span>
+                            <strong>Threads</strong>
+                          </div>
+                        </td>
+                        <td><span class="account-handle text-muted">Sin vincular</span></td>
+                        <td><span class="badge-api-disconnected"><i class="fa-solid fa-circle-xmark"></i> Desconectado</span></td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>
+                          <button type="button" class="btn-connect-sm" onclick="openConnectModal('threads')">Conectar</button>
+                        </td>
+                      </tr>
+
+                      <!-- Twitch -->
+                      <tr data-channel-row="twitch" class="extra-channel-row" style="display: none;">
+                        <td>
+                          <div class="table-channel-name">
+                            <span class="channel-icon-pill icon-twitch"><i class="fa-brands fa-twitch"></i></span>
+                            <strong>Twitch Channel</strong>
+                          </div>
+                        </td>
+                        <td><span class="account-handle text-muted">Sin vincular</span></td>
+                        <td><span class="badge-api-disconnected"><i class="fa-solid fa-circle-xmark"></i> Desconectado</span></td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>
+                          <button type="button" class="btn-connect-sm" onclick="openConnectModal('twitch')">Conectar</button>
+                        </td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
               </section>
+              </div> <!-- Fin subview-analitica -->
+
+              <!-- Sub-vista 2: Reporting (Informes Ejecutivos en PDF/Excel) -->
+              <div id="metricool-subview-reporting" class="metricool-subview" style="display: none;">
+                <div class="metricool-header-row">
+                  <div>
+                    <h2 class="metricool-section-heading">Informes & Rendimiento</h2>
+                    <p class="section-subtitle">Genera reportes ejecutivos listos para presentar con un clic</p>
+                  </div>
+                  <div class="reporting-action-btns">
+                    <button type="button" class="btn-export-report btn-export-excel" id="btn-export-excel">
+                      <i class="fa-solid fa-file-excel"></i>
+                      <span>Exportar Excel</span>
+                    </button>
+                    <button type="button" class="btn-export-report btn-export-pdf" id="btn-export-pdf">
+                      <i class="fa-solid fa-file-pdf"></i>
+                      <span>Descargar PDF</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="reporting-grid">
+                  <!-- Configuración del Informe -->
+                  <div class="reporting-card config-card">
+                    <h3 class="card-title-sm"><i class="fa-solid fa-sliders"></i> Personalizar Reporte</h3>
+                    <div class="form-group" style="margin-top: 14px;">
+                      <label class="form-label">Período de Análisis</label>
+                      <select class="form-input" id="report-period">
+                        <option value="month">Mes Actual (Octubre 2026)</option>
+                        <option value="last_month">Mes Anterior (Septiembre 2026)</option>
+                        <option value="quarter">Tercer Trimestre (Q3 2026)</option>
+                        <option value="year">Año 2026 Completo</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">Canales a Incluir</label>
+                      <div class="report-channels-check-grid">
+                        <label class="report-check-pill active"><input type="checkbox" checked> Instagram</label>
+                        <label class="report-check-pill active"><input type="checkbox" checked> Facebook</label>
+                        <label class="report-check-pill active"><input type="checkbox" checked> TikTok</label>
+                        <label class="report-check-pill active"><input type="checkbox" checked> Sitio Web</label>
+                        <label class="report-check-pill"><input type="checkbox"> Google Ads</label>
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">Envío Programado Automático</label>
+                      <div class="scheduled-report-box">
+                        <label class="switch-toggle-wrap">
+                          <input type="checkbox" id="toggle-auto-report" checked>
+                          <span class="switch-slider"></span>
+                          <span class="switch-label">Enviar el 1° de cada mes al correo del titular</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Vista Previa del Informe Ejecutivo -->
+                  <div class="reporting-card preview-card">
+                    <div class="report-preview-sheet">
+                      <div class="report-sheet-header">
+                        <div class="sheet-logo-brand">
+                          <i class="fa-solid fa-chart-pie" style="color: #ff00db; font-size: 1.5rem;"></i>
+                          <div>
+                            <h4 id="report-sheet-biz-name">Magum Creator Studio</h4>
+                            <span class="report-sheet-tag">INFORME EJECUTIVO MENSUAL</span>
+                          </div>
+                        </div>
+                        <span class="badge-status-counter">Octubre 2026</span>
+                      </div>
+
+                      <div class="sheet-kpi-summary">
+                        <div class="sheet-kpi-box">
+                          <span class="kpi-num">43,240</span>
+                          <span class="kpi-lbl">Comunidad Consolidada (+14%)</span>
+                        </div>
+                        <div class="sheet-kpi-box">
+                          <span class="kpi-num">48,920</span>
+                          <span class="kpi-lbl">Alcance Total Orgánico (+22%)</span>
+                        </div>
+                        <div class="sheet-kpi-box">
+                          <span class="kpi-num">12,450</span>
+                          <span class="kpi-lbl">Visitas Sitio Web (+18%)</span>
+                        </div>
+                        <div class="sheet-kpi-box">
+                          <span class="kpi-num">5.4%</span>
+                          <span class="kpi-lbl">Tasa de Engagement (+0.8%)</span>
+                        </div>
+                      </div>
+
+                      <div class="sheet-insights-box">
+                        <div class="sheet-insight-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Insights de Rendimiento (IA)</div>
+                        <p class="sheet-insight-text">
+                          Los videos en formato <strong>Reels & TikTok</strong> aportaron el <strong>68% de las visualizaciones totales</strong>. El horario de publicación con mayor conversión fue los <strong>Miércoles y Viernes entre las 6:00 PM y 8:30 PM</strong>.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div> <!-- Fin subview-reporting -->
+
+              <!-- Sub-vista 3: Inbox Omnicanal Unificado (WhatsApp + Instagram + Messenger) -->
+              <div id="metricool-subview-inbox" class="metricool-subview" style="display: none;">
+                <div class="inbox-layout-wrapper">
+                  <!-- Columna Izquierda: Lista de Conversaciones -->
+                  <aside class="inbox-sidebar">
+                    <div class="inbox-search-box">
+                      <div class="inbox-search-input-wrap">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" placeholder="Buscar por cliente o mensaje..." id="inbox-search-input">
+                      </div>
+                    </div>
+
+                    <div class="inbox-channel-tabs">
+                      <button type="button" class="inbox-tab active" data-inbox-channel="all">Todos (12)</button>
+                      <button type="button" class="inbox-tab" data-inbox-channel="whatsapp"><i class="fa-brands fa-whatsapp"></i> WhatsApp (6)</button>
+                      <button type="button" class="inbox-tab" data-inbox-channel="instagram"><i class="fa-brands fa-instagram"></i> Instagram (4)</button>
+                      <button type="button" class="inbox-tab" data-inbox-channel="messenger"><i class="fa-brands fa-facebook-messenger"></i> Messenger (2)</button>
+                    </div>
+
+                    <div class="inbox-conversations-list" id="inbox-chats-container">
+                      <!-- Chat 1: WhatsApp -->
+                      <div class="inbox-chat-item active" data-chat-id="chat-1" data-channel="whatsapp">
+                        <div class="chat-avatar-wrap">
+                          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&q=80" alt="Carlos">
+                          <span class="chat-channel-badge badge-wa"><i class="fa-brands fa-whatsapp"></i></span>
+                        </div>
+                        <div class="chat-item-body">
+                          <div class="chat-item-header">
+                            <span class="chat-contact-name">Carlos Mendoza</span>
+                            <span class="chat-timestamp">10:42 AM</span>
+                          </div>
+                          <p class="chat-preview-msg">Hola, vi su publicación sobre frenos, ¿qué precio tiene el servicio?</p>
+                        </div>
+                        <span class="chat-unread-badge">1</span>
+                      </div>
+
+                      <!-- Chat 2: Instagram -->
+                      <div class="inbox-chat-item" data-chat-id="chat-2" data-channel="instagram">
+                        <div class="chat-avatar-wrap">
+                          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80" alt="Valentina">
+                          <span class="chat-channel-badge badge-ig"><i class="fa-brands fa-instagram"></i></span>
+                        </div>
+                        <div class="chat-item-body">
+                          <div class="chat-item-header">
+                            <span class="chat-contact-name">@valentinagomez</span>
+                            <span class="chat-timestamp">Ayer</span>
+                          </div>
+                          <p class="chat-preview-msg">Me encanta el contenido que suben, ¿atienden los sábados?</p>
+                        </div>
+                      </div>
+
+                      <!-- Chat 3: Facebook Messenger -->
+                      <div class="inbox-chat-item" data-chat-id="chat-3" data-channel="messenger">
+                        <div class="chat-avatar-wrap">
+                          <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&q=80" alt="Andres">
+                          <span class="chat-channel-badge badge-fb"><i class="fa-brands fa-facebook-messenger"></i></span>
+                        </div>
+                        <div class="chat-item-body">
+                          <div class="chat-item-header">
+                            <span class="chat-contact-name">Andrés Felipe Castro</span>
+                            <span class="chat-timestamp">Hace 2 días</span>
+                          </div>
+                          <p class="chat-preview-msg">Muchísimas gracias por la atención oportuna.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </aside>
+
+                  <!-- Columna Derecha: Hilo de Conversación Activa -->
+                  <section class="inbox-thread-area">
+                    <header class="inbox-thread-header">
+                      <div class="thread-user-info">
+                        <div class="chat-avatar-wrap">
+                          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&q=80" alt="Carlos" id="thread-avatar">
+                          <span class="chat-channel-badge badge-wa" id="thread-channel-badge"><i class="fa-brands fa-whatsapp"></i></span>
+                        </div>
+                        <div>
+                          <h4 class="thread-contact-name" id="thread-contact-name">Carlos Mendoza</h4>
+                          <span class="thread-contact-meta" id="thread-contact-meta"><i class="fa-solid fa-circle text-success" style="font-size: 0.55rem;"></i> WhatsApp Business • +57 301 849 2041</span>
+                        </div>
+                      </div>
+                      <div class="thread-actions">
+                        <button type="button" class="btn-thread-action" title="Llamar"><i class="fa-solid fa-phone"></i></button>
+                        <button type="button" class="btn-thread-action" title="Marcar como Resuelto"><i class="fa-solid fa-circle-check"></i></button>
+                      </div>
+                    </header>
+
+                    <div class="inbox-messages-scroll" id="inbox-messages-scroll">
+                      <div class="msg-bubble-group incoming">
+                        <div class="msg-bubble">
+                          ¡Hola! Buenas tardes. Vi su publicación en Instagram sobre el diagnóstico gratuito de frenos y quisiera saber cómo agendar una cita para mi vehículo esta semana.
+                        </div>
+                        <span class="msg-time">10:42 AM</span>
+                      </div>
+
+                      <div class="msg-bubble-group outgoing">
+                        <div class="msg-bubble">
+                          ¡Hola Carlos! Con todo gusto. Tenemos disponibilidad para el día de mañana a las 9:00 AM o a las 3:30 PM. ¿Cuál horario te queda más cómodo?
+                        </div>
+                        <span class="msg-time">10:45 AM • Leído <i class="fa-solid fa-check-double" style="color: #00d2ff;"></i></span>
+                      </div>
+
+                      <div class="msg-bubble-group incoming">
+                        <div class="msg-bubble">
+                          A las 3:30 PM me queda perfecto. ¿Qué datos necesitan?
+                        </div>
+                        <span class="msg-time">10:46 AM</span>
+                      </div>
+                    </div>
+
+                    <footer class="inbox-composer-area">
+                      <button type="button" class="btn-composer-tool" title="Adjuntar archivo"><i class="fa-solid fa-paperclip"></i></button>
+                      <button type="button" class="btn-composer-tool" title="Plantillas rápidas"><i class="fa-solid fa-bolt"></i></button>
+                      <input type="text" class="composer-input" id="inbox-reply-input" placeholder="Escribe un mensaje para Carlos Mendoza...">
+                      <button type="button" class="btn-send-message" id="btn-send-inbox-msg">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>Enviar</span>
+                      </button>
+                    </footer>
+                  </section>
+                </div>
+              </div> <!-- Fin subview-inbox -->
+
+              <!-- Sub-vista 4: Planificación & Calendario Visual de Contenidos -->
+              <div id="metricool-subview-planificacion" class="metricool-subview" style="display: none;">
+                <div class="metricool-header-row">
+                  <div>
+                    <h2 class="metricool-section-heading">Planificador de Contenidos</h2>
+                    <p class="section-subtitle">Visualiza y programa publicaciones automáticas en tus mejores horas</p>
+                  </div>
+                  <div class="plan-header-controls">
+                    <div class="metricool-period-selector">
+                      <button type="button" class="period-pill active">Octubre 2026</button>
+                      <button type="button" class="period-pill">Vista Semanal</button>
+                    </div>
+                    <button type="button" class="btn-action-primary" id="btn-open-create-post-from-calendar">
+                      <i class="fa-solid fa-calendar-plus"></i>
+                      <span>+ Programar Post</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Banner de Horas Calientes -->
+                <div class="heatmap-info-banner">
+                  <div class="heatmap-legend">
+                    <span class="legend-title"><i class="fa-solid fa-fire"></i> Horas de Mayor Alcance:</span>
+                    <span class="legend-scale">
+                      <span class="legend-step step-low">Normal</span>
+                      <span class="legend-step step-med">Medio</span>
+                      <span class="legend-step step-high">Alta actividad (Recomendado)</span>
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Calendario Semanal Interactivo -->
+                <div class="calendar-grid-wrapper">
+                  <div class="calendar-grid-header">
+                    <div class="cal-col-header">Lunes 19</div>
+                    <div class="cal-col-header">Martes 20</div>
+                    <div class="cal-col-header today">Miércoles 21 (Hoy)</div>
+                    <div class="cal-col-header">Jueves 22</div>
+                    <div class="cal-col-header">Viernes 23</div>
+                    <div class="cal-col-header">Sábado 24</div>
+                    <div class="cal-col-header">Domingo 25</div>
+                  </div>
+
+                  <div class="calendar-grid-body">
+                    <!-- Fila Mañana -->
+                    <div class="cal-day-cell">
+                      <div class="cal-post-card published" title="Publicado con éxito">
+                        <span class="post-pill-net net-ig"><i class="fa-brands fa-instagram"></i> 10:00 AM</span>
+                        <div class="post-title-trunc">Post: "3 ruidos en tu vehículo..."</div>
+                      </div>
+                    </div>
+                    <div class="cal-day-cell hot-slot">
+                      <div class="hot-slot-label"><i class="fa-solid fa-fire"></i> 11:30 AM</div>
+                    </div>
+                    <div class="cal-day-cell today">
+                      <div class="cal-post-card scheduled" title="Programado para hoy">
+                        <span class="post-pill-net net-tt"><i class="fa-brands fa-tiktok"></i> 06:00 PM</span>
+                        <div class="post-title-trunc">Reel: "¿Cuándo cambiar aceite?"</div>
+                      </div>
+                    </div>
+                    <div class="cal-day-cell"></div>
+                    <div class="cal-day-cell hot-slot">
+                      <div class="cal-post-card scheduled">
+                        <span class="post-pill-net net-fb"><i class="fa-brands fa-facebook"></i> 07:30 PM</span>
+                        <div class="post-title-trunc">Carrusel: Consejos de viaje</div>
+                      </div>
+                    </div>
+                    <div class="cal-day-cell"></div>
+                    <div class="cal-day-cell"></div>
+                  </div>
+                </div>
+              </div> <!-- Fin subview-planificacion -->
+
+              <!-- Sub-vista 5: SmartLinks (Link-in-Bio estilo Linktree / Metricool) -->
+              <div id="metricool-subview-smartlinks" class="metricool-subview" style="display: none;">
+                <div class="metricool-header-row">
+                  <div>
+                    <h2 class="metricool-section-heading">SmartLink (Link in Bio)</h2>
+                    <p class="section-subtitle">Tu página de enlaces oficial optimizada para convertir seguidores en clientes</p>
+                  </div>
+                  <div class="smartlink-url-share-box">
+                    <span class="smartlink-url-text" id="smartlink-live-url">magum.link/minegocio</span>
+                    <button type="button" class="btn-copy-smartlink" id="btn-copy-smartlink" title="Copiar enlace">
+                      <i class="fa-regular fa-copy"></i>
+                      <span>Copiar</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="smartlinks-editor-grid">
+                  <!-- Editor de Botones y Diseño -->
+                  <div class="smartlink-controls-panel">
+                    <div class="form-group">
+                      <label class="form-label">Título del Perfil</label>
+                      <input type="text" class="form-input" id="smartlink-input-title" value="AutoMotor Cartagena">
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">Descripción / Biografía</label>
+                      <textarea class="form-input" id="smartlink-input-bio" rows="2">Especialistas en mecánica preventiva y frenos. ¡Agenda tu cita directa por WhatsApp!</textarea>
+                    </div>
+
+                    <div class="smartlink-buttons-manager">
+                      <div class="manager-header">
+                        <label class="form-label" style="margin: 0;">Botones Activos</label>
+                        <button type="button" class="btn-add-smartlink-btn" id="btn-add-smartlink-btn">
+                          <i class="fa-solid fa-plus"></i> <span>Agregar Enlace</span>
+                        </button>
+                      </div>
+
+                      <div class="smartlinks-list" id="smartlinks-list">
+                        <!-- Enlace 1: WhatsApp -->
+                        <div class="smartlink-item-row">
+                          <i class="fa-solid fa-grip-vertical drag-handle"></i>
+                          <div class="item-icon-bubble bg-wa"><i class="fa-brands fa-whatsapp"></i></div>
+                          <div class="item-info">
+                            <strong>Chatear con un Asesor</strong>
+                            <span>wa.me/573018492041</span>
+                          </div>
+                          <label class="switch-mini"><input type="checkbox" checked><span class="slider-mini"></span></label>
+                        </div>
+
+                        <!-- Enlace 2: Web -->
+                        <div class="smartlink-item-row">
+                          <i class="fa-solid fa-grip-vertical drag-handle"></i>
+                          <div class="item-icon-bubble bg-web"><i class="fa-solid fa-globe"></i></div>
+                          <div class="item-info">
+                            <strong>Sitio Web Oficial</strong>
+                            <span>www.automotorcartagena.com</span>
+                          </div>
+                          <label class="switch-mini"><input type="checkbox" checked><span class="slider-mini"></span></label>
+                        </div>
+
+                        <!-- Enlace 3: Ubicación -->
+                        <div class="smartlink-item-row">
+                          <i class="fa-solid fa-grip-vertical drag-handle"></i>
+                          <div class="item-icon-bubble bg-maps"><i class="fa-solid fa-location-dot"></i></div>
+                          <div class="item-info">
+                            <strong>Ubicación en Google Maps</strong>
+                            <span>maps.google.com/...</span>
+                          </div>
+                          <label class="switch-mini"><input type="checkbox" checked><span class="slider-mini"></span></label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Mockup de Smartphone con Vista Previa en Vivo -->
+                  <div class="smartlink-phone-preview-wrap">
+                    <div class="phone-mockup">
+                      <div class="phone-speaker"></div>
+                      <div class="phone-screen" id="smartlink-phone-screen">
+                        <div class="phone-avatar-box">
+                          <img src="https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=160&q=80" alt="Logo" id="phone-avatar-img">
+                          <h4 class="phone-profile-name" id="phone-profile-name">AutoMotor Cartagena</h4>
+                          <p class="phone-profile-desc" id="phone-profile-desc">Especialistas en mecánica preventiva y frenos. ¡Agenda tu cita directa por WhatsApp!</p>
+                        </div>
+
+                        <div class="phone-links-container" id="phone-links-container">
+                          <a href="#" class="phone-link-btn" target="_blank">
+                            <i class="fa-brands fa-whatsapp"></i>
+                            <span>Chatear con un Asesor</span>
+                          </a>
+                          <a href="#" class="phone-link-btn" target="_blank">
+                            <i class="fa-solid fa-globe"></i>
+                            <span>Sitio Web Oficial</span>
+                          </a>
+                          <a href="#" class="phone-link-btn" target="_blank">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <span>Ubicación en Google Maps</span>
+                          </a>
+                        </div>
+                        <div class="phone-footer-brand">
+                          Powered by <strong>Magum Creator Studio</strong>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div> <!-- Fin subview-smartlinks -->
+
+              <!-- Sub-vista 6: Anuncios (Ads Manager Multicanal Meta Ads & Google Ads) -->
+              <div id="metricool-subview-anuncios" class="metricool-subview" style="display: none;">
+                <div class="metricool-header-row">
+                  <div>
+                    <h2 class="metricool-section-heading">Gestión & Analítica de Anuncios (Ads)</h2>
+                    <p class="section-subtitle">Monitorea tus campañas pagadas en Meta Ads y Google Ads desde un panel consolidado</p>
+                  </div>
+                  <div class="metricool-period-selector">
+                    <button type="button" class="period-pill active">Últimos 30 días</button>
+                    <button type="button" class="period-pill">Este mes</button>
+                  </div>
+                </div>
+
+                <!-- 4 KPI Cards de Anuncios -->
+                <div class="ads-kpis-grid">
+                  <div class="metricool-feature-card">
+                    <div class="feature-card-header">
+                      <div class="feature-card-text">
+                        <h4 class="feature-card-title">Inversión Total</h4>
+                        <p class="feature-card-desc">Gasto publicitario del período</p>
+                      </div>
+                      <div class="feature-icon-bubble" style="background: rgba(33, 0, 135, 0.15); color: #6366f1;">
+                        <i class="fa-solid fa-dollar-sign"></i>
+                      </div>
+                    </div>
+                    <div class="feature-metric-number">
+                      <span class="feature-num">$385.00 <small style="font-size: 0.8rem; color: #94a3b8;">USD</small></span>
+                      <span class="feature-trend positive"><i class="fa-solid fa-arrow-trend-up"></i> +12%</span>
+                    </div>
+                  </div>
+
+                  <div class="metricool-feature-card">
+                    <div class="feature-card-header">
+                      <div class="feature-card-text">
+                        <h4 class="feature-card-title">Retorno (ROAS)</h4>
+                        <p class="feature-card-desc">Multiplicador de ingresos</p>
+                      </div>
+                      <div class="feature-icon-bubble" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                        <i class="fa-solid fa-chart-line"></i>
+                      </div>
+                    </div>
+                    <div class="feature-metric-number">
+                      <span class="feature-num">4.6x</span>
+                      <span class="feature-trend positive"><i class="fa-solid fa-arrow-trend-up"></i> +0.4x</span>
+                    </div>
+                  </div>
+
+                  <div class="metricool-feature-card">
+                    <div class="feature-card-header">
+                      <div class="feature-card-text">
+                        <h4 class="feature-card-title">Costo por Clic (CPC)</h4>
+                        <p class="feature-card-desc">Costo promedio de atracción</p>
+                      </div>
+                      <div class="feature-icon-bubble" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+                        <i class="fa-solid fa-bullseye"></i>
+                      </div>
+                    </div>
+                    <div class="feature-metric-number">
+                      <span class="feature-num">$0.18 <small style="font-size: 0.8rem; color: #94a3b8;">USD</small></span>
+                      <span class="feature-trend positive"><i class="fa-solid fa-arrow-trend-down"></i> -8.4%</span>
+                    </div>
+                  </div>
+
+                  <div class="metricool-feature-card">
+                    <div class="feature-card-header">
+                      <div class="feature-card-text">
+                        <h4 class="feature-card-title">Leads / Clientes</h4>
+                        <p class="feature-card-desc">Contactos y formularios</p>
+                      </div>
+                      <div class="feature-icon-bubble" style="background: rgba(255, 0, 219, 0.15); color: #ff00db;">
+                        <i class="fa-solid fa-user-check"></i>
+                      </div>
+                    </div>
+                    <div class="feature-metric-number">
+                      <span class="feature-num">164 leads</span>
+                      <span class="feature-trend positive"><i class="fa-solid fa-arrow-trend-up"></i> +28 nuevos</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tabla de Campañas Activas -->
+                <div class="table-card" style="margin-top: 24px;">
+                  <div class="table-card-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                    <h3 class="section-title" style="font-size: 1.05rem; margin: 0;">Campañas Activas</h3>
+                    <span class="badge-status-counter">3 Campañas en Circulación</span>
+                  </div>
+                  <div class="table-responsive">
+                    <table class="metricool-accounts-table">
+                      <thead>
+                        <tr>
+                          <th>Campaña</th>
+                          <th>Canal</th>
+                          <th>Estado</th>
+                          <th>Presupuesto</th>
+                          <th>Impresiones</th>
+                          <th>Clics</th>
+                          <th>Costo / Lead</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><strong>Atracción Clientes Locales Cartagena</strong></td>
+                          <td><span class="channel-icon-pill icon-ig"><i class="fa-brands fa-instagram"></i></span> Meta Ads</td>
+                          <td><span class="badge-api-connected"><i class="fa-solid fa-circle-check"></i> Activa</span></td>
+                          <td>$10 USD / día</td>
+                          <td>18,400</td>
+                          <td>920</td>
+                          <td>$2.15 USD</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Retargeting Visitantes Web Formulario</strong></td>
+                          <td><span class="channel-icon-pill icon-fb"><i class="fa-brands fa-facebook"></i></span> Meta Ads</td>
+                          <td><span class="badge-api-connected"><i class="fa-solid fa-circle-check"></i> Activa</span></td>
+                          <td>$5 USD / día</td>
+                          <td>8,200</td>
+                          <td>410</td>
+                          <td>$1.80 USD</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Búsqueda Google: 'Taller Mecánico Cartagena'</strong></td>
+                          <td><span class="channel-icon-pill icon-gbp"><i class="fa-brands fa-google"></i></span> Google Ads</td>
+                          <td><span class="badge-api-connected"><i class="fa-solid fa-circle-check"></i> Activa</span></td>
+                          <td>$8 USD / día</td>
+                          <td>4,100</td>
+                          <td>340</td>
+                          <td>$3.20 USD</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div> <!-- Fin subview-anuncios -->
 
             </main>
 
@@ -1842,6 +2610,164 @@
           </footer>
         </form>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal para Crear Publicación Multicanal -->
+  <div class="modal-backdrop" id="modal-create-post" style="display: none;">
+    <div class="modal-card modal-post-composer">
+      <header class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-bubble" style="background: linear-gradient(135deg, #ff00db, #210087); color: #fff;">
+            <i class="fa-solid fa-plus"></i>
+          </div>
+          <div>
+            <h3 class="modal-title">Crear Publicación</h3>
+            <p class="modal-desc">Redacta y programa en todos tus canales simultáneamente</p>
+          </div>
+        </div>
+        <button id="btn-close-create-post" class="btn-close-modal" type="button"><i class="fa-solid fa-xmark"></i></button>
+      </header>
+
+      <div class="modal-body post-composer-body">
+        <div class="composer-left-editor">
+          <!-- Selector de Redes Sociales -->
+          <div class="form-group">
+            <label class="form-label">Publicar en:</label>
+            <div class="post-channels-selector">
+              <label class="post-channel-chip active" data-chip="instagram">
+                <input type="checkbox" checked hidden>
+                <i class="fa-brands fa-instagram"></i> Instagram
+              </label>
+              <label class="post-channel-chip active" data-chip="facebook">
+                <input type="checkbox" checked hidden>
+                <i class="fa-brands fa-facebook"></i> Facebook
+              </label>
+              <label class="post-channel-chip" data-chip="tiktok">
+                <input type="checkbox" hidden>
+                <i class="fa-brands fa-tiktok"></i> TikTok
+              </label>
+              <label class="post-channel-chip" data-chip="youtube">
+                <input type="checkbox" hidden>
+                <i class="fa-brands fa-youtube"></i> YouTube
+              </label>
+            </div>
+          </div>
+
+          <!-- Texto de la publicación -->
+          <div class="form-group">
+            <label class="form-label">Texto / Copia de la publicación</label>
+            <textarea class="form-input" id="post-caption-input" rows="4" placeholder="¿De qué trata tu publicación? Agrega hashtags y emojis..."></textarea>
+            <div class="caption-counter-row">
+              <span class="caption-count" id="post-caption-counter">0 / 2,200 caracteres</span>
+              <button type="button" class="btn-caption-tool" id="btn-caption-ai-optimize"><i class="fa-solid fa-wand-magic-sparkles"></i> Optimizar con IA</button>
+            </div>
+          </div>
+
+          <!-- Zona de Subida de Imagen / Video -->
+          <div class="form-group">
+            <label class="form-label">Multimedia (Foto o Video)</label>
+            <div class="upload-dropzone" id="post-dropzone">
+              <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
+              <p class="dropzone-text">Arrastra una imagen o video aquí o haz clic para subir</p>
+              <span class="dropzone-hint">Formatos: JPG, PNG, MP4, MOV (hasta 50 MB)</span>
+              <input type="file" id="post-file-input" accept="image/*,video/*" style="display: none;">
+            </div>
+          </div>
+
+          <!-- Programación de Fecha y Hora -->
+          <div class="form-group">
+            <label class="form-label">Programación</label>
+            <div class="schedule-inputs-row">
+              <input type="date" class="form-input" id="post-schedule-date">
+              <input type="time" class="form-input" id="post-schedule-time" value="18:00">
+            </div>
+          </div>
+        </div>
+
+        <!-- Preview Mockup en Vivo (Instagram Feed / Reel) -->
+        <div class="composer-right-preview">
+          <div class="preview-header-label">Vista Previa (Instagram Feed)</div>
+          <div class="social-preview-mockup">
+            <div class="preview-post-top">
+              <img src="https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=80&q=80" alt="Avatar" class="preview-author-avatar">
+              <div class="preview-author-info">
+                <strong id="preview-author-name">automotorcartagena</strong>
+                <span>Original Audio</span>
+              </div>
+              <i class="fa-solid fa-ellipsis"></i>
+            </div>
+            <div class="preview-image-box" id="preview-image-box">
+              <i class="fa-regular fa-image placeholder-preview-icon"></i>
+            </div>
+            <div class="preview-actions-bar">
+              <div class="actions-left">
+                <i class="fa-regular fa-heart"></i>
+                <i class="fa-regular fa-comment"></i>
+                <i class="fa-regular fa-paper-plane"></i>
+              </div>
+              <i class="fa-regular fa-bookmark"></i>
+            </div>
+            <div class="preview-caption-box">
+              <span class="preview-likes">142 Me gusta</span>
+              <p class="preview-caption-text" id="preview-caption-text"><strong>automotorcartagena</strong> ¡Tu texto se previsualizará en tiempo real aquí!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn-cancel" id="btn-cancel-create-post">Cancelar</button>
+        <button type="button" class="btn-submit-account" id="btn-submit-create-post" style="background: linear-gradient(135deg, #ff00db, #210087);">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>Programar Publicación</span>
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Modal para Cambiar Foto de Perfil / Avatar -->
+  <div class="modal-backdrop" id="modal-change-avatar" style="display: none;">
+    <div class="modal-card" style="max-width: 440px;">
+      <header class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-bubble" style="background: #210087; color: #fff;">
+            <i class="fa-solid fa-camera"></i>
+          </div>
+          <div>
+            <h3 class="modal-title">Cambiar Foto de Perfil</h3>
+            <p class="modal-desc">Personaliza la imagen oficial de tu negocio</p>
+          </div>
+        </div>
+        <button id="btn-close-avatar-modal" class="btn-close-modal" type="button"><i class="fa-solid fa-xmark"></i></button>
+      </header>
+
+      <div class="modal-body">
+        <div class="avatar-current-preview-box" style="text-align: center; margin-bottom: 20px;">
+          <img src="" alt="Avatar actual" id="avatar-modal-preview" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #ff00db; box-shadow: 0 4px 15px rgba(255, 0, 219, 0.3);">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Subir archivo desde tu dispositivo</label>
+          <button type="button" class="btn-action-suggestion" id="btn-trigger-avatar-file" style="width: 100%; justify-content: center; padding: 12px;">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <span>Seleccionar Imagen (PNG, JPG)</span>
+          </button>
+        </div>
+
+        <div class="form-group" style="margin-top: 14px;">
+          <label class="form-label">O pegar enlace directo de imagen (URL)</label>
+          <input type="url" class="form-input" id="input-avatar-url" placeholder="https://ejemplo.com/tu-foto.jpg">
+        </div>
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn-cancel" id="btn-cancel-avatar-modal">Cancelar</button>
+        <button type="button" class="btn-submit-account" id="btn-save-avatar" style="background: #210087;">
+          <i class="fa-solid fa-floppy-disk"></i>
+          <span>Guardar Foto</span>
+        </button>
+      </footer>
     </div>
   </div>
 
