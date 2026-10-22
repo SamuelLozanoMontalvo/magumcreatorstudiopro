@@ -1932,6 +1932,13 @@ document.addEventListener('DOMContentLoaded', () => {
           if (smartTitle) smartTitle.value = 'Magum Creator Studio';
           if (phoneTitle) phoneTitle.textContent = 'Magum Creator Studio';
           if (phoneDesc) phoneDesc.textContent = 'Agencia & Creator Studio Oficial. Conectamos tu marca en redes sociales.';
+        } else {
+          const kpiFollowers = document.getElementById('metric-followers-total');
+          const kpiReach = document.getElementById('metric-reach-total');
+          const kpiEngagement = document.getElementById('metric-engagement-rate');
+          if (kpiFollowers) kpiFollowers.textContent = '0';
+          if (kpiReach) kpiReach.textContent = '0';
+          if (kpiEngagement) kpiEngagement.textContent = '0.0%';
         }
       }
     } catch (err) {
